@@ -15,16 +15,16 @@ body {
     font-family: Door, Arial;
     background: url('background-red.png');
     background-size: cover;
-    color: white;
+    color: black;
 }
 
-/* затемнение */
+/* затемнение сильнее */
 body::before {
     content: "";
     position: fixed;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.75);
     z-index: -1;
 }
 
@@ -36,14 +36,15 @@ body::before {
 
 h1 {
     font-size: 80px;
-    color: #ff2e2e;
+    color: white;
 }
 
 /* КНОПКА */
 .button {
+    background: white;
     border: 2px solid white;
     padding: 15px 30px;
-    color: white;
+    color: black;
     text-decoration: none;
     font-size: 20px;
     border-radius: 12px;
@@ -51,36 +52,45 @@ h1 {
 }
 
 .button:hover {
-    background: white;
-    color: black;
+    background: black;
+    color: white;
 }
 
 /* СЕКЦИИ */
 .section {
     padding: 60px;
     text-align: center;
+    color: white;
 }
 
 /* ВЕРСИИ */
 .version {
     margin: 20px auto;
     padding: 20px;
-    background: rgba(0,0,0,0.7);
+    background: rgba(0,0,0,0.8);
     border-left: 5px solid red;
     max-width: 600px;
 }
 
 /* ГАЛЕРЕЯ */
-.gallery img {
-    width: 250px;
+.gallery-item {
+    display: inline-block;
     margin: 10px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: 0.3s;
 }
 
-.gallery img:hover {
-    transform: scale(1.05);
+.gallery img {
+    width: 250px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.name {
+    font-size: 14px;
+}
+
+.author {
+    font-size: 12px;
+    opacity: 0.7;
 }
 
 /* FULLSCREEN */
@@ -88,7 +98,6 @@ h1 {
     display: none;
     position: fixed;
     top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
     background: black;
@@ -99,11 +108,10 @@ h1 {
 
 .fullscreen img {
     max-width: 90%;
-    max-height: 80%;
 }
 
-.fullscreen p {
-    color: white;
+.more-btn {
+    margin-top: 20px;
 }
 </style>
 </head>
@@ -112,44 +120,90 @@ h1 {
 
 <div class="hero">
     <h1>CubiX</h1>
-    <a class="button" href="#">Играть</a>
+    <a class="button" href="https://drive.google.com/file/d/13sFn3THSF_5-CxYdcR2fd0udfEVBN7rn/view?usp=drive_link">
+        Скачать
+    </a>
 </div>
 
 <div class="section">
     <h2>Скриншоты</h2>
-    <div class="gallery">
-        <img src="cube.png" onclick="openImg(this)">
-        <img src="cover.png" onclick="openImg(this)">
-    </div>
+    <div id="gallery"></div>
+    <button class="button more-btn" onclick="showMore()">Показать ещё</button>
 </div>
 
 <div class="section">
     <h2>Версии</h2>
 
     <div class="version">
-        <h3>v1.0</h3>
-        <p>Первая версия игры</p>
-        <a class="button" href="#">Скачать</a>
+        <h3>v0.5 (последняя)</h3>
+        <p>Исправлен баг с PvP. Добавлен новый интерфейс.</p>
+        <a class="button" href="https://drive.google.com/file/d/13sFn3THSF_5-CxYdcR2fd0udfEVBN7rn/view?usp=drive_link">Скачать</a>
+    </div>
+
+    <div class="version">
+        <h3>v0.45</h3>
+        <p>Добавлено много изменений: больше картинок, достижения, усиления и не только.</p>
+        <a class="button" href="https://drive.google.com/file/d/1B8b5vj9AWSkbE95AyGnfol6ywoJxJ7tP/view?usp=drive_link">Скачать</a>
     </div>
 
 </div>
 
-<!-- FULLSCREEN VIEW -->
+<div class="section">
+    <p>Если хотите добавить свой скриншот — пишите:</p>
+    <p><b>xplus.official10@gmail.com</b></p>
+    <p>Также по вопросам и багам 👍</p>
+</div>
+
 <div class="fullscreen" id="viewer" onclick="closeImg()">
     <img id="bigImg">
-    <p id="imgInfo"></p>
+    <p id="imgName"></p>
 </div>
 
 <script>
-function openImg(el) {
+let images = [
+    "cube-cubix.png",
+    "cover-cubix.png",
+    "base-cubix.png",
+    "map-cubix.png"
+];
+
+let visible = 3;
+
+function cleanName(name) {
+    return name.replace("-cubix.png", "");
+}
+
+function render() {
+    let gallery = document.getElementById("gallery");
+    gallery.innerHTML = "";
+
+    images.slice(0, visible).forEach(img => {
+        gallery.innerHTML += `
+        <div class="gallery-item">
+            <img src="${img}" onclick="openImg('${img}')">
+            <div class="name">${cleanName(img)}</div>
+            <div class="author">Автор: Xplus</div>
+        </div>
+        `;
+    });
+}
+
+function showMore() {
+    visible += 3;
+    render();
+}
+
+function openImg(src) {
     document.getElementById("viewer").style.display = "flex";
-    document.getElementById("bigImg").src = el.src;
-    document.getElementById("imgInfo").innerText = el.src;
+    document.getElementById("bigImg").src = src;
+    document.getElementById("imgName").innerText = cleanName(src);
 }
 
 function closeImg() {
     document.getElementById("viewer").style.display = "none";
 }
+
+render();
 </script>
 
 </body>
