@@ -10,15 +10,18 @@
     src: url('door.otf');
 }
 
-body {
-    margin: 0;
+* {
     font-family: Door, Arial;
-    background: url('background-red.png');
-    background-size: cover;
-    color: black;
+    box-sizing: border-box;
 }
 
-/* затемнение сильнее */
+body {
+    margin: 0;
+    background: url('background-red.png');
+    background-size: cover;
+    color: white;
+}
+
 body::before {
     content: "";
     position: fixed;
@@ -36,11 +39,11 @@ body::before {
 
 h1 {
     font-size: 80px;
-    color: white;
 }
 
 /* КНОПКА */
 .button {
+    display: inline-block;
     background: white;
     border: 2px solid white;
     padding: 15px 30px;
@@ -60,19 +63,22 @@ h1 {
 .section {
     padding: 60px;
     text-align: center;
-    color: white;
 }
 
 /* ВЕРСИИ */
 .version {
     margin: 20px auto;
-    padding: 20px;
+    padding: 25px;
     background: rgba(0,0,0,0.8);
     border-left: 5px solid red;
     max-width: 600px;
 }
 
 /* ГАЛЕРЕЯ */
+#gallery {
+    text-align: center;
+}
+
 .gallery-item {
     display: inline-block;
     margin: 10px;
@@ -82,6 +88,11 @@ h1 {
     width: 250px;
     border-radius: 10px;
     cursor: pointer;
+    transition: 0.3s;
+}
+
+.gallery img:hover {
+    transform: scale(1.1);
 }
 
 .name {
@@ -110,8 +121,14 @@ h1 {
     max-width: 90%;
 }
 
-.more-btn {
-    margin-top: 20px;
+/* SOUND PANEL */
+.sound-panel {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: black;
+    padding: 10px;
+    border-radius: 10px;
 }
 </style>
 </head>
@@ -120,15 +137,15 @@ h1 {
 
 <div class="hero">
     <h1>CubiX</h1>
-    <a class="button" href="https://drive.google.com/file/d/13sFn3THSF_5-CxYdcR2fd0udfEVBN7rn/view?usp=drive_link">
+    <a class="button" href="https://drive.google.com/file/d/13sFn3THSF_5-CxYdcR2fd0udfEVBN7rn/view" onclick="download('v05')">
         Скачать
     </a>
 </div>
 
 <div class="section">
     <h2>Скриншоты</h2>
-    <div id="gallery"></div>
-    <button class="button more-btn" onclick="showMore()">Показать ещё</button>
+    <div id="gallery" class="gallery"></div>
+    <button class="button" onclick="showMore()">Показать ещё</button>
 </div>
 
 <div class="section">
@@ -137,21 +154,22 @@ h1 {
     <div class="version">
         <h3>v0.5 (последняя)</h3>
         <p>Исправлен баг с PvP. Добавлен новый интерфейс.</p>
-        <a class="button" href="https://drive.google.com/file/d/13sFn3THSF_5-CxYdcR2fd0udfEVBN7rn/view?usp=drive_link">Скачать</a>
+        <p>Скачиваний: <span id="count-v05">0</span></p>
+        <a class="button" href="https://drive.google.com/file/d/13sFn3THSF_5-CxYdcR2fd0udfEVBN7rn/view" onclick="download('v05')">Скачать</a>
     </div>
 
     <div class="version">
         <h3>v0.45</h3>
-        <p>Добавлено много изменений: больше картинок, достижения, усиления и не только.</p>
-        <a class="button" href="https://drive.google.com/file/d/1B8b5vj9AWSkbE95AyGnfol6ywoJxJ7tP/view?usp=drive_link">Скачать</a>
+        <p>Добавлено много изменений.</p>
+        <p>Скачиваний: <span id="count-v045">0</span></p>
+        <a class="button" href="https://drive.google.com/file/d/1B8b5vj9AWSkbE95AyGnfol6ywoJxJ7tP/view" onclick="download('v045')">Скачать</a>
     </div>
 
 </div>
 
 <div class="section">
-    <p>Если хотите добавить свой скриншот — пишите:</p>
+    <p>Добавить скриншот:</p>
     <p><b>xplus.official10@gmail.com</b></p>
-    <p>Также по вопросам и багам 👍</p>
 </div>
 
 <div class="fullscreen" id="viewer" onclick="closeImg()">
@@ -159,12 +177,21 @@ h1 {
     <p id="imgName"></p>
 </div>
 
+<!-- AUDIO -->
+<audio id="clickSound" src="click.mp3"></audio>
+<audio id="bgMusic" src="music.mp3" loop></audio>
+
+<!-- SOUND CONTROL -->
+<div class="sound-panel">
+    🔊 <input type="range" min="0" max="1" step="0.01" value="0.5" onchange="setVolume(this.value)">
+</div>
+
 <script>
 let images = [
     "cube-cubix.png",
     "cover-cubix.png",
     "bomb-cubix.png",
-    "coin-cubix.png"
+    "coin-cubix.png",
     "blue-player-cubix.png"
 ];
 
@@ -204,6 +231,36 @@ function closeImg() {
     document.getElementById("viewer").style.display = "none";
 }
 
+/* SOUND */
+let clickSound = document.getElementById("clickSound");
+let bgMusic = document.getElementById("bgMusic");
+
+bgMusic.volume = 0.5;
+
+document.addEventListener("click", () => {
+    clickSound.currentTime = 0;
+    clickSound.play();
+});
+
+document.body.addEventListener("click", () => {
+    bgMusic.play();
+}, { once: true });
+
+function setVolume(v) {
+    bgMusic.volume = v;
+}
+
+/* DOWNLOAD COUNTER */
+function download(version) {
+    let key = "downloads_" + version;
+    let count = localStorage.getItem(key) || 0;
+    count++;
+    localStorage.setItem(key, count);
+
+    document.getElementById("count-" + version).innerText = count;
+}
+
+/* INIT */
 render();
 </script>
 
