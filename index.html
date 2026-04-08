@@ -14,81 +14,91 @@
         * { font-family: Door, Arial, sans-serif; box-sizing: border-box; scroll-behavior: smooth; }
         
         body { 
-            margin: 0; background: #000 url('background-red.png') no-repeat center center fixed; 
-            background-size: cover; color: white; overflow-x: hidden;
+            margin: 0; 
+            background-color: #000;
+            color: white; 
+            overflow-x: hidden;
+            transition: background 0.5s ease;
         }
 
-        body::before {
-            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(20,0,0,0.95) 100%); z-index: -1;
+        /* Общий слой затемнения */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: -1;
         }
 
-        /* Навигация */
-        nav { background: rgba(0,0,0,0.8); padding: 15px; position: sticky; top: 0; z-index: 50; border-bottom: 2px solid red; display: flex; justify-content: center; gap: 30px; }
-        nav a { color: white; text-decoration: none; font-size: 20px; transition: 0.3s; cursor: pointer; }
-        nav a:hover { color: red; text-shadow: 0 0 10px red; }
+        /* Динамический фон */
+        .bg-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            z-index: -2; transition: 0.8s;
+        }
 
-        .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; text-align: center; }
+        
         .page { display: none; animation: fadeIn 0.5s ease; }
         .active { display: block; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        h1 { font-size: 80px; text-shadow: 0 0 20px red; margin: 10px 0; }
-        h2 { border-bottom: 2px solid red; display: inline-block; padding-bottom: 5px; margin-bottom: 30px; }
+        h1 { font-size: clamp(60px, 12vw, 100px); text-shadow: 0 0 20px red; margin: 20px 0; }
+        
+        /* Кнопки меню по центру */
+        .main-nav { display: flex; justify-content: center; gap: 40px; margin: 30px 0; flex-wrap: wrap; }
+        .nav-btn { 
+            color: #ccc; text-decoration: none; font-size: 24px; 
+            cursor: pointer; transition: 0.3s; border-bottom: 2px solid transparent;
+        }
+        .nav-btn:hover { color: white; border-color: red; text-shadow: 0 0 10px white; }
+        .nav-btn.active-link { color: white; border-color: red; }
 
         .button {
             display: inline-block; background: white; border: 2px solid white;
-            padding: 15px 35px; color: black; text-decoration: none;
-            font-size: 22px; border-radius: 5px; transition: 0.3s; cursor: pointer;
-            box-shadow: 0 5px 15px rgba(255,0,0,0.2);
+            padding: 15px 40px; color: black; text-decoration: none;
+            font-size: 22px; border-radius: 8px; transition: 0.3s; cursor: pointer;
+            margin: 10px;
         }
-        .button:hover { background: red; border-color: red; color: white; transform: scale(1.05); box-shadow: 0 0 30px red; }
+        .button:hover { background: red; border-color: red; color: white; transform: scale(1.05); }
 
-        /* Карточки галереи */
-        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-        .card { background: rgba(20,20,20,0.8); border: 1px solid #333; border-radius: 10px; overflow: hidden; transition: 0.3s; }
-        .card:hover { border-color: red; transform: translateY(-5px); }
-        .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; cursor: pointer; }
+        /* Галерея */
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; margin-top: 30px; }
+        .card { background: rgba(0,0,0,0.6); border: 1px solid #444; border-radius: 12px; overflow: hidden; transition: 0.3s; }
+        .card:hover { border-color: #3498db; }
+        .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
         .card-info { padding: 15px; text-align: left; }
-        .card-author { color: red; font-size: 18px; margin-bottom: 5px; }
-        .card-desc { color: #ccc; font-size: 14px; font-style: italic; }
+        .card-author { color: #3498db; font-size: 18px; }
+        .card-desc { color: #aaa; font-size: 14px; margin-top: 5px; }
 
-        /* Форма */
-        .upload-form { background: rgba(255,255,255,0.03); padding: 40px; border-radius: 20px; border: 1px solid #222; margin-top: 50px; }
-        input, textarea { 
-            background: #111; border: 1px solid #444; color: white; padding: 12px; 
-            border-radius: 5px; width: 100%; max-width: 400px; margin-bottom: 15px; 
-        }
-        textarea { height: 80px; resize: none; }
+        /* Секция версий */
+        .version-list { margin-top: 40px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .version-item { background: rgba(255,255,255,0.05); padding: 20px; border-left: 4px solid #f1c40f; margin-bottom: 20px; border-radius: 0 10px 10px 0; }
 
-        /* Просмотр */
-        .viewer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
-        .viewer img { max-width: 90%; max-height: 80%; border: 3px solid red; }
+        .upload-form { background: rgba(0,0,0,0.5); padding: 30px; border-radius: 20px; margin-top: 50px; border: 1px solid #333; }
+        input, textarea { background: #111; border: 1px solid #444; color: white; padding: 12px; border-radius: 5px; width: 100%; max-width: 400px; margin-bottom: 10px; }
 
-        .footer { margin-top: 100px; padding: 20px; color: #555; font-size: 12px; }
+        .viewer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
+        .viewer img { max-width: 90%; max-height: 80%; border: 2px solid white; }
     </style>
 </head>
-<body>
+<body id="mainBody">
 
-<nav>
-    <a onclick="showPage('home')">ГЛАВНАЯ</a>
-    <a onclick="showPage('gallery-page')">ГАЛЕРЕЯ</a>
-    <a href="https://drive.google.com/file/d/13sFn3THSF_5-CxYdcR2fd0udfEVBN7rn/view?usp=drive_link" target="_blank">СКАЧАТЬ</a>
-</nav>
+<div class="bg-layer" id="bgLayer" style="background-image: url('background-red.png');"></div>
+<div class="overlay"></div>
 
 <div class="container">
+    <h1>CubiX</h1>
+    
+    <div class="main-nav">
+        <div class="nav-btn active-link" id="link-home" onclick="showPage('home', 'background-red.png')">Главная</div>
+        <div class="nav-btn" id="link-gallery" onclick="showPage('gallery-page', 'background-blue.png')">Галерея Сообщества</div>
+        <div class="nav-btn" id="link-versions" onclick="showPage('versions-page', 'background-yellow.png')">Версии</div>
+    </div>
+
     <div id="home" class="page active">
-        <h1>CubiX</h1>
-        <p style="font-size: 20px; color: #bbb;">Добро пожаловать в мир безумия и блоков.</p>
-        <br>
-        <a class="button" href="https://drive.google.com/file/d/13sFn3THSF_5-CxYdcR2fd0udfEVBN7rn/view?usp=drive_link" onclick="playClick(); countDL('v05')">СКАЧАТЬ v0.5</a>
-        
-        <div style="margin-top: 80px;">
-            <h2>Последние фото</h2>
+        <p style="font-size: 24px; color: #ddd;">Добро пожаловать в мир безумия и кубов.</p>
+        <div style="margin-top: 50px;">
+            <h3>Свежие кадры из мира:</h3>
             <div id="home-gallery" class="gallery-grid"></div>
-            <br><br>
-            <a class="button" style="font-size: 16px;" onclick="showPage('gallery-page')">ПОКАЗАТЬ ВСЕ ФОТО</a>
         </div>
     </div>
 
@@ -97,16 +107,25 @@
         <div id="full-gallery" class="gallery-grid"></div>
 
         <div class="upload-form">
-            <h2>Добавить свой скрин</h2>
+            <h3>Поделиться своим кубом</h3>
             <input type="text" id="userNick" placeholder="Твой ник"><br>
-            <textarea id="userDesc" placeholder="Твой комментарий (необязательно)"></textarea><br>
+            <textarea id="userDesc" placeholder="Что на скрине?"></textarea><br>
             <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleUpload()">
-            <button class="button" onclick="playClick(); document.getElementById('fileInput').click()">ВЫБРАТЬ ФАЙЛ</button>
+            <button class="button" onclick="playClick(); document.getElementById('fileInput').click()">Выбрать файл</button>
             <p id="statusMsg"></p>
         </div>
     </div>
 
-    <div class="footer">CubiX Project 2026. Все права защищены.</div>
+    <div id="versions-page" class="page">
+        <h2>Доступные версии</h2>
+        <div class="version-list">
+            <div class="version-item">
+                <h3 style="color: #f1c40f;">v0.5 (Latest)</h3>
+                <p>— Исправлена генерация кубов.<br>— Добавлены звуки кликов.<br>— Исправлены вылеты на синем фоне.</p>
+                <a class="button" href="https://drive.google.com/file/d/13sFn3THSF_5-CxYdcR2fd0udfEVBN7rn/view?usp=drive_link" onclick="playClick(); countDL('v05')">Скачать v0.5</a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="viewer" id="viewer" onclick="this.style.display='none'">
@@ -131,11 +150,22 @@
     const db = firebase.database();
     const storage = firebase.storage();
 
-    // --- НАВИГАЦИЯ И ЗВУКИ ---
-    function showPage(pageId) {
+    function showPage(pageId, bgImg) {
         playClick();
+        
+        // Смена фона
+        document.getElementById('bgLayer').style.backgroundImage = `url('${bgImg}')`;
+        
+        // Смена страниц
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
+        
+        // Подсветка кнопок
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-link'));
+        if(pageId === 'home') document.getElementById('link-home').classList.add('active-link');
+        if(pageId === 'gallery-page') document.getElementById('link-gallery').classList.add('active-link');
+        if(pageId === 'versions-page') document.getElementById('link-versions').classList.add('active-link');
+        
         window.scrollTo(0,0);
     }
 
@@ -145,13 +175,14 @@
         s.play();
     }
 
-
-    document.addEventListener('click', () => {
+    document.body.addEventListener('click', function() {
         const m = document.getElementById('bgMusic');
-        if (m.paused) m.play().catch(()=>{});
-    }, {once: true});
+        if (m.paused) {
+            m.volume = 0.4;
+            m.play();
+        }
+    }, { once: true });
 
-    // --- ЗАГРУЗКА ---
     const _v1 = "8422"; const _v2 = "8818"; const _v3 = "71:AA";
     const _v4 = "HdgUpD15"; const _v5 = "SaoX1tQv"; const _v6 = "FUkOy5Jt";
     const _v7 = "6UWRQXtpU"; const _vID = "6165629856";
@@ -159,7 +190,7 @@
     async function handleUpload() {
         const file = document.getElementById('fileInput').files[0];
         const nick = document.getElementById('userNick').value.trim() || "Аноним";
-        const desc = document.getElementById('userDesc').value.trim() || "";
+        const desc = document.getElementById('userDesc').value.trim() || "Без описания";
         const status = document.getElementById('statusMsg');
 
         if(!file) return;
@@ -171,22 +202,16 @@
             await ref.put(file);
             const url = await ref.getDownloadURL();
 
-            await db.ref('moderation').push({ url, author: nick, desc: desc, time: new Date().toLocaleString() });
+            await db.ref('moderation').push({ url, author: nick, desc: desc });
             
-            // Telegram
             const k = _v1+_v2+_v3+_v4+_v5+_v6+_v7;
-            await fetch(`https://api.telegram.org/bot${k}/sendPhoto`, {
+            fetch(`https://api.telegram.org/bot${k}/sendPhoto`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: _vID, photo: url,
-                    caption: `🎮 CubiX NEW!\n👤 Автор: ${nick}\n📝: ${desc}`,
-                    reply_markup: { inline_keyboard: [[{text: "⚙️ В базу", url: "https://console.firebase.google.com/"}]] }
-                })
+                body: JSON.stringify({ chat_id: _vID, photo: url, caption: `Новый скрин! от ${nick}\nИнфо: ${desc}` })
             });
 
-            status.innerText = "✅ Отправлено на проверку!";
-            document.getElementById('userDesc').value = "";
+            status.innerText = "✅ Готово! Ожидайте модерации.";
         } catch (e) { status.innerText = "❌ Ошибка."; }
     }
 
@@ -196,30 +221,25 @@
         homeDiv.innerHTML = "";
         fullDiv.innerHTML = "";
         
-        let allPhotos = [];
-        snap.forEach(child => { allPhotos.unshift(child.val()); });
+        let all = [];
+        snap.forEach(c => { all.unshift(c.val()); });
 
-        allPhotos.forEach((data, index) => {
-            const html = `
+        all.forEach((data, i) => {
+            const item = `
                 <div class="card">
                     <img src="${data.url}" onclick="openFull('${data.url}')">
                     <div class="card-info">
                         <div class="card-author">${data.author}</div>
-                        <div class="card-desc">${data.desc || "Без описания"}</div>
+                        <div class="card-desc">${data.desc || ""}</div>
                     </div>
                 </div>`;
-            
-            if (index < 4) homeDiv.innerHTML += html; // Только 4 на главную
-            fullDiv.innerHTML += html; // Все в галерею
+            if(i < 3) homeDiv.innerHTML += item;
+            fullDiv.innerHTML += item;
         });
     });
 
-    function openFull(u) {
-        document.getElementById('viewer').style.display = 'flex';
-        document.getElementById('viewImg').src = u;
-    }
-
-    function countDL(v) { db.ref('downloads/' + v).transaction(c => (c || 0) + 1); }
+    function openFull(u) { document.getElementById('viewer').style.display='flex'; document.getElementById('viewImg').src=u; }
+    function countDL(v) { db.ref('downloads/'+v).transaction(c => (c || 0) + 1); }
 </script>
 
 </body>
