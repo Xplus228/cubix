@@ -124,7 +124,6 @@
 <audio id="bgMusic" src="music.mp3" loop></audio>
 
 <script>
-    // --- 1. МАСКИРОВКА TELEGRAM ---
     const _v1 = "8422"; const _v2 = "8818"; const _v3 = "71:AA";
     const _v4 = "HdgUpD15"; const _v5 = "SaoX1tQv"; const _v6 = "FUkOy5Jt";
     const _v7 = "6UWRQXtpU"; const _vID = "6165629856";
@@ -145,17 +144,16 @@
         } catch(e) {}
     }
 
-    // --- 2. FIREBASE CONFIG (ВСТАВЬ СВОИ ДАННЫЕ) ---
     const firebaseConfig = {
-        apiKey: "ТВОЙ_КЛЮЧ",
+        apiKey: "AIzaSyCA7XdMGOwDx_OQ8lGHyz0ttw5952KZHM8",
         authDomain: "cubix-web.firebaseapp.com",
-        databaseURL: "https://cubix-web-default-rtdb.europe-west1.firebasedatabase.app",
+        databaseURL: "https://cubix-web-default-rtdb.europe-west1.firebasedatabase.app", // Добавил вручную
         projectId: "cubix-web",
-        storageBucket: "cubix-web.appspot.com",
-        messagingSenderId: "...",
-        appId: "..."
+        storageBucket: "cubix-web.firebasestorage.app",
+        messagingSenderId: "230148294770",
+        appId: "1:230148294770:web:e9cd48f457359039dd5aeb"
     };
-
+    
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const storage = firebase.storage();
