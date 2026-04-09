@@ -18,27 +18,34 @@
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: -1; }
         .container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; text-align: center; }
         
-        /* Профиль в углу */
-        .auth-bar { position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 15px; }
-        .user-avatar { width: 45px; height: 45px; border-radius: 50%; border: 2px solid red; cursor: pointer; }
+        /* Профиль */
+        .auth-bar { position: absolute; top: 20px; right: 20px; z-index: 100; }
+        .user-avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid red; cursor: pointer; transition: 0.3s; }
+        .user-avatar:hover { transform: scale(1.1); box-shadow: 0 0 15px red; }
         
-        /* Модальное окно */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content { background: #111; padding: 30px; border: 2px solid red; border-radius: 20px; width: 90%; max-width: 400px; position: relative; }
+        /* Выпадающее меню профиля */
+        .profile-menu { display: none; position: absolute; top: 65px; right: 0; background: #111; border: 2px solid red; padding: 20px; border-radius: 15px; width: 250px; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .stat-item { margin: 10px 0; font-size: 16px; color: #bbb; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        .stat-item b { color: #f1c40f; }
+
+        /* Модалки */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: #111; padding: 30px; border: 2px solid red; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
         
         h1 { font-size: clamp(60px, 12vw, 100px); text-shadow: 0 0 20px red; margin: 10px 0; }
-        .button { display: inline-block; background: white; border: 2px solid white; padding: 12px 30px; color: black; font-size: 20px; border-radius: 10px; transition: 0.3s; cursor: pointer; margin: 5px; }
-        .button:hover:not(:disabled) { background: red; color: white; }
-        
-        input { background: #222; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; width: 100%; margin-bottom: 10px; }
-        .error-msg { color: #ff4d4d; font-size: 14px; margin-bottom: 10px; min-height: 1.2em; }
-        
-        .page { display: none; animation: fadeIn 0.4s ease; }
-        .active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        .main-nav { display: flex; justify-content: center; gap: 40px; margin: 30px 0; }
+        .nav-btn { color: #888; text-decoration: none; font-size: 24px; cursor: pointer; transition: 0.3s; }
+        .nav-btn:hover, .active-link { color: white; text-shadow: 0 0 10px red; }
 
+        .button { display: inline-block; background: white; border: 2px solid white; padding: 12px 30px; color: black; font-size: 22px; border-radius: 10px; transition: 0.3s; cursor: pointer; text-decoration: none; }
+        .button:hover { background: red; color: white; border-color: red; }
+        .dl-count { color: #f1c40f; display: block; margin-top: 10px; font-size: 14px; }
+
+        input { background: #222; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 10px; }
+        .page { display: none; }
+        .active { display: block; }
         .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 30px; }
-        .card { background: rgba(15,15,15,0.9); border: 1px solid #333; border-radius: 15px; overflow: hidden; }
+        .card { background: rgba(15,15,15,0.9); border: 1px solid #333; border-radius: 15px; overflow: hidden; text-align: left; }
         .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
     </style>
 </head>
@@ -48,35 +55,55 @@
 <div class="overlay"></div>
 
 <div class="auth-bar">
-    <div id="userInfo" style="display: none; text-align: right;">
-        <span id="displayNick" style="color: red;"></span><br>
-        <small id="displayID" style="color: #555;"></small>
+    <button id="mainLoginBtn" class="button" style="font-size: 14px;" onclick="openModal('authModal')">Войти</button>
+    <div id="profileTrigger" style="display: none; position: relative;">
+        <img id="userAvatar" class="user-avatar" onclick="toggleMenu()">
+        <div id="profileMenu" class="profile-menu">
+            <h3 id="menuNick" style="color: red; margin-top: 0;">Ник</h3>
+            <p id="menuID" style="font-size: 12px; color: #666; margin-bottom: 15px;">ID: 000000</p>
+            <div class="stat-item">Часов в игре: <b id="statHours">0</b></div>
+            <div class="stat-item">Побед: <b id="statWins">0</b></div>
+            <div class="stat-item">Проигрышей: <b id="statLoss">0</b></div>
+            <div class="stat-item">Кубков: <b id="statCups">0</b></div>
+            <br>
+            <button class="button" style="font-size: 14px; width: 100%; padding: 10px;" onclick="logout()">Выйти</button>
+        </div>
     </div>
-    <img id="userAvatar" class="user-avatar" style="display: none;" onclick="logout()">
-    <button id="mainLoginBtn" class="button" style="font-size: 14px;" onclick="openModal()">Войти / Регистрация</button>
 </div>
 
 <div class="container">
     <h1>CubiX</h1>
     
-    <div class="main-nav" style="display: flex; justify-content: center; gap: 30px; margin: 30px;">
-        <div onclick="showPage('home', 'background-red.png')" style="cursor:pointer">Главная</div>
-        <div onclick="showPage('gallery-page', 'background-blue.png')" style="cursor:pointer">Галерея</div>
+    <div class="main-nav">
+        <div class="nav-btn active-link" id="link-home" onclick="showPage('home', 'background-red.png')">Главная</div>
+        <div class="nav-btn" id="link-gallery" onclick="showPage('gallery-page', 'background-blue.png')">Галерея</div>
+        <div class="nav-btn" id="link-versions" onclick="showPage('versions-page', 'background-yellow.png')">Версии</div>
     </div>
 
     <div id="home" class="page active">
-        <p>Добро пожаловать в CubiX Portal</p>
+        <p style="font-size: 20px; color: #ccc;">Твой портал в кубическое безумие.</p>
+        
+        <div id="download-block" style="margin: 40px 0;">
+            </div>
+
+        <h3>Новые кадры:</h3>
         <div id="home-gallery" class="gallery-grid"></div>
     </div>
 
     <div id="gallery-page" class="page">
-        <div id="upload-section" style="display: none; background: rgba(20,20,20,0.8); padding: 20px; border-radius: 15px; border: 1px solid #333; margin-bottom: 20px;">
-            <textarea id="userDesc" placeholder="Описание кадра..." style="width:100%; background:#111; color:white; padding:10px;"></textarea>
+        <div id="upload-section" style="display: none;">
+            <textarea id="userDesc" placeholder="Пара слов о кадре..." style="width:100%; background:#111; color:white; padding:15px; border-radius:10px; border:1px solid #333;"></textarea>
             <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleUpload()">
-            <button class="button" onclick="document.getElementById('fileInput').click()">Отправить скриншот</button>
-            <p id="statusMsg" style="color: #f1c40f;"></p>
+            <button class="button" onclick="document.getElementById('fileInput').click()">Загрузить скриншот</button>
+            <p id="statusMsg"></p>
         </div>
         <div id="full-gallery" class="gallery-grid"></div>
+    </div>
+
+    <div id="versions-page" class="page">
+        <div id="versions-list">
+             <p>Войдите в аккаунт, чтобы просмотреть архив версий.</p>
+        </div>
     </div>
 </div>
 
@@ -84,30 +111,26 @@
     <div class="modal-content">
         <div id="loginForm">
             <h2>Вход</h2>
-            <p id="bruteStatus" style="font-size: 12px; color: orange;"></p>
-            <input type="email" id="loginEmail" placeholder="Почта">
+            <p id="bruteStatus" style="color: orange; font-size: 12px;"></p>
+            <input type="email" id="loginEmail" placeholder="Email">
             <input type="password" id="loginPass" placeholder="Пароль">
-            <div id="loginError" class="error-msg"></div>
-            <button id="btnSignIn" class="button" onclick="loginEmail()">Войти</button>
-            <hr>
-            <button class="button" style="font-size: 14px;" onclick="toggleAuth('reg')">Нет аккаунта? Регистрация</button>
+            <button class="button" id="btnSignIn" onclick="loginEmail()">Войти</button>
+            <p onclick="toggleAuth('reg')" style="cursor:pointer; font-size: 14px;">Нет аккаунта? <u>Регистрация</u></p>
         </div>
 
         <div id="regForm" style="display: none;">
-            <h2>Регистрация</h2>
-            <input type="text" id="regNick" placeholder="Игровой Ник">
-            <input type="email" id="regEmail" placeholder="Электронная почта">
-            <input type="password" id="regPass1" placeholder="Пароль (мин. 8 симв.)">
-            <input type="password" id="regPass2" placeholder="Повторите пароль">
-            <div id="regError" class="error-msg"></div>
-            <button class="button" onclick="register()">Создать аккаунт</button>
-            <hr>
-            <button class="button" style="font-size: 14px;" onclick="toggleAuth('login')">Уже есть аккаунт?</button>
+            <h2>Создать аккаунт</h2>
+            <input type="text" id="regNick" placeholder="Ник в игре">
+            <input type="email" id="regEmail" placeholder="Email">
+            <input type="password" id="regPass1" placeholder="Пароль (8+ символов)">
+            <input type="password" id="regPass2" placeholder="Повтори пароль">
+            <button class="button" onclick="register()">Регистрация</button>
+            <p onclick="toggleAuth('login')" style="cursor:pointer; font-size: 14px;">Уже есть аккаунт? <u>Войти</u></p>
         </div>
-        
-        <button class="button" style="background: #4285F4; color: white; width: 100%;" onclick="loginGoogle()">Войти через Google</button>
+        <hr style="border: 0.5px solid #222; margin: 20px 0;">
+        <button class="button" style="background:#4285F4; color:white; font-size:16px; width:100%;" onclick="loginGoogle()">Войти через Google</button>
         <br><br>
-        <button onclick="closeModal()" style="background:none; border:none; color:white; cursor:pointer;">Закрыть</button>
+        <button onclick="closeModal('authModal')" style="background:none; border:none; color:#555; cursor:pointer;">Закрыть</button>
     </div>
 </div>
 
@@ -124,30 +147,23 @@
     const db = firebase.database();
     const storage = firebase.storage();
 
-    // Брутфорс защита (Локальная)
-    let loginAttempts = localStorage.getItem('loginAttempts') || 0;
-    let banTime = localStorage.getItem('banUntil') || 0;
-
-    function checkBan() {
-        const now = Date.now();
-        if (now < banTime) {
-            const left = Math.ceil((banTime - now) / 1000);
-            document.getElementById('bruteStatus').innerText = `Бан на ${left} сек. Попыток: 0`;
-            document.getElementById('btnSignIn').disabled = true;
-            return true;
-        }
-        document.getElementById('btnSignIn').disabled = false;
-        document.getElementById('bruteStatus').innerText = loginAttempts > 0 ? `Осталось попыток: ${5 - loginAttempts}` : "";
-        return false;
-    }
-    setInterval(checkBan, 1000);
-
-    // Функции модалки
-    function openModal() { document.getElementById('authModal').style.display = 'flex'; }
-    function closeModal() { document.getElementById('authModal').style.display = 'none'; }
-    function toggleAuth(type) {
-        document.getElementById('loginForm').style.display = type === 'login' ? 'block' : 'none';
-        document.getElementById('regForm').style.display = type === 'reg' ? 'block' : 'none';
+    // Защита от брутфорса
+    let attempts = localStorage.getItem('attempts') || 0;
+    function loginEmail() {
+        const ban = localStorage.getItem('banUntil');
+        if (ban && Date.now() < ban) return alert("Блокировка! Подождите.");
+        
+        const email = document.getElementById('loginEmail').value;
+        const pass = document.getElementById('loginPass').value;
+        auth.signInWithEmailAndPassword(email, pass).catch(e => {
+            attempts++;
+            localStorage.setItem('attempts', attempts);
+            if(attempts >= 5) {
+                localStorage.setItem('banUntil', Date.now() + 120000);
+                localStorage.setItem('attempts', 0);
+            }
+            alert("Неверно. Попыток осталось: " + (5 - attempts));
+        });
     }
 
     // Регистрация
@@ -156,96 +172,103 @@
         const email = document.getElementById('regEmail').value.trim();
         const p1 = document.getElementById('regPass1').value;
         const p2 = document.getElementById('regPass2').value;
-        const err = document.getElementById('regError');
 
-        if (nick.length < 3) return err.innerText = "Ник слишком короткий";
-        if (p1 !== p2) return err.innerText = "Пароли не совпадают";
-        if (p1.length < 8) return err.innerText = "Пароль должен быть от 8 символов";
-
+        if (p1 !== p2 || p1.length < 8) return alert("Ошибка в пароле!");
+        
         try {
-            const cred = await auth.createUserWithEmailAndPassword(email, p1);
-            const shortID = Math.floor(100000 + Math.random() * 900000); // Генерим ID 6 знаков
-            
-            await cred.user.updateProfile({ displayName: nick });
-            await db.ref('users/' + cred.user.uid).set({ 
-                nick: nick, 
-                email: email, 
-                uid: cred.user.uid, 
-                shortID: shortID 
+            const res = await auth.createUserWithEmailAndPassword(email, p1);
+            const id = Math.floor(100000 + Math.random() * 900000);
+            await db.ref('users/' + res.user.uid).set({
+                nick: nick, uid: res.user.uid, shortID: id,
+                hours: 0, wins: 0, loss: 0, cups: 0
             });
-            
-            await cred.user.sendEmailVerification();
-            alert("Письмо подтверждения отправлено! Проверь почту.");
-            closeModal();
-        } catch (e) { err.innerText = e.message; }
+            await res.user.sendEmailVerification();
+            alert("Подтвердите почту!");
+            closeModal('authModal');
+        } catch(e) { alert(e.message); }
     }
 
-    // Вход по почте
-    async function loginEmail() {
-        if (checkBan()) return;
-        const email = document.getElementById('loginEmail').value;
-        const pass = document.getElementById('loginPass').value;
-        const err = document.getElementById('loginError');
-
-        try {
-            await auth.signInWithEmailAndPassword(email, pass);
-            localStorage.setItem('loginAttempts', 0);
-            closeModal();
-        } catch (e) {
-            loginAttempts++;
-            localStorage.setItem('loginAttempts', loginAttempts);
-            if (loginAttempts >= 5) {
-                const untill = Date.now() + 120000;
-                localStorage.setItem('banUntil', untill);
-                localStorage.setItem('loginAttempts', 0);
-            }
-            err.innerText = "Неверные данные.";
-        }
-    }
-
-    // Вход Google
-    async function loginGoogle() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        try {
-            const res = await auth.signInWithPopup(provider);
-            const userRef = db.ref('users/' + res.user.uid);
-            const snap = await userRef.once('value');
-            
-            if (!snap.exists()) {
-                // Если новый юзер через Гугл - просим ник (упрощенно ставим имя из гугла)
-                const shortID = Math.floor(100000 + Math.random() * 900000);
-                await userRef.set({ 
-                    nick: res.user.displayName, 
-                    email: res.user.email, 
-                    uid: res.user.uid, 
-                    shortID: shortID 
+    function loginGoogle() {
+        const p = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(p).then(async res => {
+            const s = await db.ref('users/' + res.user.uid).once('value');
+            if(!s.exists()) {
+                await db.ref('users/' + res.user.uid).set({
+                    nick: res.user.displayName, uid: res.user.uid, 
+                    shortID: Math.floor(100000 + Math.random() * 900000),
+                    hours: 0, wins: 0, loss: 0, cups: 0
                 });
             }
-            closeModal();
-        } catch (e) { alert(e.message); }
+            closeModal('authModal');
+        });
     }
 
-    function logout() { auth.signOut(); location.reload(); }
+    function toggleMenu() {
+        const m = document.getElementById('profileMenu');
+        m.style.display = m.style.display === 'block' ? 'none' : 'block';
+    }
 
-    // Следим за юзером
+    function logout() { auth.signOut().then(() => location.reload()); }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function toggleAuth(t) {
+        document.getElementById('loginForm').style.display = t === 'login' ? 'block' : 'none';
+        document.getElementById('regForm').style.display = t === 'reg' ? 'block' : 'none';
+    }
+
+    // Рендерим контент в зависимости от входа
     auth.onAuthStateChanged(async user => {
+        const dlBlock = document.getElementById('download-block');
+        const verList = document.getElementById('versions-list');
+
         if (user) {
             document.getElementById('mainLoginBtn').style.display = 'none';
-            document.getElementById('userAvatar').style.display = 'block';
-            document.getElementById('userInfo').style.display = 'block';
+            document.getElementById('profileTrigger').style.display = 'block';
             document.getElementById('upload-section').style.display = 'block';
             
             const snap = await db.ref('users/' + user.uid).once('value');
-            if (snap.exists()) {
-                document.getElementById('displayNick').innerText = snap.val().nick;
-                document.getElementById('displayID').innerText = "ID: " + snap.val().shortID;
-                document.getElementById('userAvatar').src = user.photoURL || 'https://via.placeholder.com/50';
-            }
+            const data = snap.val();
+            
+            // Наполняем меню профиля
+            document.getElementById('userAvatar').src = user.photoURL || 'https://via.placeholder.com/50/red/white?text=C';
+            document.getElementById('menuNick').innerText = data.nick;
+            document.getElementById('menuID').innerText = "ID: " + data.shortID;
+            document.getElementById('statHours').innerText = data.hours || 0;
+            document.getElementById('statWins').innerText = data.wins || 0;
+            document.getElementById('statLoss').innerText = data.loss || 0;
+            document.getElementById('statCups').innerText = data.cups || 0;
+
+            // Возвращаем кнопку скачать
+            dlBlock.innerHTML = `
+                <h2 style="color: #f1c40f;">Версия v0.5 доступна!</h2>
+                <a class="button" href="ССЫЛКА_НА_ДИСК" target="_blank" onclick="countDL()">Скачать игру</a>
+                <span class="dl-count" id="dl-count-text">Загрузка счетчика...</span>
+            `;
+            updateDLCount();
+
+            // Возвращаем архив версий
+            verList.innerHTML = `
+                <div style="background:#111; padding:20px; border-left:4px solid #f1c40f; text-align:left;">
+                    <h3>v0.5 (Актуальная)</h3>
+                    <p>• Фикс пвп<br>• Новые шейдеры</p>
+                    <a class="button" style="font-size:14px" href="ССЫЛКА">Скачать v0.5</a>
+                </div>
+            `;
+        } else {
+            dlBlock.innerHTML = `<p style="color:red">Войдите в аккаунт, чтобы получить ссылку на скачивание.</p>`;
         }
     });
 
-    // Галерея (Синхронизация)
-    db.ref('gallery').limitToLast(10).on('value', snap => {
+    function countDL() { db.ref('downloads/v05').transaction(c => (c || 0) + 1); }
+    function updateDLCount() {
+        db.ref('downloads/v05').on('value', snap => {
+            const el = document.getElementById('dl-count-text');
+            if(el) el.innerText = (snap.val() || 0) + " скачиваний";
+        });
+    }
+
+    // Галерея
+    db.ref('gallery').limitToLast(12).on('value', snap => {
         const h = document.getElementById('home-gallery');
         const f = document.getElementById('full-gallery');
         h.innerHTML = f.innerHTML = "";
@@ -257,39 +280,29 @@
         });
     });
 
-    // Навигация
     function showPage(id, bg) {
         document.getElementById('bgLayer').style.backgroundImage = `url('${bg}')`;
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-link'));
+        document.getElementById('link-' + id.replace('-page','')).classList.add('active-link');
     }
 
-    // Загрузка (на твою функцию)
     async function handleUpload() {
         const file = document.getElementById('fileInput').files[0];
-        const desc = document.getElementById('userDesc').value;
-        const user = auth.currentUser;
-        if(!file || !user) return;
-
+        if(!file) return;
         document.getElementById('statusMsg').innerText = "⏳ Загрузка...";
         const ref = storage.ref('submissions/' + Date.now() + "_" + file.name);
         await ref.put(file);
         const url = await ref.getDownloadURL();
-
-        const userSnap = await db.ref('users/' + user.uid).once('value');
-        const nick = userSnap.exists() ? userSnap.val().nick : user.displayName;
-
+        const snap = await db.ref('users/' + auth.currentUser.uid).once('value');
+        
         await fetch("https://us-central1-cubix-web.cloudfunctions.net/sendtotelegram", {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                photoUrl: url, 
-                author: nick, 
-                desc: desc,
-                time: new Date().toLocaleString()
-            })
+            body: JSON.stringify({ photoUrl: url, author: snap.val().nick, desc: document.getElementById('userDesc').value, time: new Date().toLocaleString() })
         });
-        document.getElementById('statusMsg').innerText = "✅ Готово!";
+        document.getElementById('statusMsg').innerText = "✅ Отправлено!";
     }
 </script>
 </body>
