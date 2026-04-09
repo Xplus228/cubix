@@ -2,50 +2,29 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CubiX | Portal</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script> 
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
     <style>
-        @font-face { font-family: Door; src: url('door.otf'); }
-        * { font-family: Door, Arial, sans-serif; box-sizing: border-box; }
-        body { margin: 0; background-color: #000; color: white; text-align: center; }
-        .container { padding: 40px 20px; }
-        .page { display: none; }
-        .active { display: block; }
+        body { background: #000; color: white; font-family: sans-serif; text-align: center; padding: 50px; }
         .button { background: white; padding: 15px 30px; color: black; border-radius: 10px; cursor: pointer; border: none; font-size: 20px; }
-        .button:disabled { background: #555; }
-        input, textarea { background: #111; border: 1px solid #333; color: white; padding: 10px; width: 100%; max-width: 400px; margin-bottom: 10px; }
-        .user-avatar { width: 50px; border-radius: 50%; border: 2px solid red; display: none; margin: 10px auto; }
+        input, textarea { background: #111; border: 1px solid #333; color: white; padding: 10px; width: 300px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>CubiX</h1>
-        <div id="auth-section">
-            <img id="userIcon" class="user-avatar">
-            <button id="loginBtn" class="button" onclick="login()">Войти через Google</button>
-            <button id="logoutBtn" class="button" style="display:none" onclick="logout()">Выйти</button>
-        </div>
-
-        <div id="upload-section" style="display:none; margin-top: 30px;">
-            <h3>Загрузить скриншот</h3>
-            <textarea id="userDesc" placeholder="Описание..."></textarea><br>
-            <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleUpload()">
-            <button id="uploadBtn" class="button" onclick="document.getElementById('fileInput').click()">Выбрать и отправить</button>
-            <p id="statusMsg" style="color: #f1c40f;"></p>
-        </div>
+    <h1>CubiX</h1>
+    <button id="loginBtn" class="button" onclick="login()">Войти через Google</button>
+    <div id="upload-section" style="display:none; margin-top: 20px;">
+        <textarea id="userDesc" placeholder="Описание..."></textarea><br>
+        <input type="file" id="fileInput" accept="image/*" onchange="handleUpload()">
+        <p id="statusMsg" style="color: #f1c40f;"></p>
     </div>
 
     <script>
-        const _a = ["AIzaSyC", "A7XdMGOwD", "x_OQ8lGHyz0t", "tw5952KZHM8"];
         const firebaseConfig = {
-            apiKey: _a.join(''),
+            apiKey: "AIzaSyCA7XdMGOwDx_OQ8lGHyz0ttw5952KZHM8",
             authDomain: "cubix-web.firebaseapp.com",
-            databaseURL: "https://cubix-web-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "cubix-web",
             storageBucket: "cubix-web.firebasestorage.app"
         };
@@ -54,50 +33,40 @@
         const storage = firebase.storage();
 
         function login() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-        function logout() { auth.signOut(); location.reload(); }
 
         auth.onAuthStateChanged(user => {
             document.getElementById('loginBtn').style.display = user ? 'none' : 'block';
-            document.getElementById('logoutBtn').style.display = user ? 'block' : 'none';
             document.getElementById('upload-section').style.display = user ? 'block' : 'none';
-            if(user) {
-                document.getElementById('userIcon').src = user.photoURL;
-                document.getElementById('userIcon').style.display = 'block';
-            }
         });
 
         async function handleUpload() {
             const file = document.getElementById('fileInput').files[0];
             const desc = document.getElementById('userDesc').value;
             const s = document.getElementById('statusMsg');
-            const b = document.getElementById('uploadBtn');
-
             if(!file || !auth.currentUser) return;
-            s.innerText = "⏳ Загрузка..."; b.disabled = true;
 
+            s.innerText = "⏳ Отправка...";
             try {
-                // 1. Storage
                 const ref = storage.ref('submissions/' + Date.now() + "_" + file.name);
                 await ref.put(file);
                 const imageUrl = await ref.getDownloadURL();
 
-                // 2. Вызов функции (через прямой fetch для надежности)
-                const idToken = await auth.currentUser.getIdToken();
+                // ОТПРАВКА
                 const response = await fetch("https://us-central1-cubix-web.cloudfunctions.net/sendtotelegram", {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
-                    body: JSON.stringify({ data: { photoUrl: imageUrl, author: auth.currentUser.displayName, desc: desc } })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        photoUrl: imageUrl, 
+                        author: auth.currentUser.displayName, 
+                        desc: desc 
+                    })
                 });
 
-                if(response.ok) {
-                    s.innerText = "✅ Отправлено в Telegram!";
-                } else {
-                    const err = await response.json();
-                    throw new Error(err.error?.message || "Ошибка сервера");
-                }
+                if(response.ok) s.innerText = "✅ Доставлено!";
+                else s.innerText = "❌ Ошибка сервера";
             } catch (e) {
                 s.innerText = "❌ Ошибка: " + e.message;
-            } finally { b.disabled = false; }
+            }
         }
     </script>
 </body>
