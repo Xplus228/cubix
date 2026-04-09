@@ -6,9 +6,12 @@
     <title>CubiX | Portal</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script> <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script> <style>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
+
+    <style>
         @font-face { font-family: Door; src: url('door.otf'); }
         * { font-family: Door, Arial, sans-serif; box-sizing: border-box; scroll-behavior: smooth; }
         body { margin: 0; background-color: #000; color: white; overflow-x: hidden; }
@@ -24,7 +27,6 @@
         .nav-btn { color: #888; text-decoration: none; font-size: 24px; cursor: pointer; transition: 0.3s; border-bottom: 2px solid transparent; }
         .nav-btn:hover, .nav-btn.active-link { color: white; border-color: red; text-shadow: 0 0 10px white; }
         
-        /* Кнопка логина */
         .auth-bar { position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 10px; }
         .user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 1px solid red; display: none; }
 
@@ -32,7 +34,6 @@
         .button:hover:not(:disabled) { background: red; border-color: red; color: white; transform: scale(1.05); }
         .button:disabled { background: #333; border-color: #333; color: #666; cursor: not-allowed; }
         
-        /* Стили профиля */
         .profile-card { background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid red; max-width: 500px; margin: 0 auto; }
         .stat-box { display: flex; justify-content: space-around; margin-top: 20px; }
         .stat-item { text-align: center; }
@@ -80,7 +81,9 @@
             <div id="upload-auth-msg" style="color: #f1c40f; margin-bottom: 10px;">Войдите в аккаунт, чтобы делиться скриншотами</div>
             <div id="upload-form" style="display: none;">
                 <h3>Поделиться скриншотом</h3>
+                <p>Автор: <span id="authorName" style="color: #3498db;"></span></p>
                 <textarea id="userDesc" placeholder="Пара слов о кадре..."></textarea><br>
+
                 <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleUpload()">
                 <button id="uploadBtn" class="button" style="font-size: 18px;" onclick="document.getElementById('fileInput').click()">Выбрать файл</button>
                 <p id="statusMsg" style="margin-top: 15px; font-weight: bold; color: #f1c40f;"></p>
@@ -93,7 +96,7 @@
         <div class="version-item" style="background: rgba(255,255,255,0.03); padding: 25px; border-left: 5px solid #f1c40f; text-align: left;">
             <h3 style="color: #f1c40f;">v0.5 (Latest)</h3>
             <p>• Добавлены профили игроков!</p>
-            <button class="button" style="font-size: 16px;" onclick="countDL('v05')">Скачать v0.5</button>
+            <button class="button" style="font-size: 16px;">Скачать v0.5</button>
         </div>
     </div>
 
@@ -135,14 +138,15 @@
     const db = firebase.database();
     const auth = firebase.auth();
     const storage = firebase.storage();
-    const functions = firebase.functions();
+    // ВАЖНО: Указываем регион us-central1 как на твоем скриншоте b786aa
+    const functions = firebase.app().functions('us-central1');
 
     function login() {
         const provider = new firebase.auth.GoogleAuthProvider();
         auth.signInWithPopup(provider).catch(e => alert("Ошибка входа: " + e.message));
     }
 
-    function logout() { auth.signOut(); }
+    function logout() { auth.signOut(); location.reload(); }
 
     auth.onAuthStateChanged(user => {
         const loginBtn = document.getElementById('loginBtn');
@@ -160,6 +164,7 @@
             linkProfile.style.display = 'block';
             uploadForm.style.display = 'block';
             uploadAuthMsg.style.display = 'none';
+            document.getElementById('authorName').innerText = user.displayName;
             loadProfile(user.uid);
         } else {
             loginBtn.style.display = 'block';
@@ -179,7 +184,6 @@
                 document.getElementById('prof-cups').innerText = data.profile?.cups || 0;
                 document.getElementById('prof-wins').innerText = data.stats?.wins || 0;
             } else {
-
                 db.ref('users/' + uid).set({
                     profile: { nickname: auth.currentUser.displayName, cups: 0 },
                     stats: { wins: 0 }
@@ -188,9 +192,9 @@
         });
     }
 
-
     async function handleUpload() {
-        const file = document.getElementById('fileInput').files[0];
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
         const desc = document.getElementById('userDesc').value.trim();
         const s = document.getElementById('statusMsg');
         const b = document.getElementById('uploadBtn');
@@ -201,19 +205,20 @@
         b.disabled = true;
 
         try {
-
+            // 1. Загрузка в Storage
             const ref = storage.ref('submissions/' + Date.now() + "_" + file.name);
             await ref.put(file);
             const url = await ref.getDownloadURL();
 
-
-            const sendToTelegram = functions.httpsCallable('sendToTelegram');
+            // 2. Вызов функции (название sendtotelegram строго маленькими буквами)
+            const sendToTelegram = functions.httpsCallable('sendtotelegram');
             await sendToTelegram({
                 photoUrl: url,
                 author: auth.currentUser.displayName,
                 desc: desc
             });
 
+            // 3. Запись в БД для истории
             await db.ref('moderation').push({
                 url, 
                 author: auth.currentUser.displayName, 
@@ -222,11 +227,12 @@
             });
 
             s.innerText = "✅ Успешно отправлено!";
+            fileInput.value = ""; // Очистить выбор файла
             setTimeout(() => { s.innerText = ""; b.disabled = false; }, 3000);
             
         } catch (e) {
-            console.error(e);
-            s.innerText = "❌ Ошибка отправки.";
+            console.error("Ошибка Firebase:", e);
+            s.innerText = "❌ Ошибка: " + (e.message || "проверьте консоль");
             b.disabled = false;
         }
     }
@@ -236,12 +242,15 @@
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-link'));
-        document.querySelector(`[onclick*="${pageId}"]`).classList.add('active-link');
+        const activeLink = document.querySelector(`[onclick*="${pageId}"]`);
+        if(activeLink) activeLink.classList.add('active-link');
     }
 
+    // Загрузка галереи
     db.ref('gallery').on('value', snap => {
         const h = document.getElementById('home-gallery');
         const f = document.getElementById('full-gallery');
+        if(!h || !f) return;
         h.innerHTML = ""; f.innerHTML = "";
         let all = [];
         snap.forEach(c => { all.unshift(c.val()); });
