@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CubiX | Portal</title>
-    
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script> 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
-
     <style>
         @font-face { font-family: Door; src: url('door.otf'); }
         * { font-family: Door, Arial, sans-serif; box-sizing: border-box; scroll-behavior: smooth; }
@@ -22,246 +20,112 @@
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
         h1 { font-size: clamp(60px, 12vw, 100px); text-shadow: 0 0 20px red; margin: 10px 0; }
-        
         .main-nav { display: flex; justify-content: center; gap: 45px; margin: 40px 0; flex-wrap: wrap; }
         .nav-btn { color: #888; text-decoration: none; font-size: 24px; cursor: pointer; transition: 0.3s; border-bottom: 2px solid transparent; }
         .nav-btn:hover, .nav-btn.active-link { color: white; border-color: red; text-shadow: 0 0 10px white; }
-        
         .auth-bar { position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 10px; }
         .user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 1px solid red; display: none; }
-
         .button { display: inline-block; background: white; border: 2px solid white; padding: 18px 50px; color: black; text-decoration: none; font-size: 26px; border-radius: 10px; transition: 0.3s; cursor: pointer; margin: 10px 0; }
         .button:hover:not(:disabled) { background: red; border-color: red; color: white; transform: scale(1.05); }
         .button:disabled { background: #333; border-color: #333; color: #666; cursor: not-allowed; }
-        
-        .profile-card { background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid red; max-width: 500px; margin: 0 auto; }
-        .stat-box { display: flex; justify-content: space-around; margin-top: 20px; }
-        .stat-item { text-align: center; }
-        .stat-val { font-size: 24px; color: #f1c40f; display: block; }
-
         input, textarea { background: #111; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; width: 100%; max-width: 450px; margin-bottom: 12px; }
         .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 30px; }
         .card { background: rgba(15,15,15,0.9); border: 1px solid #333; border-radius: 15px; overflow: hidden; transition: 0.3s; }
         .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
-        .viewer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
-        .viewer img { max-width: 90%; max-height: 80%; border: 2px solid white; }
     </style>
 </head>
 <body>
-
-<div class="bg-layer" id="bgLayer" style="background-image: url('background-red.png');"></div>
-<div class="overlay"></div>
-
-<div class="auth-bar">
-    <img id="userIcon" class="user-avatar">
-    <button id="loginBtn" class="button" style="font-size: 14px; padding: 10px 20px;" onclick="login()">Войти</button>
-    <button id="logoutBtn" class="button" style="font-size: 14px; padding: 10px 20px; display:none;" onclick="logout()">Выйти</button>
-</div>
-
-<div class="container">
-    <h1>CubiX</h1>
-    
-    <div class="main-nav">
-        <div class="nav-btn active-link" id="link-home" onclick="showPage('home', 'background-red.png')">Главная</div>
-        <div class="nav-btn" id="link-gallery" onclick="showPage('gallery-page', 'background-blue.png')">Галерея</div>
-        <div class="nav-btn" id="link-versions" onclick="showPage('versions-page', 'background-yellow.png')">Версии</div>
-        <div class="nav-btn" id="link-profile" style="display:none;" onclick="showPage('profile-page', 'background-green.png')">Профиль</div>
+    <div class="bg-layer" id="bgLayer" style="background-image: url('background-red.png');"></div>
+    <div class="overlay"></div>
+    <div class="auth-bar">
+        <img id="userIcon" class="user-avatar">
+        <button id="loginBtn" class="button" style="font-size: 14px; padding: 10px 20px;" onclick="login()">Войти</button>
+        <button id="logoutBtn" class="button" style="font-size: 14px; padding: 10px 20px; display:none;" onclick="logout()">Выйти</button>
     </div>
-
-    <div id="home" class="page active">
-        <p style="font-size: 24px; color: #bbb;">Добро пожаловать в мир безумия и кубов.</p>
-        <div id="home-gallery" class="gallery-grid"></div>
-    </div>
-
-    <div id="gallery-page" class="page">
-        <h2>Галерея Сообщества</h2>
-        <div id="full-gallery" class="gallery-grid"></div>
-        
-        <div id="upload-section" style="margin-top: 60px; background: rgba(20,20,20,0.8); padding: 35px; border-radius: 20px; border: 1px solid #333;">
-            <div id="upload-auth-msg" style="color: #f1c40f; margin-bottom: 10px;">Войдите в аккаунт, чтобы делиться скриншотами</div>
-            <div id="upload-form" style="display: none;">
-                <h3>Поделиться скриншотом</h3>
-                <p>Автор: <span id="authorName" style="color: #3498db;"></span></p>
-                <textarea id="userDesc" placeholder="Пара слов о кадре..."></textarea><br>
-
-                <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleUpload()">
-                <button id="uploadBtn" class="button" style="font-size: 18px;" onclick="document.getElementById('fileInput').click()">Выбрать файл</button>
-                <p id="statusMsg" style="margin-top: 15px; font-weight: bold; color: #f1c40f;"></p>
-            </div>
+    <div class="container">
+        <h1>CubiX</h1>
+        <div class="main-nav">
+            <div class="nav-btn active-link" onclick="showPage('home', 'background-red.png')">Главная</div>
+            <div class="nav-btn" onclick="showPage('gallery-page', 'background-blue.png')">Галерея</div>
         </div>
-    </div>
-
-    <div id="versions-page" class="page">
-        <h2>Архив Версий</h2>
-        <div class="version-item" style="background: rgba(255,255,255,0.03); padding: 25px; border-left: 5px solid #f1c40f; text-align: left;">
-            <h3 style="color: #f1c40f;">v0.5 (Latest)</h3>
-            <p>• Добавлены профили игроков!</p>
-            <button class="button" style="font-size: 16px;">Скачать v0.5</button>
+        <div id="home" class="page active">
+            <p style="font-size: 24px; color: #bbb;">Добро пожаловать в мир безумия.</p>
+            <div id="home-gallery" class="gallery-grid"></div>
         </div>
-    </div>
-
-    <div id="profile-page" class="page">
-        <h2>Личный Кабинет</h2>
-        <div class="profile-card">
-            <h3 id="prof-nick" style="color: #f1c40f; font-size: 32px;">Загрузка...</h3>
-            <div class="stat-box">
-                <div class="stat-item">
-                    <span class="stat-val" id="prof-cups">0</span>
-                    <span style="color: #888;">🏆 Кубков</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-val" id="prof-wins">0</span>
-                    <span style="color: #888;">⚔️ Побед</span>
+        <div id="gallery-page" class="page">
+            <div style="background: rgba(20,20,20,0.8); padding: 35px; border-radius: 20px; border: 1px solid #333;">
+                <div id="upload-form" style="display: none;">
+                    <h3>Поделиться скриншотом</h3>
+                    <textarea id="userDesc" placeholder="Пара слов о кадре..."></textarea><br>
+                    <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleUpload()">
+                    <button id="uploadBtn" class="button" onclick="document.getElementById('fileInput').click()">Выбрать файл</button>
+                    <p id="statusMsg" style="margin-top: 15px; font-weight: bold; color: #f1c40f;"></p>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="viewer" id="viewer" onclick="this.style.display='none'">
-    <img id="viewImg">
-</div>
+    <script>
+        const _a = ["AIzaSyC", "A7XdMGOwD", "x_OQ8lGHyz0t", "tw5952KZHM8"];
+        const firebaseConfig = {
+            apiKey: _a.join(''),
+            authDomain: "cubix-web.firebaseapp.com",
+            databaseURL: "https://cubix-web-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "cubix-web",
+            storageBucket: "cubix-web.firebasestorage.app",
+            messagingSenderId: "230148294770",
+            appId: "1:230148294770:web:e9cd48f457359039dd5aeb"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+        const storage = firebase.storage();
 
-<script>
-    const _a = ["AIzaSyC", "A7XdMGOwD", "x_OQ8lGHyz0t", "tw5952KZHM8"];
-    const firebaseConfig = {
-        apiKey: _a.join(''),
-        authDomain: "cubix-web.firebaseapp.com",
-        databaseURL: "https://cubix-web-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "cubix-web",
-        storageBucket: "cubix-web.firebasestorage.app",
-        messagingSenderId: "230148294770",
-        appId: "1:230148294770:web:e9cd48f457359039dd5aeb"
-    };
+        function login() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+        function logout() { auth.signOut(); location.reload(); }
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const auth = firebase.auth();
-    const storage = firebase.storage();
-    // ВАЖНО: Указываем регион us-central1 как на твоем скриншоте b786aa
-    const functions = firebase.app().functions('us-central1');
+        auth.onAuthStateChanged(user => {
+            document.getElementById('loginBtn').style.display = user ? 'none' : 'block';
+            document.getElementById('logoutBtn').style.display = user ? 'block' : 'none';
+            document.getElementById('userIcon').style.display = user ? 'block' : 'none';
+            if(user) document.getElementById('userIcon').src = user.photoURL;
+            document.getElementById('upload-form').style.display = user ? 'block' : 'none';
+        });
 
-    function login() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).catch(e => alert("Ошибка входа: " + e.message));
-    }
+        async function handleUpload() {
+            const file = document.getElementById('fileInput').files[0];
+            const desc = document.getElementById('userDesc').value.trim();
+            const s = document.getElementById('statusMsg');
+            const b = document.getElementById('uploadBtn');
+            if(!file || !auth.currentUser) return;
+            s.innerText = "⏳ Загрузка..."; b.disabled = true;
 
-    function logout() { auth.signOut(); location.reload(); }
+            try {
+                const ref = storage.ref('submissions/' + Date.now() + "_" + file.name);
+                await ref.put(file);
+                const imageUrl = await ref.getDownloadURL();
+                const idToken = await auth.currentUser.getIdToken();
 
-    auth.onAuthStateChanged(user => {
-        const loginBtn = document.getElementById('loginBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const userIcon = document.getElementById('userIcon');
-        const linkProfile = document.getElementById('link-profile');
-        const uploadForm = document.getElementById('upload-form');
-        const uploadAuthMsg = document.getElementById('upload-auth-msg');
-
-        if (user) {
-            loginBtn.style.display = 'none';
-            logoutBtn.style.display = 'block';
-            userIcon.src = user.photoURL;
-            userIcon.style.display = 'block';
-            linkProfile.style.display = 'block';
-            uploadForm.style.display = 'block';
-            uploadAuthMsg.style.display = 'none';
-            document.getElementById('authorName').innerText = user.displayName;
-            loadProfile(user.uid);
-        } else {
-            loginBtn.style.display = 'block';
-            logoutBtn.style.display = 'none';
-            userIcon.style.display = 'none';
-            linkProfile.style.display = 'none';
-            uploadForm.style.display = 'none';
-            uploadAuthMsg.style.display = 'block';
-        }
-    });
-    
-    function loadProfile(uid) {
-        db.ref('users/' + uid).on('value', snap => {
-            const data = snap.val();
-            if (data) {
-                document.getElementById('prof-nick').innerText = data.profile?.nickname || auth.currentUser.displayName;
-                document.getElementById('prof-cups').innerText = data.profile?.cups || 0;
-                document.getElementById('prof-wins').innerText = data.stats?.wins || 0;
-            } else {
-                db.ref('users/' + uid).set({
-                    profile: { nickname: auth.currentUser.displayName, cups: 0 },
-                    stats: { wins: 0 }
+                // Прямой вызов для обхода ошибки 401
+                const response = await fetch("https://us-central1-cubix-web.cloudfunctions.net/sendtotelegram", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+                    body: JSON.stringify({ data: { photoUrl: imageUrl, author: auth.currentUser.displayName, desc: desc } })
                 });
-            }
-        });
-    }
 
-    async function handleUpload() {
-        const fileInput = document.getElementById('fileInput');
-        const file = fileInput.files[0];
-        const desc = document.getElementById('userDesc').value.trim();
-        const s = document.getElementById('statusMsg');
-        const b = document.getElementById('uploadBtn');
-
-        if(!file || !auth.currentUser) return;
-
-        s.innerText = "⏳ Загрузка в облако...";
-        b.disabled = true;
-
-        try {
-            // 1. Загрузка в Storage
-            const ref = storage.ref('submissions/' + Date.now() + "_" + file.name);
-            await ref.put(file);
-            const url = await ref.getDownloadURL();
-
-            // 2. Вызов функции (название sendtotelegram строго маленькими буквами)
-            const sendToTelegram = functions.httpsCallable('sendtotelegram');
-            await sendToTelegram({
-                photoUrl: url,
-                author: auth.currentUser.displayName,
-                desc: desc
-            });
-
-            // 3. Запись в БД для истории
-            await db.ref('moderation').push({
-                url, 
-                author: auth.currentUser.displayName, 
-                desc, 
-                time: new Date().toLocaleString()
-            });
-
-            s.innerText = "✅ Успешно отправлено!";
-            fileInput.value = ""; // Очистить выбор файла
-            setTimeout(() => { s.innerText = ""; b.disabled = false; }, 3000);
-            
-        } catch (e) {
-            console.error("Ошибка Firebase:", e);
-            s.innerText = "❌ Ошибка: " + (e.message || "проверьте консоль");
-            b.disabled = false;
+                if (!response.ok) throw new Error("Код ошибки: " + response.status);
+                s.innerText = "✅ Успешно в Telegram!";
+            } catch (e) {
+                console.error(e);
+                s.innerText = "❌ Ошибка: " + e.message;
+            } finally { b.disabled = false; }
         }
-    }
 
-    function showPage(pageId, bgImg) {
-        document.getElementById('bgLayer').style.backgroundImage = `url('${bgImg}')`;
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-link'));
-        const activeLink = document.querySelector(`[onclick*="${pageId}"]`);
-        if(activeLink) activeLink.classList.add('active-link');
-    }
-
-    // Загрузка галереи
-    db.ref('gallery').on('value', snap => {
-        const h = document.getElementById('home-gallery');
-        const f = document.getElementById('full-gallery');
-        if(!h || !f) return;
-        h.innerHTML = ""; f.innerHTML = "";
-        let all = [];
-        snap.forEach(c => { all.unshift(c.val()); });
-        all.forEach((d, i) => {
-            const html = `<div class="card"><img src="${d.url}" onclick="openFull('${d.url}')"><div style="padding:15px"><div style="color:#3498db">${d.author}</div><div style="font-size:12px;color:#888">${d.desc||""}</div></div></div>`;
-            if(i < 5) h.innerHTML += html;
-            f.innerHTML += html;
-        });
-    });
-
-    function openFull(u) { document.getElementById('viewer').style.display='flex'; document.getElementById('viewImg').src=u; }
-</script>
+        function showPage(p, bg) {
+            document.getElementById('bgLayer').style.backgroundImage = `url('${bg}')`;
+            document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
+            document.getElementById(p).classList.add('active');
+        }
+    </script>
 </body>
 </html>
