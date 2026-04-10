@@ -1,312 +1,272 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubiX | Portal</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script> 
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CubiX | Portal</title>
 
-    <style>
-        @font-face { font-family: Door; src: url('door.otf'); }
-        * { font-family: Door, Arial, sans-serif; box-sizing: border-box; scroll-behavior: smooth; }
-        body { margin: 0; background-color: #000; color: white; overflow-x: hidden; }
-        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: -2; transition: 0.8s; }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: -1; }
-        .container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; text-align: center; }
-        
-        /* СВЕТЯЩИЙСЯ ЗАГОЛОВОК */
-        h1 { font-size: clamp(60px, 12vw, 100px); text-shadow: 0 0 20px red; margin: 10px 0; animation: glow 2s infinite alternate; }
-        @keyframes glow { from { text-shadow: 0 0 10px red; } to { text-shadow: 0 0 30px #ff4d4d; transform: scale(1.02); } }
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 
-        /* Навигация */
-        .main-nav { display: flex; justify-content: center; gap: 45px; margin: 40px 0; flex-wrap: wrap; }
-        .nav-btn { color: #888; text-decoration: none; font-size: 24px; cursor: pointer; transition: 0.3s; border-bottom: 2px solid transparent; }
-        .nav-btn:hover, .nav-btn.active-link { color: white; border-color: red; text-shadow: 0 0 10px white; }
+<style>
+@font-face { font-family: Door; src: url('door.otf'); }
+* { font-family: Door, Arial; box-sizing: border-box; }
 
-        /* Профиль и Авторизация */
-        .auth-bar { position: absolute; top: 20px; right: 20px; z-index: 100; }
-        .user-avatar { width: 55px; height: 55px; border-radius: 50%; border: 2px solid red; cursor: pointer; box-shadow: 0 0 15px rgba(255,0,0,0.5); transition: 0.3s; }
-        .user-avatar:hover { transform: rotate(10deg) scale(1.1); }
-        .profile-menu { display: none; position: absolute; top: 70px; right: 0; background: #0a0a0a; border: 2px solid red; padding: 20px; border-radius: 15px; width: 280px; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,1); }
-        .stat-item { margin: 10px 0; color: #888; border-bottom: 1px solid #1a1a1a; padding-bottom: 5px; display: flex; justify-content: space-between; }
-        .stat-item b { color: #ff4d4d; }
+body { margin:0; background:#000; color:#fff; overflow-x:hidden; }
 
-        /* Кнопки и формы */
-        .button { display: inline-block; background: white; border: 2px solid white; padding: 15px 40px; color: black; text-decoration: none; font-size: 22px; border-radius: 10px; transition: 0.3s; cursor: pointer; }
-        .button:hover:not(:disabled) { background: red; border-color: red; color: white; transform: scale(1.05); }
-        .button:disabled { background: #333; border-color: #333; color: #666; cursor: not-allowed; }
-        input, textarea { background: #111; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 12px; }
+.bg-layer {
+position:fixed; width:100%; height:100%;
+background-size:cover; background-position:center;
+z-index:-2; transition:.5s;
+}
 
-        /* ГАЛЕРЕЯ (ВОЗВРАТ ЦВЕТОВ) */
-        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 30px; }
-        .card { background: rgba(15,15,15,0.9); border: 1px solid #333; border-radius: 15px; overflow: hidden; transition: 0.3s; }
-        .card:hover { border-color: red; transform: translateY(-5px); }
-        .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; cursor: pointer; }
-        .card-info { padding: 18px; text-align: left; }
-        .card-author { color: #3498db; font-size: 19px; font-weight: bold; }
-        .card-desc { color: #ccc; font-size: 14px; margin: 8px 0; font-style: italic; min-height: 1.2em; }
-        .card-meta { display: flex; justify-content: space-between; color: #555; font-size: 12px; border-top: 1px solid #222; padding-top: 10px; }
+.overlay {
+position:fixed; width:100%; height:100%;
+background:rgba(0,0,0,0.85); z-index:-1;
+}
 
-        /* Прочее */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content { background: #000; border: 2px solid red; padding: 30px; border-radius: 20px; width: 380px; text-align: center; }
-        .viewer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 5000; justify-content: center; align-items: center; }
-        .viewer img { max-width: 95%; max-height: 90%; border: 2px solid white; box-shadow: 0 0 50px red; }
-        .page { display: none; animation: fadeIn 0.4s ease; }
-        .active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    </style>
+.container {
+max-width:1100px; margin:auto; padding:40px; text-align:center;
+}
+
+h1 {
+font-size:clamp(60px,12vw,100px);
+text-shadow:0 0 20px red;
+}
+
+.main-nav {
+display:flex; justify-content:center; gap:40px; margin:40px 0;
+}
+
+.nav-btn {
+color:#888; cursor:pointer;
+border-bottom:2px solid transparent;
+}
+
+.nav-btn:hover,.active-link {
+color:#fff; border-color:red;
+}
+
+.button {
+background:#fff; color:#000;
+padding:15px 40px;
+border-radius:10px;
+cursor:pointer;
+display:inline-block;
+margin:10px;
+}
+
+.button:hover {
+background:red; color:#fff;
+}
+
+.gallery-grid {
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+gap:20px;
+}
+
+.card {
+background:#111; border-radius:10px; overflow:hidden;
+}
+
+.card img {
+width:100%; aspect-ratio:16/9; object-fit:cover;
+cursor:pointer;
+}
+
+.modal {
+display:none;
+position:fixed;
+top:0; left:0;
+width:100%; height:100%;
+background:rgba(0,0,0,0.9);
+justify-content:center;
+align-items:center;
+z-index:9999;
+}
+
+.modal-content {
+background:#000;
+border:2px solid red;
+padding:30px;
+border-radius:20px;
+width:320px;
+text-align:center;
+}
+
+input, textarea {
+width:100%;
+margin:10px 0;
+padding:10px;
+background:#111;
+color:#fff;
+border:1px solid #333;
+}
+
+.page { display:none; }
+.active { display:block; }
+
+.viewer {
+display:none;
+position:fixed;
+width:100%; height:100%;
+background:#000;
+justify-content:center;
+align-items:center;
+}
+
+.viewer img {
+max-width:90%;
+}
+</style>
 </head>
+
 <body>
 
-<div class="bg-layer" id="bgLayer" style="background-image: url('background-red.png');"></div>
+<div class="bg-layer" id="bgLayer" style="background-image:url('background-red.png')"></div>
 <div class="overlay"></div>
 
-<div class="viewer" id="viewer" onclick="this.style.display='none'"><img id="viewImg"></div>
-
-<div class="auth-bar">
-    <button id="mainLoginBtn" class="button" style="font-size: 14px; padding: 10px 20px;" onclick="openModal('authModal')">ВОЙТИ</button>
-    <div id="profileTrigger" style="display: none;">
-        <img id="userAvatar" class="user-avatar" onclick="toggleMenu()">
-        <div id="profileMenu" class="profile-menu">
-            <h3 id="menuNick" style="margin:0; color:red;">NICKNAME</h3>
-            <p id="menuID" style="font-size:12px; color:#555; margin-bottom:15px;">ID: 000000</p>
-            <div class="stat-item">Часов в игре: <b id="statHours">0</b></div>
-            <div class="stat-item">Побед: <b id="statWins">0</b></div>
-            <div class="stat-item">Кубков: <b id="statCups">0</b></div>
-            <div class="stat-item">Статус: <b style="color: #2ecc71;">Online</b></div>
-            <button class="button" style="width:100%; font-size:14px; margin-top:15px; padding: 10px;" onclick="logout()">ВЫЙТИ</button>
-        </div>
-    </div>
+<div class="viewer" id="viewer" onclick="this.style.display='none'">
+<img id="viewImg">
 </div>
 
 <div class="container">
-    <h1>CubiX</h1>
-    
-    <div class="main-nav">
-        <div class="nav-btn active-link" id="link-home" onclick="showPage('home', 'background-red.png')">Главная</div>
-        <div class="nav-btn" id="link-gallery" onclick="showPage('gallery-page', 'background-blue.png')">Галерея Сообщества</div>
-        <div class="nav-btn" id="link-versions" onclick="showPage('versions-page', 'background-yellow.png')">Версии</div>
-    </div>
+<h1>CubiX</h1>
 
-    <div id="home" class="page active">
-        <div id="dl-section-home" style="margin-bottom: 50px;">
-            <p style="color:red">Доступ к загрузке только для авторизованных пользователей.</p>
-        </div>
-        <h3 style="text-align:left; border-left: 3px solid red; padding-left: 15px;">ТОП-5 НОВЫХ КАДРОВ</h3>
-        <div id="home-gallery" class="gallery-grid"></div>
-    </div>
-
-    <div id="gallery-page" class="page">
-        <div id="upload-box" style="display:none; background:rgba(20,20,20,0.8); padding:35px; border-radius:20px; margin-bottom:40px; border:1px solid #333;">
-            <h3>Поделиться скриншотом</h3>
-            <textarea id="userDesc" placeholder="Пара слов о кадре..."></textarea><br>
-            <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleUpload()">
-            <button id="uploadBtn" class="button" onclick="document.getElementById('fileInput').click()">ВЫБРАТЬ ФАЙЛ</button>
-            <p id="statusMsg" style="color:#f1c40f; margin-top:10px; font-weight: bold;"></p>
-        </div>
-        <div id="full-gallery" class="gallery-grid"></div>
-    </div>
-
-    <div id="versions-page" class="page">
-        <h2>АРХИВ ВЕРСИЙ</h2>
-        <div id="versions-content">
-            <p style="color:#555">Войдите, чтобы просмотреть список доступных версий.</p>
-        </div>
-    </div>
+<div class="main-nav">
+<div class="nav-btn active-link" onclick="showPage('home','background-red.png')">Главная</div>
+<div class="nav-btn" onclick="showPage('gallery','background-blue.png')">Галерея</div>
 </div>
 
+<div id="home" class="page active">
+<p>Добро пожаловать в мир кубов.</p>
+
+<button class="button" onclick="downloadGame()">СКАЧАТЬ</button>
+
+<h3>Топ-5</h3>
+<div id="home-gallery" class="gallery-grid"></div>
+</div>
+
+<div id="gallery" class="page">
+<h2>Галерея</h2>
+
+<div class="gallery-grid" id="full-gallery"></div>
+
+<h3>Загрузить</h3>
+<textarea id="desc" placeholder="Описание"></textarea>
+<input type="file" id="file" onchange="upload()">
+</div>
+</div>
+
+<!-- AUTH -->
 <div id="authModal" class="modal">
-    <div class="modal-content">
-        <div id="loginForm">
-            <h2>ВХОД</h2>
-            <input type="email" id="loginEmail" placeholder="Email">
-            <input type="password" id="loginPass" placeholder="Пароль">
-            <button class="button" style="width:100%" onclick="loginEmail()">ВОЙТИ</button>
-            <p style="font-size:12px; margin-top:15px; cursor:pointer;" onclick="toggleAuth('reg')">НЕТ АККАУНТА? РЕГИСТРАЦИЯ</p>
-        </div>
-        <div id="regForm" style="display:none">
-            <h2>РЕГИСТРАЦИЯ</h2>
-            <input type="text" id="regNick" placeholder="Игровой Ник">
-            <input type="email" id="regEmail" placeholder="Email">
-            <input type="password" id="regPass1" placeholder="Пароль (8+)">
-            <input type="password" id="regPass2" placeholder="Повтор пароля">
-            <button class="button" style="width:100%" onclick="register()">СОЗДАТЬ</button>
-            <p style="font-size:12px; margin-top:15px; cursor:pointer;" onclick="toggleAuth('login')">ЕСТЬ АККАУНТ?</p>
-        </div>
-        <button class="button" style="width:100%; background:#4285F4; color:#fff; margin-top:10px; font-size: 16px;" onclick="loginGoogle()">GOOGLE ВХОД</button>
-        <button onclick="closeModal('authModal')" style="background:none; border:none; color:#444; margin-top:20px; cursor:pointer;">ЗАКРЫТЬ</button>
-    </div>
+<div class="modal-content">
+<h2>Вход</h2>
+
+<input id="email" placeholder="Email">
+<input id="pass" type="password" placeholder="Пароль">
+
+<button class="button" onclick="login()">Войти</button>
+<button class="button" onclick="google()">Google</button>
+
 </div>
+</div>
+
+<audio id="music" src="music.mp3" loop></audio>
 
 <script>
-    // Firebase Config
-    const firebaseConfig = {
-        apiKey: "AIzaSyCA7XdMGOwDx_OQ8lGHyz0ttw5952KZHM8",
-        authDomain: "cubix-web.firebaseapp.com",
-        databaseURL: "https://cubix-web-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "cubix-web",
-        storageBucket: "cubix-web.firebasestorage.app"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
-    const storage = firebase.storage();
 
-    let currentNick = "Аноним";
+// FIREBASE
+firebase.initializeApp({
+apiKey:"AIzaSyCA7XdMGOwDx_OQ8lGHyz0ttw5952KZHM8",
+authDomain:"cubix-web.firebaseapp.com",
+databaseURL:"https://cubix-web-default-rtdb.europe-west1.firebasedatabase.app",
+projectId:"cubix-web",
+storageBucket:"cubix-web.firebasestorage.app"
+});
 
-    // Навигация
-    function showPage(id, bg) {
-        document.getElementById('bgLayer').style.backgroundImage = `url('${bg}')`;
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-link'));
-        let btnId = id === 'gallery-page' ? 'link-gallery' : (id === 'versions-page' ? 'link-versions' : 'link-home');
-        document.getElementById(btnId).classList.add('active-link');
-    }
+const auth = firebase.auth();
+const db = firebase.database();
+const storage = firebase.storage();
 
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function toggleAuth(t) {
-        document.getElementById('loginForm').style.display = t === 'login' ? 'block' : 'none';
-        document.getElementById('regForm').style.display = t === 'reg' ? 'block' : 'none';
-    }
-    function toggleMenu() {
-        const m = document.getElementById('profileMenu');
-        m.style.display = m.style.display === 'block' ? 'none' : 'block';
-    }
+// UX
+document.body.onclick = () => {
+const m = document.getElementById('music');
+if(m.paused) m.play().catch(()=>{});
+};
 
-    // Авторизация
-    async function loginEmail() {
-        const e = document.getElementById('loginEmail').value;
-        const p = document.getElementById('loginPass').value;
-        auth.signInWithEmailAndPassword(e, p).then(() => closeModal('authModal')).catch(err => alert(err.message));
-    }
+function showPage(id,bg){
+document.getElementById('bgLayer').style.backgroundImage=`url(${bg})`;
+document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+}
 
-    async function register() {
-        const n = document.getElementById('regNick').value.trim();
-        const e = document.getElementById('regEmail').value.trim();
-        const p1 = document.getElementById('regPass1').value;
-        if(p1.length < 8) return alert("Пароль слишком короткий!");
-        try {
-            const res = await auth.createUserWithEmailAndPassword(e, p1);
-            await db.ref('users/' + res.user.uid).set({
-                nick: n, uid: res.user.uid, shortID: Math.floor(100000 + Math.random()*900000),
-                hours: 0, wins: 0, cups: 0
-            });
-            closeModal('authModal');
-        } catch(err) { alert(err.message); }
-    }
+// AUTH
+function requireAuth(){
+if(!auth.currentUser){
+document.getElementById('authModal').style.display='flex';
+return false;
+}
+return true;
+}
 
-    function loginGoogle() {
-        auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(async res => {
-            const s = await db.ref('users/' + res.user.uid).once('value');
-            if(!s.exists()){
-                await db.ref('users/' + res.user.uid).set({
-                    nick: res.user.displayName, uid: res.user.uid, shortID: Math.floor(100000 + Math.random()*900000),
-                    hours: 0, wins: 0, cups: 0
-                });
-            }
-            closeModal('authModal');
-        });
-    }
+function login(){
+auth.signInWithEmailAndPassword(email.value,pass.value)
+.then(()=>authModal.style.display='none')
+.catch(e=>alert(e.message));
+}
 
-    function logout() { auth.signOut().then(() => location.reload()); }
+function google(){
+auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+}
 
-    // Состояние пользователя
-    auth.onAuthStateChanged(async user => {
-        const dlHome = document.getElementById('dl-section-home');
-        const verContent = document.getElementById('versions-content');
-        if(user) {
-            document.getElementById('mainLoginBtn').style.display = 'none';
-            document.getElementById('profileTrigger').style.display = 'block';
-            document.getElementById('upload-box').style.display = 'block';
-            const snap = await db.ref('users/' + user.uid).once('value');
-            const d = snap.val();
-            currentNick = d.nick;
-            document.getElementById('userAvatar').src = user.photoURL || 'https://via.placeholder.com/60/red/white?text=C';
-            document.getElementById('menuNick').innerText = d.nick;
-            document.getElementById('menuID').innerText = "ID: " + d.shortID;
-            document.getElementById('statHours').innerText = d.hours || 0;
-            document.getElementById('statWins').innerText = d.wins || 0;
-            document.getElementById('statCups').innerText = d.cups || 0;
+// DOWNLOAD
+function downloadGame(){
+if(!requireAuth()) return;
+window.open("https://drive.google.com/file/d/13sFn3THSF_5-CxYdcR2fd0udfEVBN7rn/view","_blank");
+}
 
-            dlHome.innerHTML = `<h2 style="color:#f1c40f">Актуальная: v0.5</h2><a class="button" href="https://drive.google.com/file/d/13sFn3THSF_5-CxYdcR2fd0udfEVBN7rn/view?usp=drive_link" onclick="countDL()" target="_blank">СКАЧАТЬ</a><span class="dl-badge" id="dl-cnt-1" style="display:block; color:#f1c40f; margin-top:10px;">0 скачиваний</span>`;
-            verContent.innerHTML = `<div style="background:rgba(255,255,255,0.03); padding:25px; border-left:5px solid #f1c40f; text-align:left; border-radius:0 10px 10px 0;"><h3>v0.5 (Latest)</h3><p>• Новые аватарки!<br>• Фикс ПВП системы<br>• Новые усиления!</p><a class="button" style="font-size:16px; padding:10px 30px;" href="ССЫЛКА" onclick="countDL()" target="_blank">Скачать v0.5</a><span id="dl-cnt-2" style="margin-left:15px; color:#f1c40f;">0 скачиваний</span></div>`;
-            syncDL();
-        }
-    });
+// GALLERY
+db.ref('gallery').on('value',snap=>{
+const h=document.getElementById('home-gallery');
+const f=document.getElementById('full-gallery');
+h.innerHTML=""; f.innerHTML="";
 
-    // Скачивания
-    function countDL() { db.ref('stats/v05_downloads').transaction(c => (c || 0) + 1); }
-    function syncDL() {
-        db.ref('stats/v05_downloads').on('value', s => {
-            const val = s.val() || 0;
-            if(document.getElementById('dl-cnt-1')) document.getElementById('dl-cnt-1').innerText = val + " скачиваний";
-            if(document.getElementById('dl-cnt-2')) document.getElementById('dl-cnt-2').innerText = val + " скачиваний";
-        });
-    }
+let arr=[];
+snap.forEach(c=>arr.unshift(c.val()));
 
-    // ГАЛЕРЕЯ (ФИКС ОТОБРАЖЕНИЯ)
-    db.ref('gallery').on('value', snap => {
-        const h = document.getElementById('home-gallery');
-        const f = document.getElementById('full-gallery');
-        h.innerHTML = ""; f.innerHTML = "";
-        let items = [];
-        snap.forEach(c => { items.unshift(c.val()); });
-        items.forEach((d, i) => {
-            const html = `
-                <div class="card">
-                    <img src="${d.url}" onclick="openFull('${d.url}')">
-                    <div class="card-info">
-                        <div class="card-author">${d.author}</div>
-                        <div class="card-desc">${d.desc || ""}</div>
-                        <div class="card-meta">
-                            <span>📅 ${d.time ? d.time.split(',')[0] : ''}</span>
-                            <span>📐 ${d.width||0}x${d.height||0}</span>
-                        </div>
-                    </div>
-                </div>`;
-            if(i < 5) h.innerHTML += html;
-            f.innerHTML += html;
-        });
-    });
+arr.forEach((d,i)=>{
+const html=`<div class="card">
+<img src="${d.url}" onclick="view('${d.url}')">
+</div>`;
+if(i<5) h.innerHTML+=html;
+f.innerHTML+=html;
+});
+});
 
-    function openFull(u) { document.getElementById('viewImg').src=u; document.getElementById('viewer').style.display='flex'; }
+function view(u){
+viewer.style.display='flex';
+viewImg.src=u;
+}
 
-    // Загрузка
-    async function handleUpload() {
-        const last = localStorage.getItem('lastUp') || 0;
-        if (Date.now() - last < 120000) return alert("Подожди 2 минуты!");
-        const file = document.getElementById('fileInput').files[0];
-        if(!file) return;
-        const status = document.getElementById('statusMsg');
-        status.innerText = "⏳ Загрузка...";
-        
-        const img = await new Promise(r => { const i = new Image(); i.onload = () => r({w:i.width, h:i.height}); i.src = URL.createObjectURL(file); });
+// UPLOAD
+async function upload(){
+if(!requireAuth()) return;
 
-        const ref = storage.ref('submissions/' + Date.now() + "_" + file.name);
-        await ref.put(file);
-        const url = await ref.getDownloadURL();
+const file=document.getElementById('file').files[0];
+if(!file) return;
 
-        // Отправка в базу и ТГ
-        const data = { url, author: currentNick, desc: document.getElementById('userDesc').value, width: img.w, height: img.h, time: new Date().toLocaleString() };
-        await db.ref('gallery').push(data); // Сразу в галерею (или в moderation если хочешь проверять)
-        
-        fetch(`https://api.telegram.org/bot8422881871:AAHdgUpD15SaoX1tQvFUkOy5Jt6UWRQXtpU/sendPhoto`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ chat_id: "6165629856", photo: url, caption: `Новое фото от ${currentNick}\n${data.desc}` })
-        });
+const ref=storage.ref('img/'+Date.now());
+await ref.put(file);
+const url=await ref.getDownloadURL();
 
-        localStorage.setItem('lastUp', Date.now());
-        status.innerText = "✅ Готово!";
-        setTimeout(() => status.innerText = "", 3000);
-    }
+await db.ref('gallery').push({url});
+}
+
 </script>
+
 </body>
 </html>
