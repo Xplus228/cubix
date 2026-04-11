@@ -17,37 +17,28 @@
         .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: -2; transition: 0.8s; }
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: -1; }
         .container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; text-align: center; }
+        
         .page { display: none; animation: fadeIn 0.4s ease; }
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
         
         h1 { font-size: clamp(60px, 12vw, 100px); text-shadow: 0 0 20px red; margin: 10px 0; }
         
-        /* Навигация */
         .main-nav { display: flex; justify-content: center; gap: 45px; margin: 40px 0; flex-wrap: wrap; }
         .nav-btn { color: #888; text-decoration: none; font-size: 24px; cursor: pointer; transition: 0.3s; border-bottom: 2px solid transparent; }
         .nav-btn:hover, .nav-btn.active-link { color: white; border-color: red; text-shadow: 0 0 10px white; }
         
-        /* Кнопки */
         .button { display: inline-block; background: white; border: 2px solid white; padding: 18px 50px; color: black; text-decoration: none; font-size: 26px; border-radius: 10px; transition: 0.3s; cursor: pointer; margin: 10px 0; }
         .button:hover:not(:disabled) { background: red; border-color: red; color: white; transform: scale(1.05); }
         .button:disabled { background: #333; border-color: #333; color: #666; cursor: not-allowed; }
         
-        /* Карточки галереи */
-        .dl-count { display: block; color: #f1c40f; font-size: 16px; margin-bottom: 20px; font-weight: bold; }
         .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 30px; }
         .card { background: rgba(15,15,15,0.9); border: 1px solid #333; border-radius: 15px; overflow: hidden; transition: 0.3s; }
         .card:hover { border-color: red; }
         .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; cursor: pointer; }
         .card-info { padding: 18px; text-align: left; }
-        .card-author { color: #3498db; font-size: 19px; }
-        .card-desc { color: #ccc; font-size: 14px; margin: 8px 0; font-style: italic; min-height: 1em; }
         .card-meta { display: flex; justify-content: space-between; color: #555; font-size: 12px; border-top: 1px solid #222; padding-top: 10px; }
         
-        /* Архив версий */
-        .version-item { background: rgba(255,255,255,0.03); padding: 25px; border-left: 5px solid #f1c40f; text-align: left; margin-bottom: 20px; border-radius: 0 10px 10px 0; }
-        
-        /* Формы и Инпуты */
         input, textarea { background: #111; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; width: 100%; max-width: 450px; margin-bottom: 12px; }
         .auth-container { max-width: 400px; margin: 0 auto; background: rgba(20,20,20,0.9); padding: 30px; border-radius: 20px; border: 1px solid red; }
         .auth-switch { font-size: 14px; color: #888; cursor: pointer; text-decoration: underline; margin-top: 10px; display: block; }
@@ -66,44 +57,32 @@
     
     <div class="main-nav">
         <div class="nav-btn active-link" id="link-home" onclick="showPage('home', 'background-red.png')">Главная</div>
-        <div class="nav-btn" id="link-gallery" onclick="showPage('gallery-page', 'background-blue.png')">Галерея Сообщества</div>
+        <div class="nav-btn" id="link-gallery" onclick="showPage('gallery-page', 'background-blue.png')">Галерея</div>
         <div class="nav-btn" id="link-versions" onclick="showPage('versions-page', 'background-yellow.png')">Версии</div>
         <div class="nav-btn" id="link-profile" onclick="showPage('profile-page', 'background-red.png')">Профиль</div>
     </div>
 
     <div id="home" class="page active">
-        <p style="font-size: 24px; color: #bbb;">Добро пожаловать в мир безумия и кубов.</p>
-        <div style="margin: 40px 0;">
-            <h2 style="color: #f1c40f; margin-bottom: 5px;">Актуальная: v0.5</h2>
-            <a class="button" href="https://drive.google.com/file/d/13sFn3THSF_5-CxYdcR2fd0udfEVBN7rn/view?usp=drive_link" target="_blank" onclick="countDL('v05')">Скачать</a>
-            <span class="dl-count" id="dl-home-v05">0 скачиваний</span>
-        </div>
-        <h3>Топ-5 новых кадров:</h3>
+        <p style="font-size: 24px; color: #bbb;">Добро пожаловать в мир CubiX.</p>
         <div id="home-gallery" class="gallery-grid"></div>
     </div>
 
     <div id="gallery-page" class="page">
-        <h2>Галерея Сообщества</h2>
         <div id="full-gallery" class="gallery-grid"></div>
         <div style="margin-top: 60px; background: rgba(20,20,20,0.8); padding: 35px; border-radius: 20px; border: 1px solid #333;">
-            <h3>Поделиться скриншотом</h3>
-            <p id="upload-restrict-msg" style="color: red; display: none;">Нужно войти в аккаунт, чтобы загружать фото!</p>
-            <input type="text" id="userNick" placeholder="Твой ник" readonly><br>
-            <textarea id="userDesc" placeholder="Пара слов о кадре..."></textarea><br>
+            <h3>Загрузить скриншот</h3>
+            <p id="upload-restrict-msg" style="color: red; display: none;">Войдите, чтобы делиться кадрами!</p>
+            <input type="text" id="userNick" placeholder="Ник" readonly>
+            <textarea id="userDesc" placeholder="Описание..."></textarea>
             <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleUpload()">
-            <button id="uploadBtn" class="button" style="font-size: 18px;" onclick="playClick(); checkAuthAndTriggerUpload()">Выбрать файл</button>
+            <button id="uploadBtn" class="button" style="font-size: 18px;" onclick="checkAuthAndTriggerUpload()">Выбрать файл</button>
             <p id="statusMsg" style="margin-top: 15px; font-weight: bold; color: #f1c40f;"></p>
         </div>
     </div>
 
     <div id="versions-page" class="page">
         <h2>Архив Версий</h2>
-        <div class="version-item">
-            <h3 style="color: #f1c40f;">v0.5 (Latest)</h3>
-            <p>• Добавлены новые авотарки!<br>• Фикс пвп системы<br>• Новая система усилений!</p>
-            <a class="button" style="font-size: 16px; padding: 12px 35px;" href="https://drive.google.com/file/d/13sFn3THSF_5-CxYdcR2fd0udfEVBN7rn/view?usp=drive_link" target="_blank" onclick="countDL('v05')">Скачать v0.5</a>
-            <span class="dl-count" id="dl-ver-v05">0 скачиваний</span>
-        </div>
+        <p>Здесь будут ссылки на скачивание v0.5 и старых билдов.</p>
     </div>
 
     <div id="profile-page" class="page">
@@ -113,16 +92,17 @@
                 <input type="email" id="authEmail" placeholder="Email"><br>
                 <input type="password" id="authPass" placeholder="Пароль"><br>
                 <button class="button" style="font-size: 18px; padding: 10px 30px;" onclick="login()">Войти</button>
-                <span class="auth-switch" onclick="switchAuth('reg')">Нет аккаунта? Регистрация</span>
+                <span class="auth-switch" onclick="switchAuth('reg')">Регистрация</span>
                 <span class="auth-switch" onclick="switchAuth('reset')">Забыли пароль?</span>
+                <button class="button" style="background:#4285F4; color:white; width:100%; margin-top:15px; font-size: 16px;" onclick="loginGoogle()">Войти через Google</button>
             </div>
             <div id="reg-form" style="display:none;">
                 <h2>Регистрация</h2>
-                <input type="text" id="regNick" placeholder="Ник в игре"><br>
+                <input type="text" id="regNick" placeholder="Никнейм"><br>
                 <input type="email" id="regEmail" placeholder="Email"><br>
                 <input type="password" id="regPass" placeholder="Пароль"><br>
                 <button class="button" style="font-size: 18px; padding: 10px 30px;" onclick="register()">Создать аккаунт</button>
-                <span class="auth-switch" onclick="switchAuth('login')">Уже есть аккаунт? Войти</span>
+                <span class="auth-switch" onclick="switchAuth('login')">Назад ко входу</span>
             </div>
             <div id="reset-form" style="display:none;">
                 <h2>Сброс пароля</h2>
@@ -134,98 +114,110 @@
 
         <div id="profile-data" style="display:none;">
             <div class="auth-container" style="border-color: #f1c40f;">
-                <h2 id="dispNick">Никнейм</h2>
-                <p id="dispEmail" style="color: #888; font-size: 14px;">email@example.com</p>
-                <hr style="border:0; border-top:1px solid #333; margin: 20px 0;">
-                <div style="text-align: left; padding-left: 20px;">
-                    <p>Статус: <span style="color: #f1c40f;" id="dispRole">Игрок</span></p>
+                <h2 id="dispNick">Ник</h2>
+                <p id="dispEmail" style="color: #888; font-size: 14px;">email</p>
+                <p>Роль: <span style="color: #f1c40f;" id="dispRole">Игрок</span></p>
+                <button class="button" style="font-size: 16px; padding: 10px 30px; background: #222; color: white;" onclick="logout()">Выйти</button>
+                <div style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
+                    <button class="button" style="font-size: 14px; padding: 8px 20px; background: transparent; color: #ff4444; border-color: #ff4444;" onclick="deleteAccount()">Удалить аккаунт</button>
                 </div>
-                <button class="button" style="font-size: 18px; padding: 10px 30px; background: red; color: white; border: none;" onclick="logout()">Выйти</button>
             </div>
         </div>
     </div>
 </div>
 
-<div class="viewer" id="viewer" onclick="this.style.display='none'">
-    <img id="viewImg">
-</div>
-
-<audio id="bgMusic" src="music.mp3" loop></audio>
-<audio id="clickSound" src="click.mp3"></audio>
+<div class="viewer" id="viewer" onclick="this.style.display='none'"><img id="viewImg"></div>
 
 <script>
-    // Firebase Config
-    const _a1 = "AIzaSyC"; const _a2 = "A7XdMGOwD"; const _a3 = "x_OQ8lGHyz0t"; const _a4 = "tw5952KZHM8";
     const firebaseConfig = {
-        apiKey: _a1 + _a2 + _a3 + _a4,
+        apiKey: "AIzaSyCA7XdMGOwDx_OQ8lGHyz0ttw5952KZHM8",
         authDomain: "cubix-web.firebaseapp.com",
         databaseURL: "https://cubix-web-default-rtdb.europe-west1.firebasedatabase.app",
         projectId: "cubix-web",
-        storageBucket: "cubix-web.firebasestorage.app",
-        messagingSenderId: "230148294770",
-        appId: "1:230148294770:web:e9cd48f457359039dd5aeb"
+        storageBucket: "cubix-web.firebasestorage.app"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const storage = firebase.storage();
     const auth = firebase.auth();
 
-    // --- ЛОГИКА ПРОФИЛЯ ---
+    // --- УПРАВЛЕНИЕ СТРАНИЦАМИ ---
+    function showPage(id, bg) {
+        document.getElementById('bgLayer').style.backgroundImage = `url('${bg}')`;
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-link'));
+        const linkMap = {'home':'link-home', 'gallery-page':'link-gallery', 'versions-page':'link-versions', 'profile-page':'link-profile'};
+        document.getElementById(linkMap[id]).classList.add('active-link');
+    }
 
-    function switchAuth(type) {
-        document.getElementById('login-form').style.display = type === 'login' ? 'block' : 'none';
-        document.getElementById('reg-form').style.display = type === 'reg' ? 'block' : 'none';
-        document.getElementById('reset-form').style.display = type === 'reset' ? 'block' : 'none';
+    // --- АВТОРИЗАЦИЯ ---
+    function switchAuth(t) {
+        document.getElementById('login-form').style.display = t === 'login' ? 'block' : 'none';
+        document.getElementById('reg-form').style.display = t === 'reg' ? 'block' : 'none';
+        document.getElementById('reset-form').style.display = t === 'reset' ? 'block' : 'none';
     }
 
     async function register() {
         const email = document.getElementById('regEmail').value;
         const pass = document.getElementById('regPass').value;
         const nick = document.getElementById('regNick').value.trim();
-        if(!email || !pass || !nick) return alert("Заполни все поля!");
         try {
             const res = await auth.createUserWithEmailAndPassword(email, pass);
-            // Создаем запись юзера согласно правилам $uid
             await db.ref('users/' + res.user.uid).set({
-                nick: nick,
-                email: email,
+                nick: nick, email: email,
                 permissions: { role: 'player', isBannedSite: false }
             });
-            alert("Аккаунт создан успешно!");
-        } catch(e) { alert("Ошибка: " + e.message); }
+        } catch(e) { alert(e.message); }
     }
 
     async function login() {
         const email = document.getElementById('authEmail').value;
         const pass = document.getElementById('authPass').value;
-        try {
-            await auth.signInWithEmailAndPassword(email, pass);
-        } catch(e) { alert("Неверный вход: " + e.message); }
+        try { await auth.signInWithEmailAndPassword(email, pass); } catch(e) { alert(e.message); }
+    }
+
+    function loginGoogle() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).then(async (res) => {
+            const snap = await db.ref('users/' + res.user.uid).once('value');
+            if (!snap.exists()) {
+                await db.ref('users/' + res.user.uid).set({
+                    nick: res.user.displayName, email: res.user.email,
+                    permissions: { role: 'player', isBannedSite: false }
+                });
+            }
+        }).catch(e => alert(e.message));
     }
 
     async function resetPassword() {
         const email = document.getElementById('resetEmail').value;
-        if(!email) return alert("Введите Email!");
-        try {
-            await auth.sendPasswordResetEmail(email);
-            alert("Инструкция отправлена на почту!");
-            switchAuth('login');
-        } catch(e) { alert(e.message); }
+        try { await auth.sendPasswordResetEmail(email); alert("Проверь почту!"); switchAuth('login'); } catch(e) { alert(e.message); }
     }
 
     function logout() { auth.signOut(); }
 
-    // Слежка за авторизацией
+    async function deleteAccount() {
+        const user = auth.currentUser;
+        if (!user) return;
+        if (confirm("Удалить аккаунт навсегда?") && confirm("Точно? Данные будут стерты.")) {
+            try {
+                await db.ref('users/' + user.uid).remove();
+                await user.delete();
+                alert("Аккаунт удален.");
+            } catch (e) { alert("Нужно перевойти в аккаунт перед удалением."); }
+        }
+    }
+
     auth.onAuthStateChanged(user => {
-        const profilePage = document.getElementById('profile-data');
+        const profileData = document.getElementById('profile-data');
         const authForms = document.getElementById('auth-forms');
         const nickInput = document.getElementById('userNick');
         const restrictMsg = document.getElementById('upload-restrict-msg');
-
+        
         if(user) {
             authForms.style.display = 'none';
-            profilePage.style.display = 'block';
+            profileData.style.display = 'block';
             restrictMsg.style.display = 'none';
             db.ref('users/' + user.uid).on('value', snap => {
                 const data = snap.val();
@@ -233,130 +225,90 @@
                     document.getElementById('dispNick').innerText = data.nick;
                     document.getElementById('dispEmail').innerText = user.email;
                     document.getElementById('dispRole').innerText = data.permissions?.role || "Игрок";
-                    nickInput.value = data.nick; // Подставляем ник в галерею
+                    nickInput.value = data.nick;
                 }
             });
         } else {
             authForms.style.display = 'block';
-            profilePage.style.display = 'none';
+            profileData.style.display = 'none';
             restrictMsg.style.display = 'block';
             nickInput.value = "";
         }
     });
 
-    // --- ОБЩАЯ ЛОГИКА ---
-
-    document.body.addEventListener('click', () => {
-        const m = document.getElementById('bgMusic');
-        if (m.paused) { m.volume = 0.25; m.play().catch(()=>{}); }
-    }, { once: true });
-
-    function playClick() {
-        const s = document.getElementById('clickSound');
-        s.currentTime = 0; s.play().catch(()=>{});
-    }
-
-    function showPage(pageId, bgImg) {
-        playClick();
-        document.getElementById('bgLayer').style.backgroundImage = `url('${bgImg}')`;
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-link'));
-        
-        let linkId = 'link-home';
-        if(pageId === 'gallery-page') linkId = 'link-gallery';
-        if(pageId === 'versions-page') linkId = 'link-versions';
-        if(pageId === 'profile-page') linkId = 'link-profile';
-        document.getElementById(linkId).classList.add('active-link');
-    }
-
-    function countDL(v) { db.ref('downloads/' + v).transaction(c => (c || 0) + 1); }
-    
-    db.ref('downloads/v05').on('value', snap => {
-        const val = snap.val() || 0;
-        const h = document.getElementById('dl-home-v05');
-        const v = document.getElementById('dl-ver-v05');
-        if(h) h.innerText = val + " скачиваний";
-        if(v) v.innerText = val + " скачиваний";
-    });
-
-    // Загрузка галереи
-    db.ref('gallery').on('value', snap => {
+    // --- ГАЛЕРЕЯ И ЗАГРУЗКА ---
+    db.ref('gallery').limitToLast(20).on('value', snap => {
         const h = document.getElementById('home-gallery');
         const f = document.getElementById('full-gallery');
-        if(!h || !f) return;
-        h.innerHTML = ""; f.innerHTML = "";
-        let all = [];
-        snap.forEach(c => { all.unshift(c.val()); });
-        all.forEach((d, i) => {
-            const date = d.time ? d.time.split(',')[0] : "";
-            const html = `<div class="card"><img src="${d.url}" onclick="openFull('${d.url}')"><div class="card-info"><div class="card-author">${d.author}</div><div class="card-desc">${d.desc || ""}</div><div class="card-meta"><span>📅 ${date}</span><span>📐 ${d.width||0}x${d.height||0}</span></div></div></div>`;
+        h.innerHTML = f.innerHTML = "";
+        let items = [];
+        snap.forEach(c => items.unshift(c.val()));
+        items.forEach((d, i) => {
+            const html = `<div class="card"><img src="${d.url}" onclick="openFull('${d.url}')"><div class="card-info"><b>${d.author}</b><br><small>${d.desc || ""}</small><div class="card-meta"><span>📅 ${d.time?d.time.split(',')[0]:''}</span><span>📐 ${d.width}x${d.height}</span></div></div></div>`;
             if(i < 5) h.innerHTML += html;
             f.innerHTML += html;
         });
     });
 
     function checkAuthAndTriggerUpload() {
-        if(!auth.currentUser) {
-            alert("Для загрузки нужно войти в аккаунт!");
-            showPage('profile-page', 'background-red.png');
-            return;
-        }
+        if(!auth.currentUser) { showPage('profile-page', 'background-red.png'); return; }
         document.getElementById('fileInput').click();
     }
 
     async function handleUpload() {
         const user = auth.currentUser;
-        if(!user) return;
-
-        const l = localStorage.getItem('lastUp') || 0;
-        const n = Date.now();
-        if (n - l < 120000) { alert("Подожди 2 минуты!"); return; }
+        const now = Date.now();
+        const last = localStorage.getItem('lastUp') || 0;
+        if (now - last < 120000) { alert("Кулдаун 2 мин!"); return; }
 
         const file = document.getElementById('fileInput').files[0];
-        const nick = document.getElementById('userNick').value || "Игрок";
-        const desc = document.getElementById('userDesc').value.trim();
-        const s = document.getElementById('statusMsg');
-        const b = document.getElementById('uploadBtn');
-
         if(!file) return;
-        s.innerText = "⏳ Отправка...";
-        b.disabled = true;
+
+        const status = document.getElementById('statusMsg');
+        const btn = document.getElementById('uploadBtn');
+        status.innerText = "⏳ Загрузка...";
+        btn.disabled = true;
 
         try {
-            const img = await getImageInfo(file);
-            const ref = storage.ref('submissions/' + n + "_" + file.name);
+            // 1. Получаем размеры картинки
+            const imgInfo = await new Promise(res => {
+                const i = new Image();
+                i.onload = () => res({w: i.width, h: i.height});
+                i.src = URL.createObjectURL(file);
+            });
+
+            // 2. Загружаем в Storage
+            const ref = storage.ref('submissions/' + now + "_" + file.name);
             await ref.put(file);
             const url = await ref.getDownloadURL();
 
-            // Запись в moderation (пройдет проверку auth != null)
-            await db.ref('moderation').push({ 
-                url, author: nick, desc, width: img.w, height: img.h, 
-                time: new Date().toLocaleString(),
-                uid: user.uid 
+            // 3. ПИШЕМ В БАЗУ (Для правил Firebase)
+            await db.ref('moderation').push({
+                url, author: document.getElementById('userNick').value,
+                desc: document.getElementById('userDesc').value,
+                width: imgInfo.w, height: imgInfo.h,
+                time: new Date().toLocaleString(), uid: user.uid
             });
 
-            // Telegram
-            const k = "8422881871:AAHdgUpD15SaoX1tQvFUkOy5Jt6UWRQXtpU";
-            fetch(`https://api.telegram.org/bot${k}/sendPhoto`, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ chat_id: "6165629856", photo: url, caption: `CubiX от ${nick}: "${desc}"` }) 
+            // 4. ОТПРАВЛЯЕМ В ТЕЛЕГРАМ ЧЕРЕЗ CLOUD FUNCTION (Секретно)
+            await fetch("https://us-central1-cubix-web.cloudfunctions.net/sendtotelegram", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    photoUrl: url, 
+                    author: document.getElementById('userNick').value, 
+                    desc: document.getElementById('userDesc').value,
+                    time: new Date().toLocaleString(),
+                    width: imgInfo.w, height: imgInfo.h
+                })
             });
 
-            localStorage.setItem('lastUp', n);
-            let t = 120;
-            const iv = setInterval(() => {
-                t--; s.innerText = `⏳ Кулдаун: ${t}с`;
-                if(t <= 0) { clearInterval(iv); b.disabled = false; s.innerText = ""; }
-            }, 1000);
-        } catch (e) { 
-            s.innerText = "❌ Ошибка доступа (бан?)."; 
-            b.disabled = false; 
-        }
+            localStorage.setItem('lastUp', now);
+            status.innerText = "✅ Готово! На модерации.";
+            setTimeout(() => { status.innerText = ""; btn.disabled = false; }, 5000);
+        } catch (e) { status.innerText = "❌ Ошибка загрузки."; btn.disabled = false; }
     }
 
-    function getImageInfo(f) { return new Promise(r => { const i = new Image(); i.onload = () => r({w: i.width, h: i.height}); i.src = URL.createObjectURL(f); }); }
     function openFull(u) { document.getElementById('viewer').style.display='flex'; document.getElementById('viewImg').src=u; }
 </script>
 </body>
