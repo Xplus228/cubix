@@ -50,24 +50,18 @@
 
         .info-box { background: rgba(39,174,96,0.15); border: 1px solid #27ae60; border-radius: 10px; padding: 15px; margin-top: 15px; color: #2ecc71; font-size: 15px; line-height: 1.6; }
         .err-box { background: rgba(231,76,60,0.15); border: 1px solid #e74c3c; border-radius: 10px; padding: 12px; margin-bottom: 12px; color: #e74c3c; font-size: 14px; display: none; }
+        .cooldown-msg { color: #f1c40f; font-size: 14px; margin-top: 8px; display: none; }
 
         .verify-screen { max-width: 400px; margin: 0 auto; background: rgba(20,20,20,0.9); padding: 30px; border-radius: 20px; border: 1px solid #f1c40f; display: none; }
         .verify-screen h2 { color: #f1c40f; }
         .verify-screen p { color: #bbb; font-size: 15px; line-height: 1.6; margin: 10px 0; }
 
-        /* Модалка бана */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 500; align-items: center; justify-content: center; }
         .modal-overlay.show { display: flex; }
         .modal-box { background: #0f0f0f; border: 2px solid #e74c3c; border-radius: 20px; padding: 40px 30px; max-width: 420px; width: 90%; text-align: center; animation: fadeIn 0.3s ease; }
         .modal-box h2 { color: #e74c3c; font-size: 32px; margin-bottom: 10px; }
         .modal-box .ban-reason { background: rgba(231,76,60,0.1); border: 1px solid #e74c3c; border-radius: 10px; padding: 15px; margin: 15px 0; color: #ccc; font-size: 16px; line-height: 1.5; }
         .modal-box p { color: #888; font-size: 14px; }
-
-        /* Профиль — статы */
-        .profile-stats { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin: 15px 0; }
-        .stat-card { background: rgba(255,255,255,0.05); border: 1px solid #222; border-radius: 12px; padding: 12px 20px; min-width: 100px; }
-        .stat-val { font-size: 28px; color: white; }
-        .stat-lbl { font-size: 12px; color: #555; margin-top: 2px; }
 
         .player-id-badge { display: inline-block; background: rgba(255,255,255,0.07); border: 1px solid #333; border-radius: 8px; padding: 4px 12px; font-size: 14px; color: #888; margin-bottom: 10px; letter-spacing: 1px; }
 
@@ -122,7 +116,8 @@
     <!-- ВЕРСИИ -->
     <div id="versions-page" class="page">
         <h2>Архив Версий</h2>
-        <a class="button" href="ССЫЛКА" target="_blank">Скачать v0.5</a>
+        <p id="dl-count" style="color:#555; font-size:16px; margin-bottom:5px;">⬇ загрузок: ...</p>
+        <button class="button" onclick="downloadGame()">Скачать v0.5</button>
     </div>
 
     <!-- ПРОФИЛЬ -->
@@ -171,7 +166,8 @@
                 <p style="color:#888; font-size:14px; margin-bottom:15px;">Введи email — пришлём ссылку для создания нового пароля.</p>
                 <div class="err-box" id="reset-err"></div>
                 <input type="email" id="resetEmail" placeholder="Email">
-                <button class="button" style="width:100%" onclick="resetPassword()">Отправить письмо</button>
+                <button id="reset-btn" class="button" style="width:100%" onclick="resetPassword()">Отправить письмо</button>
+                <p class="cooldown-msg" id="reset-cooldown"></p>
                 <div class="info-box" id="reset-success" style="display:none;">✅ Письмо отправлено! Проверь почту и папку "Спам".</div>
                 <button class="auth-link" onclick="showForm('login-form')">← Назад ко входу</button>
             </div>
@@ -194,18 +190,16 @@
                 <h2 id="dispNick" style="margin-bottom:6px;">Ник</h2>
                 <div class="player-id-badge" id="dispId">#00000000</div>
                 <p id="dispEmail" style="color:#888; margin:6px 0;"></p>
-
-                <div class="profile-stats">
-                    <div class="stat-card">
-                        <div class="stat-val" id="dispUploads">0</div>
-                        <div class="stat-lbl">Загрузок</div>
-                    </div>
-                </div>
-
                 <button class="button" style="font-size:16px; background:#222; color:white;" onclick="logout()">Выйти</button>
                 <div style="margin-top:20px; border-top:1px solid #333; padding-top:10px;">
                     <button style="color:red; background:none; border:none; cursor:pointer; font-size:14px;" onclick="deleteAccount()">Удалить аккаунт</button>
                 </div>
+            </div>
+
+            <div style="margin-top:40px; text-align:left;">
+                <h3 style="text-align:center; color:#888; font-size:18px; margin-bottom:0;">Мои одобренные скриншоты</h3>
+                <div id="my-gallery" class="gallery-grid"></div>
+                <p id="my-gallery-empty" style="color:#555; text-align:center; display:none;">Пока нет одобренных скриншотов.</p>
             </div>
         </div>
 
@@ -223,12 +217,11 @@ const firebaseConfig = {
     storageBucket: "cubix-web.firebasestorage.app"
 };
 firebase.initializeApp(firebaseConfig);
-const db       = firebase.database();
-const storage  = firebase.storage();
-const auth     = firebase.auth();
+const db      = firebase.database();
+const storage = firebase.storage();
+const auth    = firebase.auth();
 auth.languageCode = 'ru';
 
-// Короткий ID из UID (первые 8 символов, верхний регистр)
 function shortId(uid) { return '#' + uid.slice(0, 8).toUpperCase(); }
 
 // ─── НАВИГАЦИЯ ────────────────────────────────────────────────
@@ -245,7 +238,7 @@ function showForm(id) {
     ['login-form','reg-form','reset-form','google-finish-form'].forEach(f => {
         const el = document.getElementById(f); if (el) el.style.display = 'none';
     });
-    document.getElementById('auth-forms').style.display   = 'block';
+    document.getElementById('auth-forms').style.display    = 'block';
     document.getElementById('verify-screen').style.display = 'none';
     document.getElementById('profile-data').style.display  = 'none';
     document.getElementById(id).style.display = 'block';
@@ -315,7 +308,6 @@ async function register() {
         const res = await auth.createUserWithEmailAndPassword(email, pass);
         await db.ref('users/' + res.user.uid).set({
             nick, email,
-            uploadCount: 0,
             isBannedSite: false,
             banReason: ''
         });
@@ -342,7 +334,6 @@ async function login() {
         if (!res.user.emailVerified) {
             showVerifyScreen(email);
         }
-        // если всё ок — onAuthStateChanged подхватит
     } catch(e) {
         const msgs = {
             'auth/user-not-found':     'Аккаунт не найден.',
@@ -369,7 +360,6 @@ async function finishGoogleReg() {
     try {
         await db.ref('users/' + user.uid).set({
             nick, email: user.email,
-            uploadCount: 0,
             isBannedSite: false,
             banReason: ''
         });
@@ -377,26 +367,65 @@ async function finishGoogleReg() {
     } catch(e) { showErr('gfinish-err', 'Ошибка. Попробуй снова.'); }
 }
 
-// ─── СБРОС ПАРОЛЯ (с проверкой существования) ─────────────────
+// ─── СБРОС ПАРОЛЯ ─────────────────────────────────────────────
+let resetCooldownTimer = null;
+
 async function resetPassword() {
     const email = document.getElementById('resetEmail').value.trim();
     if (!email) return showErr('reset-err', 'Введи email.');
+
+    const lastReset = parseInt(localStorage.getItem('lastReset') || '0');
+    const now = Date.now();
+    const COOLDOWN = 60000;
+    if (now - lastReset < COOLDOWN) {
+        const left = Math.ceil((COOLDOWN - (now - lastReset)) / 1000);
+        startResetCooldown(left);
+        return;
+    }
+
     try {
-        // Проверяем — зарегистрирован ли такой email
         const methods = await auth.fetchSignInMethodsForEmail(email);
         if (!methods || methods.length === 0) {
             return showErr('reset-err', 'Аккаунт с таким email не найден.');
         }
         await auth.sendPasswordResetEmail(email);
+        localStorage.setItem('lastReset', String(now));
         document.getElementById('reset-success').style.display = 'block';
         document.getElementById('reset-err').style.display = 'none';
+        startResetCooldown(60);
     } catch(e) {
-        const msgs = {
-            'auth/invalid-email': 'Некорректный email.',
-        };
+        const msgs = { 'auth/invalid-email': 'Некорректный email.' };
         showErr('reset-err', msgs[e.code] || e.message);
     }
 }
+
+function startResetCooldown(seconds) {
+    const btn = document.getElementById('reset-btn');
+    const msg = document.getElementById('reset-cooldown');
+    if (!btn || !msg) return;
+    btn.disabled = true;
+    msg.style.display = 'block';
+    if (resetCooldownTimer) clearInterval(resetCooldownTimer);
+    let left = seconds;
+    msg.innerText = `Повторно можно через ${left} сек.`;
+    resetCooldownTimer = setInterval(() => {
+        left--;
+        if (left <= 0) {
+            clearInterval(resetCooldownTimer);
+            btn.disabled = false;
+            msg.style.display = 'none';
+        } else {
+            msg.innerText = `Повторно можно через ${left} сек.`;
+        }
+    }, 1000);
+}
+
+// Восстанавливаем кулдаун после перезагрузки страницы
+(function() {
+    const lastReset = parseInt(localStorage.getItem('lastReset') || '0');
+    const left = Math.ceil((60000 - (Date.now() - lastReset)) / 1000);
+    if (left > 0) startResetCooldown(left);
+})();
 
 // ─── ВЫХОД / УДАЛЕНИЕ ─────────────────────────────────────────
 function logout() { auth.signOut(); }
@@ -446,7 +475,6 @@ async function authStateHandler(user) {
 
     const d = snap.val();
 
-    // Проверка бана
     if (d.isBannedSite) {
         await auth.signOut();
         showBanModal(d.banReason);
@@ -462,17 +490,44 @@ async function authStateHandler(user) {
     verifyScreen.style.display = 'none';
     profileData.style.display  = 'block';
 
-    document.getElementById('dispNick').innerText    = d.nick;
-    document.getElementById('dispId').innerText      = shortId(user.uid);
-    document.getElementById('dispEmail').innerText   = user.email;
-    document.getElementById('dispUploads').innerText = d.uploadCount || 0;
-    document.getElementById('userNick').value        = d.nick;
+    document.getElementById('dispNick').innerText  = d.nick;
+    document.getElementById('dispId').innerText    = shortId(user.uid);
+    document.getElementById('dispEmail').innerText = user.email;
+    document.getElementById('userNick').value      = d.nick;
 
-    // Сохраняем данные юзера глобально для галереи
-    window._currentUserData = { uid: user.uid, nick: d.nick, id: shortId(user.uid), isBanned: false };
+    window._currentUserData = { uid: user.uid, nick: d.nick, id: shortId(user.uid) };
+
+    loadMyGallery(user.uid);
 }
 
 auth.onAuthStateChanged(authStateHandler);
+
+// ─── МОЯ ГАЛЕРЕЯ В ПРОФИЛЕ ────────────────────────────────────
+function loadMyGallery(uid) {
+    const grid  = document.getElementById('my-gallery');
+    const empty = document.getElementById('my-gallery-empty');
+    if (!grid) return;
+
+    db.ref('gallery').orderByChild('uid').equalTo(uid).on('value', snap => {
+        grid.innerHTML = '';
+        let all = [];
+        snap.forEach(child => { all.unshift(child.val()); });
+
+        all.forEach(d => {
+            const date = d.time ? d.time.split(',')[0] : '---';
+            const meta = (d.width && d.height) ? `${d.width}x${d.height}` : '';
+            grid.innerHTML += `<div class="card">
+                <img src="${d.url}" onclick="openFull('${d.url}')" loading="lazy">
+                <div class="card-info">
+                    <div class="card-desc">${d.desc || ''}</div>
+                    <div class="card-meta"><span>📅 ${date}</span><span>📐 ${meta}</span></div>
+                </div>
+            </div>`;
+        });
+
+        empty.style.display = all.length === 0 ? 'block' : 'none';
+    });
+}
 
 // ─── ГАЛЕРЕЯ ──────────────────────────────────────────────────
 db.ref('gallery').on('value', snap => {
@@ -483,8 +538,8 @@ db.ref('gallery').on('value', snap => {
     let all = [];
     snap.forEach(child => { all.unshift(child.val()); });
     all.forEach((d, i) => {
-        const date   = d.time ? d.time.split(',')[0] : '---';
-        const meta   = (d.width && d.height) ? `${d.width}x${d.height}` : '';
+        const date    = d.time ? d.time.split(',')[0] : '---';
+        const meta    = (d.width && d.height) ? `${d.width}x${d.height}` : '';
         const idBadge = d.authorId ? `<span class="card-author-id">${d.authorId}</span>` : '';
         const card = `<div class="card">
             <img src="${d.url}" onclick="openFull('${d.url}')" loading="lazy">
@@ -499,14 +554,24 @@ db.ref('gallery').on('value', snap => {
     });
 });
 
-// ─── ЗАГРУЗКА ─────────────────────────────────────────────────
+// ─── СКАЧИВАНИЕ ИГРЫ ──────────────────────────────────────────
+async function downloadGame() {
+    await db.ref('gameDownloads').transaction(c => (c || 0) + 1);
+    window.open('ССЫЛКА', '_blank');
+}
+
+db.ref('gameDownloads').on('value', snap => {
+    const el = document.getElementById('dl-count');
+    if (el) el.innerText = `⬇ загрузок: ${snap.val() || 0}`;
+});
+
+// ─── ЗАГРУЗКА СКРИНШОТА ───────────────────────────────────────
 async function checkAuthAndTriggerUpload() {
     const user = auth.currentUser;
     if (!user) {
         showPage('profile-page', 'background-red.png', null);
         return;
     }
-    // Проверяем бан ДО открытия файлового диалога
     const snap = await db.ref('users/' + user.uid).once('value');
     const d = snap.val();
     if (!snap.exists() || d.isBannedSite) {
@@ -520,7 +585,6 @@ async function handleUpload() {
     const user = auth.currentUser;
     if (!user) return;
 
-    // Cooldown 2 минуты
     const now  = Date.now();
     const last = parseInt(localStorage.getItem('lastUp') || '0');
     if (now - last < 120000) {
@@ -561,12 +625,6 @@ async function handleUpload() {
             time:     new Date().toLocaleString()
         });
 
-        // Увеличиваем счётчик загрузок
-        await db.ref('users/' + user.uid + '/uploadCount').transaction(c => (c || 0) + 1);
-        // Обновляем в UI
-        const newCount = parseInt(document.getElementById('dispUploads').innerText || '0') + 1;
-        document.getElementById('dispUploads').innerText = newCount;
-
         fetch('https://us-central1-cubix-web.cloudfunctions.net/sendtotelegram', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -580,7 +638,7 @@ async function handleUpload() {
             })
         });
 
-        localStorage.setItem('lastUp', now);
+        localStorage.setItem('lastUp', String(now));
         status.innerText = '✅ Отправлено на модерацию!';
         document.getElementById('userDesc').value = '';
 
