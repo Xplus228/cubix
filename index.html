@@ -31,22 +31,43 @@
         .button:hover:not(:disabled) { background: red; border-color: red; color: white; transform: scale(1.05); }
         .button:disabled { background: #333; border-color: #333; color: #666; cursor: not-allowed; }
 
+        /* ── ГАЛЕРЕЯ ── */
         .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 30px; }
-        .card { background: rgba(15,15,15,0.9); border: 1px solid #333; border-radius: 15px; overflow: hidden; transition: 0.3s; text-align: left; }
+        .card { background: rgba(15,15,15,0.9); border: 1px solid #333; border-radius: 15px; overflow: hidden; transition: 0.3s; text-align: left; position: relative; }
         .card:hover { border-color: red; }
-        .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; cursor: pointer; }
+        .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; cursor: pointer; display: block; }
         .card-info { padding: 15px; }
         .card-author { color: #3498db; font-size: 18px; font-weight: bold; }
         .card-author-id { color: #555; font-size: 12px; margin-left: 6px; font-weight: normal; }
         .card-desc { color: #ccc; font-size: 14px; margin: 5px 0; min-height: 1.2em; }
         .card-meta { display: flex; justify-content: space-between; color: #555; font-size: 11px; border-top: 1px solid #222; padding-top: 8px; margin-top: 5px; }
 
+        /* Скрытая карточка */
+        .card.hidden-card .card-img-wrap::after {
+            content: '🚫 Скрыто';
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; color: #e74c3c; letter-spacing: 2px;
+            pointer-events: none;
+        }
+        .card.hidden-card { border-color: #5a1a1a; opacity: 0.7; }
+        .card-img-wrap { position: relative; }
+
         /* Кнопки модерации */
-        .mod-btn { display: inline-block; padding: 10px 0; font-size: 15px; border-radius: 8px; cursor: pointer; border: none; flex: 1; transition: 0.2s; font-family: Door, Arial, sans-serif; }
-        .mod-btn:hover { transform: scale(1.03); }
+        .mod-btn { display: inline-block; padding: 9px 0; font-size: 14px; border-radius: 8px; cursor: pointer; border: none; flex: 1; transition: 0.2s; font-family: Door, Arial, sans-serif; font-weight: bold; }
+        .mod-btn:hover:not(:disabled) { transform: scale(1.03); filter: brightness(1.15); }
+        .mod-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         .mod-btn-approve { background: #27ae60; color: white; }
         .mod-btn-reject  { background: #c0392b; color: white; }
-        .mod-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .mod-btn-hide    { background: #7f8c8d; color: white; }
+        .mod-btn-show    { background: #2980b9; color: white; }
+        .mod-btn-delete  { background: #8e0000; color: white; }
+        .mod-btn-edit    { background: #f39c12; color: black; }
+
+        /* Инлайн-редактирование */
+        .edit-field { background: #1a1a1a; border: 1px solid #f39c12; color: white; padding: 6px 10px; border-radius: 6px; width: 100%; font-size: 13px; margin-bottom: 6px; font-family: Door, Arial, sans-serif; }
+        .edit-field:focus { outline: none; border-color: #f1c40f; }
 
         input, textarea { background: #111; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; width: 100%; max-width: 450px; margin-bottom: 12px; font-size: 16px; transition: border-color 0.2s; }
         input:focus, textarea:focus { outline: none; border-color: #e74c3c; }
@@ -71,9 +92,11 @@
         .modal-box p { color: #888; font-size: 14px; }
 
         .player-id-badge { display: inline-block; background: rgba(255,255,255,0.07); border: 1px solid #333; border-radius: 8px; padding: 4px 12px; font-size: 14px; color: #888; margin-bottom: 10px; letter-spacing: 1px; }
-
-        /* Бейдж очереди модерации */
         .mod-badge { display: inline-block; background: red; color: white; border-radius: 50%; font-size: 12px; width: 20px; height: 20px; line-height: 20px; text-align: center; margin-left: 6px; vertical-align: middle; }
+
+        /* Секция модерации */
+        .admin-section { background: rgba(20,20,20,0.8); border: 1px solid #333; border-radius: 15px; padding: 20px; margin-bottom: 40px; }
+        .admin-section h3 { color: #f1c40f; margin-top: 0; font-size: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
 
         .viewer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
         .viewer img { max-width: 90%; max-height: 80%; border: 2px solid white; }
@@ -84,7 +107,6 @@
 <div class="bg-layer" id="bgLayer" style="background-image: url('background-red.png');"></div>
 <div class="overlay"></div>
 
-<!-- Модалка бана -->
 <div class="modal-overlay" id="ban-modal">
     <div class="modal-box">
         <h2>⛔ Бан</h2>
@@ -137,14 +159,25 @@
 
     <!-- АДМИНКА -->
     <div id="admin-page" class="page">
-        <h2 style="color:#f1c40f;">🛠 Модерация</h2>
-        <p id="mod-empty" style="color:#555; display:none;">Очередь пуста 😴</p>
-        <div id="moderation-grid" class="gallery-grid"></div>
+        <h2 style="color:#f1c40f;">🛠 Панель администратора</h2>
+
+        <!-- Очередь модерации -->
+        <div class="admin-section">
+            <h3>📥 Очередь модерации <span id="mod-queue-count" style="color:#888; font-size:14px;"></span></h3>
+            <p id="mod-empty" style="color:#555; display:none;">Очередь пуста — новых фото нет 😴</p>
+            <div id="moderation-grid" class="gallery-grid"></div>
+        </div>
+
+        <!-- Управление галереей -->
+        <div class="admin-section">
+            <h3>🖼 Управление галереей</h3>
+            <p style="color:#888; font-size:14px; margin-top:0;">Скрытые фото видны только тебе. Удаление — навсегда.</p>
+            <div id="admin-gallery-grid" class="gallery-grid"></div>
+        </div>
     </div>
 
     <!-- ПРОФИЛЬ -->
     <div id="profile-page" class="page">
-
         <div class="verify-screen" id="verify-screen">
             <h2>📬 Проверь почту</h2>
             <p id="verify-email-text">Мы отправили письмо на твой email.</p>
@@ -156,7 +189,6 @@
         </div>
 
         <div class="auth-box" id="auth-forms">
-
             <div id="login-form">
                 <h2>Вход</h2>
                 <div class="err-box" id="login-err"></div>
@@ -197,7 +229,6 @@
                 <button class="button" style="width:100%" onclick="finishGoogleReg()">Готово!</button>
                 <button class="auth-link" onclick="cancelVerify()">← Отмена</button>
             </div>
-
         </div>
 
         <div id="profile-data" style="display:none;">
@@ -210,14 +241,12 @@
                     <button style="color:red; background:none; border:none; cursor:pointer; font-size:14px;" onclick="deleteAccount()">Удалить аккаунт</button>
                 </div>
             </div>
-
             <div style="margin-top:40px; text-align:left;">
                 <h3 style="text-align:center; color:#888; font-size:18px; margin-bottom:0;">Мои одобренные скриншоты</h3>
                 <div id="my-gallery" class="gallery-grid"></div>
                 <p id="my-gallery-empty" style="color:#555; text-align:center; display:none;">Пока нет одобренных скриншотов.</p>
             </div>
         </div>
-
     </div>
 </div>
 
@@ -237,6 +266,7 @@ const storage = firebase.storage();
 const auth    = firebase.auth();
 auth.languageCode = 'ru';
 
+let _isAdmin = false;
 function shortId(uid) { return '#' + uid.slice(0, 8).toUpperCase(); }
 
 // ─── НАВИГАЦИЯ ────────────────────────────────────────────────
@@ -266,7 +296,6 @@ function showErr(id, msg) {
     el.innerText = msg; el.style.display = 'block';
 }
 
-// ─── БАН МОДАЛКА ──────────────────────────────────────────────
 function showBanModal(reason) {
     document.getElementById('ban-reason-text').innerText = reason || 'Причина не указана.';
     document.getElementById('ban-modal').classList.add('show');
@@ -285,11 +314,8 @@ async function checkVerified() {
     const user = auth.currentUser;
     if (!user) { showForm('login-form'); return; }
     await user.reload();
-    if (user.emailVerified) {
-        authStateHandler(user);
-    } else {
-        alert('Email ещё не подтверждён. Проверь почту (и папку Спам).');
-    }
+    if (user.emailVerified) { authStateHandler(user); }
+    else { alert('Email ещё не подтверждён. Проверь почту (и папку Спам).'); }
 }
 
 async function resendVerification() {
@@ -303,38 +329,24 @@ async function resendVerification() {
     } catch(e) { alert('Подожди немного перед повторной отправкой.'); }
 }
 
-async function cancelVerify() {
-    await auth.signOut();
-    showForm('login-form');
-}
+async function cancelVerify() { await auth.signOut(); showForm('login-form'); }
 
 // ─── РЕГИСТРАЦИЯ ──────────────────────────────────────────────
 async function register() {
     const nick  = document.getElementById('regNick').value.trim();
     const email = document.getElementById('regEmail').value.trim();
     const pass  = document.getElementById('regPass').value;
-
     if (!nick)           return showErr('reg-err', 'Введи ник.');
     if (nick.length < 2) return showErr('reg-err', 'Ник слишком короткий (мин. 2 символа).');
     if (!email)          return showErr('reg-err', 'Введи email.');
     if (pass.length < 6) return showErr('reg-err', 'Пароль минимум 6 символов.');
-
     try {
         const res = await auth.createUserWithEmailAndPassword(email, pass);
-        await db.ref('users/' + res.user.uid).set({
-            nick, email,
-            isBannedSite: false,
-            banReason: '',
-            isAdmin: false
-        });
+        await db.ref('users/' + res.user.uid).set({ nick, email, isBannedSite: false, banReason: '', isAdmin: false });
         await res.user.sendEmailVerification();
         showVerifyScreen(email);
     } catch(e) {
-        const msgs = {
-            'auth/email-already-in-use': 'Этот email уже зарегистрирован.',
-            'auth/invalid-email':        'Некорректный email.',
-            'auth/weak-password':        'Пароль слишком слабый.',
-        };
+        const msgs = { 'auth/email-already-in-use': 'Этот email уже зарегистрирован.', 'auth/invalid-email': 'Некорректный email.', 'auth/weak-password': 'Пароль слишком слабый.' };
         showErr('reg-err', msgs[e.code] || e.message);
     }
 }
@@ -347,23 +359,13 @@ async function login() {
     if (!pass)  return showErr('login-err', 'Введи пароль.');
     try {
         const res = await auth.signInWithEmailAndPassword(email, pass);
-        if (!res.user.emailVerified) {
-            showVerifyScreen(email);
-        }
-        // если верифицирован — onAuthStateChanged подхватит
+        if (!res.user.emailVerified) { showVerifyScreen(email); }
     } catch(e) {
-        const msgs = {
-            'auth/user-not-found':     'Аккаунт не найден.',
-            'auth/wrong-password':     'Неверный пароль.',
-            'auth/invalid-email':      'Некорректный email.',
-            'auth/too-many-requests':  'Слишком много попыток. Попробуй позже.',
-            'auth/invalid-credential': 'Неверный email или пароль.',
-        };
+        const msgs = { 'auth/user-not-found': 'Аккаунт не найден.', 'auth/wrong-password': 'Неверный пароль.', 'auth/invalid-email': 'Некорректный email.', 'auth/too-many-requests': 'Слишком много попыток. Попробуй позже.', 'auth/invalid-credential': 'Неверный email или пароль.' };
         showErr('login-err', msgs[e.code] || e.message);
     }
 }
 
-// ─── GOOGLE ───────────────────────────────────────────────────
 function loginGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
     auth.signInWithPopup(provider).catch(() => showErr('login-err', 'Ошибка входа через Google.'));
@@ -375,84 +377,55 @@ async function finishGoogleReg() {
     if (!nick)           return showErr('gfinish-err', 'Введи ник.');
     if (nick.length < 2) return showErr('gfinish-err', 'Ник слишком короткий.');
     try {
-        await db.ref('users/' + user.uid).set({
-            nick, email: user.email,
-            isBannedSite: false,
-            banReason: '',
-            isAdmin: false
-        });
+        await db.ref('users/' + user.uid).set({ nick, email: user.email, isBannedSite: false, banReason: '', isAdmin: false });
         authStateHandler(user);
     } catch(e) { showErr('gfinish-err', 'Ошибка. Попробуй снова.'); }
 }
 
 // ─── СБРОС ПАРОЛЯ ─────────────────────────────────────────────
 let resetCooldownTimer = null;
-
 async function resetPassword() {
     const email = document.getElementById('resetEmail').value.trim();
     if (!email) return showErr('reset-err', 'Введи email.');
-
     const lastReset = parseInt(localStorage.getItem('lastReset') || '0');
     const now = Date.now();
-    const COOLDOWN = 60000;
-    if (now - lastReset < COOLDOWN) {
-        startResetCooldown(Math.ceil((COOLDOWN - (now - lastReset)) / 1000));
-        return;
-    }
-
+    if (now - lastReset < 60000) { startResetCooldown(Math.ceil((60000 - (now - lastReset)) / 1000)); return; }
     try {
         const methods = await auth.fetchSignInMethodsForEmail(email);
-        if (!methods || methods.length === 0) {
-            return showErr('reset-err', 'Аккаунт с таким email не найден.');
-        }
+        if (!methods || methods.length === 0) return showErr('reset-err', 'Аккаунт с таким email не найден.');
         await auth.sendPasswordResetEmail(email);
         localStorage.setItem('lastReset', String(now));
         document.getElementById('reset-success').style.display = 'block';
         document.getElementById('reset-err').style.display = 'none';
         startResetCooldown(60);
-    } catch(e) {
-        showErr('reset-err', e.code === 'auth/invalid-email' ? 'Некорректный email.' : e.message);
-    }
+    } catch(e) { showErr('reset-err', e.code === 'auth/invalid-email' ? 'Некорректный email.' : e.message); }
 }
-
 function startResetCooldown(seconds) {
     const btn = document.getElementById('reset-btn');
     const msg = document.getElementById('reset-cooldown');
     if (!btn || !msg) return;
-    btn.disabled = true;
-    msg.style.display = 'block';
+    btn.disabled = true; msg.style.display = 'block';
     if (resetCooldownTimer) clearInterval(resetCooldownTimer);
     let left = seconds;
     msg.innerText = `Повторно можно через ${left} сек.`;
     resetCooldownTimer = setInterval(() => {
         left--;
-        if (left <= 0) {
-            clearInterval(resetCooldownTimer);
-            btn.disabled = false;
-            msg.style.display = 'none';
-        } else {
-            msg.innerText = `Повторно можно через ${left} сек.`;
-        }
+        if (left <= 0) { clearInterval(resetCooldownTimer); btn.disabled = false; msg.style.display = 'none'; }
+        else { msg.innerText = `Повторно можно через ${left} сек.`; }
     }, 1000);
 }
-
 (function() {
-    const lastReset = parseInt(localStorage.getItem('lastReset') || '0');
-    const left = Math.ceil((60000 - (Date.now() - lastReset)) / 1000);
+    const left = Math.ceil((60000 - (Date.now() - parseInt(localStorage.getItem('lastReset') || '0'))) / 1000);
     if (left > 0) startResetCooldown(left);
 })();
 
-// ─── ВЫХОД / УДАЛЕНИЕ ─────────────────────────────────────────
 function logout() { auth.signOut(); }
-
 async function deleteAccount() {
     if (!confirm('Удалить аккаунт навсегда?')) return;
     if (!confirm('Точно уверен? Это нельзя отменить.')) return;
     const user = auth.currentUser;
-    try {
-        await db.ref('users/' + user.uid).remove();
-        await user.delete();
-    } catch(e) { alert('Для удаления нужно перезайти в аккаунт.'); }
+    try { await db.ref('users/' + user.uid).remove(); await user.delete(); }
+    catch(e) { alert('Для удаления нужно перезайти в аккаунт.'); }
 }
 
 // ─── AUTH STATE ───────────────────────────────────────────────
@@ -461,90 +434,66 @@ async function authStateHandler(user) {
     const profileData  = document.getElementById('profile-data');
     const verifyScreen = document.getElementById('verify-screen');
     const adminBtn     = document.getElementById('admin-nav-btn');
-
-    // Скрываем всё по умолчанию
     adminBtn.style.display = 'none';
+    _isAdmin = false;
 
     if (!user) {
-        authForms.style.display    = 'block';
-        profileData.style.display  = 'none';
-        verifyScreen.style.display = 'none';
-        showForm('login-form');
-        return;
+        authForms.style.display = 'block'; profileData.style.display = 'none'; verifyScreen.style.display = 'none';
+        showForm('login-form'); return;
     }
 
     const isGoogle = user.providerData.some(p => p.providerId === 'google.com');
-
-    // Проверка верификации email (Google — верифицирован автоматически)
     if (!user.emailVerified && !isGoogle) {
-        authForms.style.display    = 'none';
-        profileData.style.display  = 'none';
-        verifyScreen.style.display = 'block';
-        document.getElementById('verify-email-text').innerText = `Письмо отправлено на ${user.email}`;
-        return;
+        authForms.style.display = 'none'; profileData.style.display = 'none'; verifyScreen.style.display = 'block';
+        document.getElementById('verify-email-text').innerText = `Письмо отправлено на ${user.email}`; return;
     }
 
     const snap = await db.ref('users/' + user.uid).once('value');
     if (!snap.exists()) {
-        // Google-юзер без ника
-        authForms.style.display    = 'block';
-        profileData.style.display  = 'none';
-        verifyScreen.style.display = 'none';
-        showForm('google-finish-form');
-        return;
+        authForms.style.display = 'block'; profileData.style.display = 'none'; verifyScreen.style.display = 'none';
+        showForm('google-finish-form'); return;
     }
 
     const d = snap.val();
-
-    // Бан
     if (d.isBannedSite) {
-        await auth.signOut();
-        showBanModal(d.banReason);
-        authForms.style.display    = 'block';
-        profileData.style.display  = 'none';
-        verifyScreen.style.display = 'none';
-        showForm('login-form');
-        return;
+        await auth.signOut(); showBanModal(d.banReason);
+        authForms.style.display = 'block'; profileData.style.display = 'none'; verifyScreen.style.display = 'none';
+        showForm('login-form'); return;
     }
 
-    // Всё ок — показываем профиль
-    authForms.style.display    = 'none';
-    verifyScreen.style.display = 'none';
-    profileData.style.display  = 'block';
-
+    authForms.style.display = 'none'; verifyScreen.style.display = 'none'; profileData.style.display = 'block';
     document.getElementById('dispNick').innerText  = d.nick;
     document.getElementById('dispId').innerText    = shortId(user.uid);
     document.getElementById('dispEmail').innerText = user.email;
     document.getElementById('userNick').value      = d.nick;
-
     window._currentUserData = { uid: user.uid, nick: d.nick, id: shortId(user.uid) };
 
-    // Если админ — показываем кнопку и загружаем модерацию
     if (d.isAdmin === true) {
+        _isAdmin = true;
         adminBtn.style.display = 'inline-block';
         loadModeration();
+        loadAdminGallery();
     }
 
     loadMyGallery(user.uid);
 }
-
 auth.onAuthStateChanged(authStateHandler);
 
 // ─── МОЯ ГАЛЕРЕЯ ─────────────────────────────────────────────
 function loadMyGallery(uid) {
-    const grid  = document.getElementById('my-gallery');
+    const grid = document.getElementById('my-gallery');
     const empty = document.getElementById('my-gallery-empty');
     if (!grid) return;
-
     db.ref('gallery').orderByChild('uid').equalTo(uid).on('value', snap => {
         grid.innerHTML = '';
         let all = [];
         snap.forEach(child => { all.unshift(child.val()); });
         all.forEach(d => {
+            if (d.hidden) return; // скрытые не показываем владельцу тоже
             const date = d.time ? d.time.split(',')[0] : '---';
             const meta = (d.width && d.height) ? `${d.width}x${d.height}` : '';
             grid.innerHTML += `<div class="card">
-                <img src="${d.url}" onclick="openFull('${d.url}')" loading="lazy">
+                <div class="card-img-wrap"><img src="${d.url}" onclick="openFull('${d.url}')" loading="lazy"></div>
                 <div class="card-info">
                     <div class="card-desc">${d.desc || ''}</div>
                     <div class="card-meta"><span>📅 ${date}</span><span>📐 ${meta}</span></div>
@@ -555,38 +504,38 @@ function loadMyGallery(uid) {
     });
 }
 
-// ─── ГАЛЕРЕЯ ──────────────────────────────────────────────────
+// ─── ПУБЛИЧНАЯ ГАЛЕРЕЯ ────────────────────────────────────────
 db.ref('gallery').on('value', snap => {
     const h = document.getElementById('home-gallery');
     const f = document.getElementById('full-gallery');
     if (!h || !f) return;
     h.innerHTML = ''; f.innerHTML = '';
     let all = [];
-    snap.forEach(child => { all.unshift(child.val()); });
-    all.forEach((d, i) => {
+    snap.forEach(child => { all.unshift({ key: child.key, ...child.val() }); });
+    let shown = 0;
+    all.forEach(d => {
+        if (d.hidden) return; // скрытые не показываем обычным юзерам
         const date    = d.time ? d.time.split(',')[0] : '---';
         const meta    = (d.width && d.height) ? `${d.width}x${d.height}` : '';
         const idBadge = d.authorId ? `<span class="card-author-id">${d.authorId}</span>` : '';
         const card = `<div class="card">
-            <img src="${d.url}" onclick="openFull('${d.url}')" loading="lazy">
+            <div class="card-img-wrap"><img src="${d.url}" onclick="openFull('${d.url}')" loading="lazy"></div>
             <div class="card-info">
                 <div class="card-author">${d.author}${idBadge}</div>
                 <div class="card-desc">${d.desc || ''}</div>
                 <div class="card-meta"><span>📅 ${date}</span><span>📐 ${meta}</span></div>
             </div>
         </div>`;
-        if (i < 5) h.innerHTML += card;
+        if (shown < 5) { h.innerHTML += card; shown++; }
         f.innerHTML += card;
     });
 });
 
-// ─── СКАЧИВАНИЕ ИГРЫ ──────────────────────────────────────────
+// ─── СКАЧИВАНИЕ ───────────────────────────────────────────────
 async function downloadGame() {
-    // Путь совпадает с твоей структурой Firebase: downloads/v05
     await db.ref('downloads/v05').transaction(c => (c || 0) + 1);
     window.open('ССЫЛКА', '_blank');
 }
-
 db.ref('downloads/v05').on('value', snap => {
     const el = document.getElementById('dl-count');
     if (el) el.innerText = `⬇ загрузок: ${snap.val() || 0}`;
@@ -595,190 +544,254 @@ db.ref('downloads/v05').on('value', snap => {
 // ─── ЗАГРУЗКА СКРИНШОТА ───────────────────────────────────────
 async function checkAuthAndTriggerUpload() {
     const user = auth.currentUser;
-    if (!user) {
-        showPage('profile-page', 'background-red.png', null);
-        return;
-    }
-    // Проверяем бан ДО открытия диалога
+    if (!user) { showPage('profile-page', 'background-red.png', null); return; }
     const snap = await db.ref('users/' + user.uid).once('value');
     const d = snap.val();
-    if (!snap.exists() || d.isBannedSite) {
-        showBanModal(d?.banReason);
-        return;
-    }
+    if (!snap.exists() || d.isBannedSite) { showBanModal(d?.banReason); return; }
     document.getElementById('fileInput').click();
 }
 
 async function handleUpload() {
     const user = auth.currentUser;
     if (!user) return;
-
     const now  = Date.now();
     const last = parseInt(localStorage.getItem('lastUp') || '0');
     if (now - last < 120000) {
         const left = Math.ceil((120000 - (now - last)) / 1000);
-        document.getElementById('statusMsg').innerText = `⏳ Подожди ещё ${left} сек.`;
-        return;
+        document.getElementById('statusMsg').innerText = `⏳ Подожди ещё ${left} сек.`; return;
     }
-
     const file = document.getElementById('fileInput').files[0];
     if (!file) return;
-
     const status = document.getElementById('statusMsg');
     const btn    = document.getElementById('uploadBtn');
-    status.innerText = '⏳ Загрузка...';
-    btn.disabled = true;
-
+    status.innerText = '⏳ Загрузка...'; btn.disabled = true;
     try {
-        const imgInfo = await new Promise(res => {
-            const i = new Image();
-            i.onload = () => res({ w: i.width, h: i.height });
-            i.src = URL.createObjectURL(file);
-        });
-
+        const imgInfo = await new Promise(res => { const i = new Image(); i.onload = () => res({ w: i.width, h: i.height }); i.src = URL.createObjectURL(file); });
         const ref = storage.ref('submissions/' + now + '_' + file.name);
         await ref.put(file);
         const url = await ref.getDownloadURL();
         const ud  = window._currentUserData || {};
-
-        await db.ref('moderation').push({
-            url,
-            author:   ud.nick || 'Unknown',
-            authorId: ud.id   || '',
-            uid:      user.uid,
-            desc:     document.getElementById('userDesc').value,
-            width:    imgInfo.w,
-            height:   imgInfo.h,
-            time:     new Date().toLocaleString()
-        });
-
-        fetch('https://us-central1-cubix-web.cloudfunctions.net/sendtotelegram', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                photoUrl: url,
-                author:   ud.nick || 'Unknown',
-                authorId: ud.id   || '',
-                desc:     document.getElementById('userDesc').value,
-                width:    imgInfo.w,
-                height:   imgInfo.h
-            })
-        });
-
+        await db.ref('moderation').push({ url, author: ud.nick || 'Unknown', authorId: ud.id || '', uid: user.uid, desc: document.getElementById('userDesc').value, width: imgInfo.w, height: imgInfo.h, time: new Date().toLocaleString() });
+        fetch('https://us-central1-cubix-web.cloudfunctions.net/sendtotelegram', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ photoUrl: url, author: ud.nick || 'Unknown', authorId: ud.id || '', desc: document.getElementById('userDesc').value, width: imgInfo.w, height: imgInfo.h }) });
         localStorage.setItem('lastUp', String(now));
         status.innerText = '✅ Отправлено на модерацию!';
         document.getElementById('userDesc').value = '';
-
-    } catch(e) {
-        status.innerText = '❌ Ошибка загрузки.';
-        console.error(e);
-    }
+    } catch(e) { status.innerText = '❌ Ошибка загрузки.'; console.error(e); }
     btn.disabled = false;
 }
 
-// ─── МОДЕРАЦИЯ (АДМИНКА) ──────────────────────────────────────
+// ─── МОДЕРАЦИЯ ────────────────────────────────────────────────
 function loadModeration() {
     const grid  = document.getElementById('moderation-grid');
     const empty = document.getElementById('mod-empty');
     const badge = document.getElementById('mod-count');
+    const qcount = document.getElementById('mod-queue-count');
     if (!grid) return;
 
     db.ref('moderation').on('value', snap => {
         grid.innerHTML = '';
         const count = snap.numChildren();
-
-        // Бейдж с количеством
-        if (count > 0) {
-            badge.style.display = 'inline-block';
-            badge.innerText = count;
-        } else {
-            badge.style.display = 'none';
-        }
-
-        if (!snap.exists() || count === 0) {
-            empty.style.display = 'block';
-            return;
-        }
-        empty.style.display = 'none';
+        badge.style.display = count > 0 ? 'inline-block' : 'none';
+        badge.innerText = count;
+        qcount.innerText = count > 0 ? `(${count})` : '';
+        empty.style.display = count === 0 ? 'block' : 'none';
+        if (count === 0) return;
 
         snap.forEach(child => {
             const d   = child.val();
             const key = child.key;
-
             const card = document.createElement('div');
             card.className = 'card';
-            card.id = 'mod-card-' + key;
+            card.id = 'modcard-' + key;
             card.innerHTML = `
-                <img src="${d.url}" onclick="openFull('${d.url}')">
-                <div class="card-info">
-                    <div class="card-author">
-                        ${d.author}
-                        <span class="card-author-id">${d.authorId || ''}</span>
-                    </div>
-                    <div class="card-desc">${d.desc || ''}</div>
-                    <div class="card-meta" style="margin-bottom:10px;">
-                        <span>📅 ${d.time ? d.time.split(',')[0] : '---'}</span>
-                        <span>📐 ${d.width && d.height ? d.width+'x'+d.height : ''}</span>
-                    </div>
-                    <div style="display:flex; gap:8px;">
-                        <button class="mod-btn mod-btn-approve" id="approve-${key}" onclick="approvePhoto('${key}')">✅ Одобрить</button>
-                        <button class="mod-btn mod-btn-reject"  id="reject-${key}"  onclick="rejectPhoto('${key}')">❌ Удалить</button>
-                    </div>
-                    <p id="mod-status-${key}" style="color:#f1c40f; font-size:13px; margin-top:8px; min-height:1em;"></p>
+                <div class="card-img-wrap">
+                    <img src="${d.url}" onclick="openFull('${d.url}')">
                 </div>
-            `;
+                <div class="card-info">
+                    <div class="card-author">${d.author} <span class="card-author-id">${d.authorId || ''}</span></div>
+
+                    <div id="mod-view-${key}">
+                        <div class="card-desc">${d.desc || '<em style="color:#555">нет описания</em>'}</div>
+                        <div class="card-meta" style="margin-bottom:10px;">
+                            <span>📅 ${d.time || '---'}</span>
+                            <span>📐 ${d.width && d.height ? d.width+'x'+d.height : ''}</span>
+                        </div>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                            <button class="mod-btn mod-btn-approve" onclick="approvePhoto('${key}')">✅ Одобрить</button>
+                            <button class="mod-btn mod-btn-reject"  onclick="rejectPhoto('${key}')">🗑 Удалить</button>
+                            <button class="mod-btn mod-btn-edit"    onclick="startEditMod('${key}', \`${(d.desc||'').replace(/`/g,"'")}\`, \`${(d.time||'').replace(/`/g,"'")}\`)">✏️ Изменить</button>
+                        </div>
+                    </div>
+
+                    <div id="mod-edit-${key}" style="display:none;">
+                        <input  class="edit-field" id="mod-edit-desc-${key}" placeholder="Описание" value="${(d.desc||'').replace(/"/g,'&quot;')}">
+                        <input  class="edit-field" id="mod-edit-time-${key}" placeholder="Дата" value="${(d.time||'').replace(/"/g,'&quot;')}">
+                        <div style="display:flex; gap:6px; margin-top:4px;">
+                            <button class="mod-btn mod-btn-approve" onclick="saveMod('${key}')">💾 Сохранить</button>
+                            <button class="mod-btn mod-btn-hide"    onclick="cancelEditMod('${key}')">Отмена</button>
+                        </div>
+                    </div>
+
+                    <p id="mod-status-${key}" style="color:#f1c40f; font-size:13px; margin-top:8px; min-height:1em;"></p>
+                </div>`;
             grid.appendChild(card);
         });
     });
 }
 
+function startEditMod(key, desc, time) {
+    document.getElementById('mod-view-' + key).style.display = 'none';
+    document.getElementById('mod-edit-' + key).style.display = 'block';
+}
+function cancelEditMod(key) {
+    document.getElementById('mod-view-' + key).style.display = 'block';
+    document.getElementById('mod-edit-' + key).style.display = 'none';
+}
+async function saveMod(key) {
+    const desc = document.getElementById('mod-edit-desc-' + key).value;
+    const time = document.getElementById('mod-edit-time-' + key).value;
+    const st   = document.getElementById('mod-status-' + key);
+    st.innerText = '⏳ Сохраняем...';
+    try {
+        await db.ref('moderation/' + key).update({ desc, time });
+        cancelEditMod(key);
+        st.innerText = '✅ Сохранено!';
+        setTimeout(() => { st.innerText = ''; }, 2000);
+    } catch(e) { st.innerText = '❌ Ошибка.'; }
+}
+
 async function approvePhoto(key) {
-    const approveBtn = document.getElementById('approve-' + key);
-    const rejectBtn  = document.getElementById('reject-'  + key);
-    const statusEl   = document.getElementById('mod-status-' + key);
-    if (!approveBtn) return;
-
-    approveBtn.disabled = true;
-    rejectBtn.disabled  = true;
-    statusEl.innerText  = '⏳ Публикуем...';
-
+    const st = document.getElementById('mod-status-' + key);
+    st.innerText = '⏳ Публикуем...';
+    disableModBtns(key, true);
     try {
         const snap = await db.ref('moderation/' + key).once('value');
         if (!snap.exists()) return;
         await db.ref('gallery').push(snap.val());
         await db.ref('moderation/' + key).remove();
-        // карточка исчезнет сама через on('value')
-    } catch(e) {
-        statusEl.innerText  = '❌ Ошибка.';
-        approveBtn.disabled = false;
-        rejectBtn.disabled  = false;
-    }
+    } catch(e) { st.innerText = '❌ Ошибка.'; disableModBtns(key, false); }
 }
 
 async function rejectPhoto(key) {
-    if (!confirm('Удалить это фото навсегда?')) return;
-
-    const approveBtn = document.getElementById('approve-' + key);
-    const rejectBtn  = document.getElementById('reject-'  + key);
-    const statusEl   = document.getElementById('mod-status-' + key);
-    if (!rejectBtn) return;
-
-    approveBtn.disabled = true;
-    rejectBtn.disabled  = true;
-    statusEl.innerText  = '⏳ Удаляем...';
-
+    if (!confirm('Удалить это фото навсегда? Файл также удалится из хранилища.')) return;
+    const st = document.getElementById('mod-status-' + key);
+    st.innerText = '⏳ Удаляем...';
+    disableModBtns(key, true);
     try {
         const snap = await db.ref('moderation/' + key).once('value');
         if (snap.exists()) {
-            // Удаляем файл из Storage (раскомментируй если хочешь освобождать место)
-            // try { await storage.refFromURL(snap.val().url).delete(); } catch(_) {}
+            try { await storage.refFromURL(snap.val().url).delete(); } catch(_) {}
             await db.ref('moderation/' + key).remove();
         }
-    } catch(e) {
-        statusEl.innerText  = '❌ Ошибка.';
-        approveBtn.disabled = false;
-        rejectBtn.disabled  = false;
-    }
+    } catch(e) { st.innerText = '❌ Ошибка.'; disableModBtns(key, false); }
+}
+
+function disableModBtns(key, val) {
+    ['approve','reject'].forEach(t => {
+        const b = document.querySelector(`[onclick="${t}Photo('${key}')"]`);
+        if (b) b.disabled = val;
+    });
+}
+
+// ─── УПРАВЛЕНИЕ ГАЛЕРЕЕЙ (АДМИН) ──────────────────────────────
+function loadAdminGallery() {
+    const grid = document.getElementById('admin-gallery-grid');
+    if (!grid) return;
+
+    db.ref('gallery').on('value', snap => {
+        grid.innerHTML = '';
+        let all = [];
+        snap.forEach(child => { all.unshift({ key: child.key, ...child.val() }); });
+
+        if (all.length === 0) {
+            grid.innerHTML = '<p style="color:#555;">Галерея пуста.</p>'; return;
+        }
+
+        all.forEach(d => {
+            const isHidden = d.hidden === true;
+            const date = d.time ? d.time.split(',')[0] : '---';
+            const meta = (d.width && d.height) ? `${d.width}x${d.height}` : '';
+
+            const card = document.createElement('div');
+            card.className = 'card' + (isHidden ? ' hidden-card' : '');
+            card.id = 'admcard-' + d.key;
+            card.innerHTML = `
+                <div class="card-img-wrap">
+                    <img src="${d.url}" onclick="openFull('${d.url}')">
+                    ${isHidden ? '<div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;pointer-events:none;font-size:18px;color:#e74c3c;letter-spacing:2px;">🚫 СКРЫТО</div>' : ''}
+                </div>
+                <div class="card-info">
+                    <div class="card-author">${d.author} <span class="card-author-id">${d.authorId || ''}</span></div>
+
+                    <div id="admview-${d.key}">
+                        <div class="card-desc">${d.desc || '<em style="color:#555">нет описания</em>'}</div>
+                        <div class="card-meta" style="margin-bottom:10px;">
+                            <span>📅 ${date}</span><span>📐 ${meta}</span>
+                        </div>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                            <button class="mod-btn ${isHidden ? 'mod-btn-show' : 'mod-btn-hide'}" 
+                                onclick="toggleHide('${d.key}', ${isHidden})">
+                                ${isHidden ? '👁 Показать' : '🙈 Скрыть'}
+                            </button>
+                            <button class="mod-btn mod-btn-edit" onclick="startEditGallery('${d.key}', \`${(d.desc||'').replace(/`/g,"'")}\`, \`${(d.time||'').replace(/`/g,"'")}\`)">✏️ Изменить</button>
+                            <button class="mod-btn mod-btn-delete" onclick="deleteFromGallery('${d.key}', '${d.url}')">🗑 Удалить</button>
+                        </div>
+                    </div>
+
+                    <div id="admedit-${d.key}" style="display:none;">
+                        <input  class="edit-field" id="adm-edit-desc-${d.key}" placeholder="Описание" value="${(d.desc||'').replace(/"/g,'&quot;')}">
+                        <input  class="edit-field" id="adm-edit-time-${d.key}" placeholder="Дата" value="${(d.time||'').replace(/"/g,'&quot;')}">
+                        <div style="display:flex; gap:6px; margin-top:4px;">
+                            <button class="mod-btn mod-btn-approve" onclick="saveGalleryEdit('${d.key}')">💾 Сохранить</button>
+                            <button class="mod-btn mod-btn-hide"    onclick="cancelEditGallery('${d.key}')">Отмена</button>
+                        </div>
+                    </div>
+
+                    <p id="adm-status-${d.key}" style="color:#f1c40f; font-size:13px; margin-top:8px; min-height:1em;"></p>
+                </div>`;
+            grid.appendChild(card);
+        });
+    });
+}
+
+async function toggleHide(key, currentlyHidden) {
+    const st = document.getElementById('adm-status-' + key);
+    st.innerText = '⏳';
+    try {
+        await db.ref('gallery/' + key).update({ hidden: !currentlyHidden });
+        // обновится само через on('value')
+    } catch(e) { st.innerText = '❌ Ошибка.'; }
+}
+
+function startEditGallery(key, desc, time) {
+    document.getElementById('admview-' + key).style.display = 'none';
+    document.getElementById('admedit-' + key).style.display = 'block';
+}
+function cancelEditGallery(key) {
+    document.getElementById('admview-' + key).style.display = 'block';
+    document.getElementById('admedit-' + key).style.display = 'none';
+}
+async function saveGalleryEdit(key) {
+    const desc = document.getElementById('adm-edit-desc-' + key).value;
+    const time = document.getElementById('adm-edit-time-' + key).value;
+    const st   = document.getElementById('adm-status-' + key);
+    st.innerText = '⏳ Сохраняем...';
+    try {
+        await db.ref('gallery/' + key).update({ desc, time });
+        cancelEditGallery(key);
+        st.innerText = '✅ Сохранено!';
+        setTimeout(() => { st.innerText = ''; }, 2000);
+    } catch(e) { st.innerText = '❌ Ошибка.'; }
+}
+
+async function deleteFromGallery(key, url) {
+    if (!confirm('Удалить фото из галереи навсегда? Файл тоже удалится.')) return;
+    const st = document.getElementById('adm-status-' + key);
+    st.innerText = '⏳ Удаляем...';
+    try {
+        try { await storage.refFromURL(url).delete(); } catch(_) {}
+        await db.ref('gallery/' + key).remove();
+    } catch(e) { st.innerText = '❌ Ошибка.'; }
 }
 
 function openFull(u) {
