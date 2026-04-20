@@ -89,9 +89,10 @@
 
     <div class="main-nav">
         <div class="nav-btn active-link" onclick="showPage('home','background-red.png',this)">Главная</div>
-        <div class="nav-btn" onclick="showPage('gallery-page','background-blue.png',this)">Галерея</div>
+        <div class="nav-btn" onclick="showPage('gallery-page','background-blue.png',this)">Галерея Сообшества</div>
         <div class="nav-btn" onclick="showPage('versions-page','background-yellow.png',this)">Версии</div>
         <div class="nav-btn" onclick="showPage('profile-page','background-red.png',this)">Профиль</div>
+        <div class="nav-btn" onclick="showPage('admin-page','background-red.png',this)">Админ Панель</div>
     </div>
 
     <!-- ГЛАВНАЯ -->
@@ -118,6 +119,12 @@
         <h2>Архив Версий</h2>
         <p id="dl-count" style="color:#555; font-size:16px; margin-bottom:5px;">⬇ загрузок: ...</p>
         <button class="button" onclick="downloadGame()">Скачать v0.5</button>
+    </div>
+
+    <!-- Админка -->
+    <div id="admin-page" class="page">
+        <h2>🛠 Модерация</h2>
+        <div id="moderation-grid" class="gallery-grid"></div>
     </div>
 
     <!-- ПРОФИЛЬ -->
@@ -475,6 +482,10 @@ async function authStateHandler(user) {
 
     const d = snap.val();
 
+    if (d.isAdmin) {
+    enableAdmin();
+    }
+
     if (d.isBannedSite) {
         await auth.signOut();
         showBanModal(d.banReason);
@@ -653,6 +664,82 @@ function openFull(u) {
     document.getElementById('viewer').style.display = 'flex';
     document.getElementById('viewImg').src = u;
 }
+
+// ─── АДМИНКА ─────────────────────────────────────────────
+
+function enableAdmin() {
+    document.getElementById('adminBtn').style.display = 'block';
+    loadModeration();
+}
+
+// загрузка moderation
+function loadModeration() {
+    const grid = document.getElementById('moderation-grid');
+    if (!grid) return;
+
+    db.ref('moderation').on('value', snap => {
+        grid.innerHTML = '';
+
+        if (!snap.exists()) {
+            grid.innerHTML = '<p style="color:#555;">Пусто 😴</p>';
+            return;
+        }
+
+        let all = [];
+        snap.forEach(child => {
+            all.unshift({ id: child.key, ...child.val() });
+        });
+
+        all.forEach(d => {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            card.innerHTML = `
+                <img src="${d.url}" onclick="openFull('${d.url}')">
+                <div class="card-info">
+                    <div class="card-author">${d.author || 'Unknown'} <span class="card-author-id">${d.authorId || ''}</span></div>
+                    <div class="card-desc">${d.desc || ''}</div>
+
+                    <div style="margin-top:10px;">
+                        <button class="button" style="padding:8px 15px; font-size:14px;" onclick="approveImage('${d.id}')">✅ Принять</button>
+                        <button class="button" style="padding:8px 15px; font-size:14px; background:#222; color:white;" onclick="rejectImage('${d.id}')">❌ Удалить</button>
+                    </div>
+                </div>
+            `;
+
+            grid.appendChild(card);
+        });
+    });
+}
+
+// принять
+async function approveImage(id) {
+    const modRef = db.ref('moderation/' + id);
+    const snap = await modRef.once('value');
+
+    if (!snap.exists()) return;
+
+    const data = snap.val();
+
+    const gallerySnap = await db.ref('gallery').once('value');
+
+    let nextId = 1;
+
+    if (gallerySnap.exists()) {
+        const keys = Object.keys(gallerySnap.val());
+        const nums = keys.map(k => parseInt(k.replace('image','')) || 0);
+        nextId = Math.max(...nums) + 1;
+    }
+
+    await db.ref('gallery/image' + nextId).set(data);
+    await modRef.remove();
+}
+
+// удалить
+async function rejectImage(id) {
+    await db.ref('moderation/' + id).remove();
+}
+
 </script>
 </body>
 </html>
