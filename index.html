@@ -24,6 +24,7 @@
 
         h1 { font-size: clamp(60px, 12vw, 100px); text-shadow: 0 0 20px red; margin: 10px 0; }
         .main-nav { display: flex; justify-content: center; gap: 45px; margin: 40px 0; flex-wrap: wrap; }
+        
         .nav-btn { color: #888; text-decoration: none; font-size: 24px; cursor: pointer; transition: 0.3s; border-bottom: 2px solid transparent; }
         .nav-btn:hover, .nav-btn.active-link { color: white; border-color: red; text-shadow: 0 0 10px white; }
 
@@ -92,7 +93,7 @@
         <div class="nav-btn" onclick="showPage('gallery-page','background-blue.png',this)">Галерея Сообшества</div>
         <div class="nav-btn" onclick="showPage('versions-page','background-yellow.png',this)">Версии</div>
         <div class="nav-btn" onclick="showPage('profile-page','background-red.png',this)">Профиль</div>
-        <div class="nav-btn" onclick="showPage('admin-page','background-red.png',this)">Админ Панель</div>
+        <div class="nav-btn" id="admin-nav-link" style="display:none;" onclick="showPage('admin-page','background-red.png',this)">🛠 Админ</div>
     </div>
 
     <!-- ГЛАВНАЯ -->
@@ -447,56 +448,45 @@ async function deleteAccount() {
     } catch(e) { alert('Для удаления нужно перезайти в аккаунт.'); }
 }
 
-// ─── AUTH STATE ───────────────────────────────────────────────
+// ─── AUTH STATE (ОБНОВЛЕННЫЙ) ───────────────────────────────────────────────
 async function authStateHandler(user) {
     const authForms    = document.getElementById('auth-forms');
     const profileData  = document.getElementById('profile-data');
     const verifyScreen = document.getElementById('verify-screen');
+    const adminNavLink = document.getElementById('admin-nav-link');
 
     if (!user) {
         authForms.style.display    = 'block';
         profileData.style.display  = 'none';
         verifyScreen.style.display = 'none';
+        adminNavLink.style.display = 'none'; // Скрываем админку
         showForm('login-form');
-        return;
-    }
-
-    const isGoogle = user.providerData.some(p => p.providerId === 'google.com');
-
-    if (!user.emailVerified && !isGoogle) {
-        authForms.style.display    = 'none';
-        profileData.style.display  = 'none';
-        verifyScreen.style.display = 'block';
-        document.getElementById('verify-email-text').innerText = `Письмо отправлено на ${user.email}`;
         return;
     }
 
     const snap = await db.ref('users/' + user.uid).once('value');
     if (!snap.exists()) {
-        authForms.style.display    = 'block';
-        profileData.style.display  = 'none';
-        verifyScreen.style.display = 'none';
         showForm('google-finish-form');
         return;
     }
 
     const d = snap.val();
 
-    if (d.isAdmin) {
-    enableAdmin();
+    // ПРОВЕРКА НА АДМИНА
+    if (d.isAdmin === true) {
+        adminNavLink.style.display = 'block';
+        loadModeration(); // Загружаем очередь только если админ
+    } else {
+        adminNavLink.style.display = 'none';
     }
 
     if (d.isBannedSite) {
         await auth.signOut();
         showBanModal(d.banReason);
-        authForms.style.display    = 'block';
-        profileData.style.display  = 'none';
-        verifyScreen.style.display = 'none';
-        showForm('login-form');
         return;
     }
 
-    // Всё ок
+    // Показ профиля
     authForms.style.display    = 'none';
     verifyScreen.style.display = 'none';
     profileData.style.display  = 'block';
@@ -507,11 +497,8 @@ async function authStateHandler(user) {
     document.getElementById('userNick').value      = d.nick;
 
     window._currentUserData = { uid: user.uid, nick: d.nick, id: shortId(user.uid) };
-
     loadMyGallery(user.uid);
 }
-
-auth.onAuthStateChanged(authStateHandler);
 
 // ─── МОЯ ГАЛЕРЕЯ В ПРОФИЛЕ ────────────────────────────────────
 function loadMyGallery(uid) {
@@ -665,81 +652,78 @@ function openFull(u) {
     document.getElementById('viewImg').src = u;
 }
 
-// ─── АДМИНКА ─────────────────────────────────────────────
+// ─── АДМИНКА: ЛОГИКА МОДЕРАЦИИ ─────────────────────────────────────────────
 
-function enableAdmin() {
-    document.getElementById('adminBtn').style.display = 'block';
-    loadModeration();
-}
-
-// загрузка moderation
 function loadModeration() {
     const grid = document.getElementById('moderation-grid');
     if (!grid) return;
 
     db.ref('moderation').on('value', snap => {
         grid.innerHTML = '';
-
         if (!snap.exists()) {
-            grid.innerHTML = '<p style="color:#555;">Пусто 😴</p>';
+            grid.innerHTML = '<p style="color:#555; padding: 20px;">Очередь пуста. Новых фото нет 😴</p>';
             return;
         }
 
-        let all = [];
         snap.forEach(child => {
-            all.unshift({ id: child.key, ...child.val() });
-        });
-
-        all.forEach(d => {
+            const d = child.val();
+            const key = child.key;
+            
             const card = document.createElement('div');
             card.className = 'card';
-
             card.innerHTML = `
                 <img src="${d.url}" onclick="openFull('${d.url}')">
                 <div class="card-info">
-                    <div class="card-author">${d.author || 'Unknown'} <span class="card-author-id">${d.authorId || ''}</span></div>
+                    <div class="card-author">${d.author} <small>${d.authorId || ''}</small></div>
                     <div class="card-desc">${d.desc || ''}</div>
-
-                    <div style="margin-top:10px;">
-                        <button class="button" style="padding:8px 15px; font-size:14px;" onclick="approveImage('${d.id}')">✅ Принять</button>
-                        <button class="button" style="padding:8px 15px; font-size:14px; background:#222; color:white;" onclick="rejectImage('${d.id}')">❌ Удалить</button>
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <button class="button" style="background:#27ae60; color:white; padding:8px; font-size:14px; flex:1;" 
+                            onclick="approvePhoto('${key}')">Одобрить</button>
+                        <button class="button" style="background:#c0392b; color:white; padding:8px; font-size:14px; flex:1;" 
+                            onclick="rejectPhoto('${key}')">Удалить</button>
                     </div>
                 </div>
             `;
-
             grid.appendChild(card);
         });
     });
 }
 
-// принять
-async function approveImage(id) {
-    const modRef = db.ref('moderation/' + id);
-    const snap = await modRef.once('value');
-
-    if (!snap.exists()) return;
-
-    const data = snap.val();
-
-    const gallerySnap = await db.ref('gallery').once('value');
-
-    let nextId = 1;
-
-    if (gallerySnap.exists()) {
-        const keys = Object.keys(gallerySnap.val());
-        const nums = keys.map(k => parseInt(k.replace('image','')) || 0);
-        nextId = Math.max(...nums) + 1;
+// ФУНКЦИЯ ОДОБРЕНИЯ
+async function approvePhoto(key) {
+    try {
+        const snap = await db.ref('moderation/' + key).once('value');
+        if (snap.exists()) {
+            const data = snap.val();
+            // 1. Копируем в публичную галерею
+            await db.ref('gallery').push(data);
+            // 2. Удаляем из очереди модерации
+            await db.ref('moderation/' + key).remove();
+            console.log("Photo approved!");
+        }
+    } catch (e) {
+        alert("Ошибка при одобрении: " + e.message);
     }
-
-    await db.ref('gallery/image' + nextId).set(data);
-    await modRef.remove();
 }
 
-// удалить
-async function rejectImage(id) {
-    await db.ref('moderation/' + id).remove();
+// ФУНКЦИЯ ОТКЛОНЕНИЯ
+async function rejectPhoto(key) {
+    if (!confirm("Удалить это фото навсегда?")) return;
+    try {
+        const snap = await db.ref('moderation/' + key).once('value');
+        if (snap.exists()) {
+            const data = snap.val();
+            // 1. Пытаемся удалить файл из хранилища (необязательно, но полезно для экономии места)
+            // storage.refFromURL(data.url).delete().catch(e => console.log("Файл в Storage не найден"));
+            
+            // 2. Удаляем запись из базы
+            await db.ref('moderation/' + key).remove();
+        }
+    } catch (e) {
+        alert("Ошибка при удалении: " + e.message);
+    }
 }
-
+    
 </script>
 </body>
 </html>
