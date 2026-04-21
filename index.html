@@ -383,18 +383,27 @@ let resetCooldownTimer = null;
 async function resetPassword() {
     const email = document.getElementById('resetEmail').value.trim();
     if (!email) return showErr('reset-err', 'Введи email.');
+
     const lastReset = parseInt(localStorage.getItem('lastReset') || '0');
     const now = Date.now();
-    if (now - lastReset < 60000) { startResetCooldown(Math.ceil((60000 - (now - lastReset)) / 1000)); return; }
+    if (now - lastReset < 60000) {
+        startResetCooldown(Math.ceil((60000 - (now - lastReset)) / 1000));
+        return;
+    }
+
     try {
-        const methods = await auth.fetchSignInMethodsForEmail(email);
-        if (!methods || methods.length === 0) return showErr('reset-err', 'Аккаунт с таким email не найден.');
         await auth.sendPasswordResetEmail(email);
         localStorage.setItem('lastReset', String(now));
         document.getElementById('reset-success').style.display = 'block';
         document.getElementById('reset-err').style.display = 'none';
         startResetCooldown(60);
-    } catch(e) { showErr('reset-err', e.code === 'auth/invalid-email' ? 'Некорректный email.' : e.message); }
+    } catch(e) {
+        const msgs = {
+            'auth/invalid-email':  'Некорректный email.',
+            'auth/user-not-found': 'Аккаунт с таким email не найден.',
+        };
+        showErr('reset-err', msgs[e.code] || e.message);
+    }
 }
 function startResetCooldown(seconds) {
     const btn = document.getElementById('reset-btn');
@@ -559,40 +568,75 @@ async function checkAuthAndTriggerUpload() {
 async function handleUpload() {
     const user = auth.currentUser;
     if (!user) return;
+
     const now  = Date.now();
     const last = parseInt(localStorage.getItem('lastUp') || '0');
-    if (now - last < 120000) {
-        const left = Math.ceil((120000 - (now - last)) / 1000);
-        document.getElementById('statusMsg').innerText = `⏳ Подожди ещё ${left} сек.`; return;
+    const UPLOAD_COOLDOWN = 300000; // 5 минут
+
+    if (now - last < UPLOAD_COOLDOWN) {
+        const left = Math.ceil((UPLOAD_COOLDOWN - (now - last)) / 1000);
+        const mins = Math.floor(left / 60);
+        const secs = left % 60;
+        document.getElementById('statusMsg').innerText = 
+            `⏳ Подожди ещё ${mins > 0 ? mins + ' мин ' : ''}${secs} сек.`;
+        return;
     }
+
     const file = document.getElementById('fileInput').files[0];
     if (!file) return;
+
     const status = document.getElementById('statusMsg');
     const btn    = document.getElementById('uploadBtn');
-    status.innerText = '⏳ Загрузка...'; btn.disabled = true;
+    status.innerText = '⏳ Загрузка...';
+    btn.disabled = true;
+
     try {
         const imgInfo = await new Promise(res => {
             const i = new Image();
             i.onload = () => res({ w: i.width, h: i.height });
             i.src = URL.createObjectURL(file);
         });
-        const ref = storage.ref('submissions/' + now + '_' + file.name);
+
+        // Сохраняем путь чтобы потом удалить из Storage
+        const storagePath = 'submissions/' + now + '_' + file.name;
+        const ref = storage.ref(storagePath);
         await ref.put(file);
         const url = await ref.getDownloadURL();
         const ud  = window._currentUserData || {};
+
         await db.ref('moderation').push({
-            url, author: ud.nick || 'Unknown', authorId: ud.id || '',
-            uid: user.uid, desc: document.getElementById('userDesc').value,
-            width: imgInfo.w, height: imgInfo.h, time: new Date().toLocaleString()
+            url,
+            storagePath,   // <-- сохраняем путь
+            author:   ud.nick || 'Unknown',
+            authorId: ud.id   || '',
+            uid:      user.uid,
+            desc:     document.getElementById('userDesc').value,
+            width:    imgInfo.w,
+            height:   imgInfo.h,
+            time:     new Date().toLocaleString()
         });
+
         fetch('https://us-central1-cubix-web.cloudfunctions.net/sendtotelegram', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ photoUrl: url, author: ud.nick || 'Unknown', authorId: ud.id || '', desc: document.getElementById('userDesc').value, width: imgInfo.w, height: imgInfo.h })
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                photoUrl: url,
+                author:   ud.nick || 'Unknown',
+                authorId: ud.id   || '',
+                desc:     document.getElementById('userDesc').value,
+                width:    imgInfo.w,
+                height:   imgInfo.h
+            })
         });
+
         localStorage.setItem('lastUp', String(now));
         status.innerText = '✅ Отправлено на модерацию!';
         document.getElementById('userDesc').value = '';
-    } catch(e) { status.innerText = '❌ Ошибка загрузки.'; console.error(e); }
+
+    } catch(e) {
+        status.innerText = '❌ Ошибка загрузки.';
+        console.error(e);
+    }
     btn.disabled = false;
 }
 
@@ -693,7 +737,11 @@ async function rejectPhoto(key) {
     try {
         const snap = await db.ref('moderation/' + key).once('value');
         if (snap.exists()) {
-            try { await storage.refFromURL(snap.val().url).delete(); } catch(_) {}
+            const data = snap.val();
+            // Удаляем из Storage по сохранённому пути
+            if (data.storagePath) {
+                try { await storage.ref(data.storagePath).delete(); } catch(e) { console.warn('Storage:', e); }
+            }
             await db.ref('moderation/' + key).remove();
         }
     } catch(e) { st.innerText = '❌ Ошибка.'; }
@@ -797,8 +845,15 @@ async function deleteFromGallery(key, url) {
     const st = document.getElementById('adm-status-' + key);
     st.innerText = '⏳ Удаляем...';
     try {
-        try { await storage.refFromURL(url).delete(); } catch(_) {}
-        await db.ref('gallery/' + key).remove();
+        const snap = await db.ref('gallery/' + key).once('value');
+        if (snap.exists()) {
+            const data = snap.val();
+            // Удаляем из Storage по сохранённому пути
+            if (data.storagePath) {
+                try { await storage.ref(data.storagePath).delete(); } catch(e) { console.warn('Storage:', e); }
+            }
+            await db.ref('gallery/' + key).remove();
+        }
     } catch(e) { st.innerText = '❌ Ошибка.'; }
 }
 
