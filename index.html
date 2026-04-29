@@ -48,7 +48,6 @@
         .icon-btn.hide-btn:hover { background: rgba(127,140,141,0.2); }
         .card-actions { display: flex; align-items: center; gap: 4px; border-top: 1px solid #222; padding-top: 8px; margin-top: 6px; }
         .card-actions-spacer { flex: 1; }
-
         .card.hidden-card { border-color: #5a1a1a; opacity: 0.7; }
 
         .mod-btn { display: inline-block; padding: 9px 0; font-size: 14px; border-radius: 8px; cursor: pointer; border: none; flex: 1; transition: 0.2s; font-family: Door, Arial, sans-serif; font-weight: bold; }
@@ -65,7 +64,7 @@
         input, textarea { background: #111; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; width: 100%; max-width: 450px; margin-bottom: 12px; font-size: 16px; transition: border-color 0.2s; }
         input:focus, textarea:focus { outline: none; border-color: #e74c3c; }
 
-        .auth-box { max-width: 400px; margin: 0 auto; background: rgba(20,20,20,0.9); padding: 30px; border-radius: 20px; border: 1px solid red; }
+        .auth-box { max-width: 420px; margin: 0 auto; background: rgba(20,20,20,0.9); padding: 30px; border-radius: 20px; border: 1px solid red; }
         .auth-link { font-size: 14px; color: #888; cursor: pointer; text-decoration: underline; margin-top: 6px; display: block; background: none; border: none; width: 100%; text-align: center; padding: 4px; }
         .auth-link:hover { color: white; }
 
@@ -84,20 +83,258 @@
         .modal-box .ban-reason { background: rgba(231,76,60,0.1); border: 1px solid #e74c3c; border-radius: 10px; padding: 15px; margin: 15px 0; color: #ccc; font-size: 16px; line-height: 1.5; }
         .modal-box p { color: #888; font-size: 14px; }
 
-        .player-id-badge { display: inline-block; background: rgba(255,255,255,0.07); border: 1px solid #333; border-radius: 8px; padding: 4px 12px; font-size: 14px; color: #888; margin-bottom: 10px; letter-spacing: 1px; }
+        .player-id-badge { display: inline-block; background: rgba(255,255,255,0.07); border: 1px solid #333; border-radius: 8px; padding: 4px 12px; font-size: 14px; color: #888; letter-spacing: 1px; }
         .mod-badge { display: inline-block; background: red; color: white; border-radius: 50%; font-size: 12px; width: 20px; height: 20px; line-height: 20px; text-align: center; margin-left: 6px; vertical-align: middle; }
 
-        /* ── СТАТИСТИКА ПРОФИЛЯ ── */
-        .stats-grid { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px; margin: 18px 0; background: rgba(255,255,255,0.04); border: 1px solid #2a2a2a; border-radius: 14px; padding: 18px 10px; }
-        .stat-cell { text-align: center; min-width: 70px; }
-        .stat-icon { font-size: 24px; line-height: 1; margin-bottom: 4px; }
-        .stat-val  { font-size: 22px; font-weight: bold; line-height: 1.1; }
-        .stat-lbl  { font-size: 11px; color: #555; margin-top: 3px; }
+        /* ═══════════════════════════════════════
+           ПРОФИЛЬ — КАРТОЧКА ИГРОКА
+        ═══════════════════════════════════════ */
+        .profile-card {
+            max-width: 520px;
+            margin: 0 auto;
+            background: linear-gradient(160deg, rgba(25,25,25,0.98) 0%, rgba(15,15,15,0.98) 100%);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 0 60px rgba(231,76,60,0.08), 0 20px 60px rgba(0,0,0,0.6);
+        }
 
-        .admin-section { background: rgba(20,20,20,0.8); border: 1px solid #333; border-radius: 15px; padding: 20px; margin-bottom: 40px; }
-        .admin-section h3 { color: #f1c40f; margin-top: 0; font-size: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        /* Шапка с именем */
+        .profile-header {
+            position: relative;
+            padding: 32px 28px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            text-align: center;
+        }
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, #e74c3c, transparent);
+        }
+        .profile-avatar-ring {
+            width: 72px; height: 72px;
+            margin: 0 auto 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e74c3c 0%, #8e44ad 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 0 0 3px rgba(231,76,60,0.3), 0 0 20px rgba(231,76,60,0.2);
+        }
+        .profile-nick {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin: 0 0 6px;
+        }
+        .profile-meta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .profile-id-badge {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 3px 12px;
+            font-size: 12px;
+            color: #666;
+            letter-spacing: 2px;
+        }
+        .profile-rank-badge {
+            border-radius: 20px;
+            padding: 3px 14px;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            display: none;
+        }
+        .profile-email {
+            font-size: 13px;
+            color: #444;
+            margin-top: 8px;
+        }
 
-        /* ── ДРУЗЬЯ ── */
+        /* Блок кубков + ранг */
+        .profile-trophy-block {
+            display: none;
+            padding: 20px 28px 0;
+        }
+        .trophy-main {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: rgba(241,196,15,0.05);
+            border: 1px solid rgba(241,196,15,0.15);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        .trophy-main::before {
+            content: '🏆';
+            position: absolute;
+            right: 16px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 48px;
+            opacity: 0.06;
+        }
+        .trophy-cups-num {
+            font-size: 46px;
+            font-weight: bold;
+            color: #f1c40f;
+            line-height: 1;
+            text-shadow: 0 0 20px rgba(241,196,15,0.4);
+        }
+        .trophy-cups-label { font-size: 12px; color: #888; margin-top: 2px; }
+        .trophy-rank-wrap { margin-left: 4px; }
+        .trophy-rank-name {
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .trophy-rank-sub { font-size: 12px; color: #555; margin-top: 2px; }
+
+        /* Прогресс-бар до следующего ранга */
+        .rank-progress-wrap {
+            margin-bottom: 16px;
+            padding: 0 2px;
+        }
+        .rank-progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #555;
+            margin-bottom: 6px;
+        }
+        .rank-progress-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .rank-progress-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, #e74c3c, #f39c12);
+            transition: width 0.6s ease;
+        }
+
+        /* Сетка статистики */
+        .profile-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            padding: 0 28px 20px;
+        }
+        .stat-tile {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 14px 10px 12px;
+            text-align: center;
+            transition: border-color 0.2s, background 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-tile:hover { border-color: rgba(255,255,255,0.14); background: rgba(255,255,255,0.05); }
+        .stat-tile-icon { font-size: 20px; margin-bottom: 6px; }
+        .stat-tile-val {
+            font-size: 22px;
+            font-weight: bold;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .stat-tile-lbl { font-size: 10px; color: #555; letter-spacing: 0.5px; text-transform: uppercase; }
+
+        /* Большой тайл — плейтайм на всю ширину */
+        .stat-tile-wide {
+            grid-column: 1 / -1;
+            background: rgba(52,152,219,0.05);
+            border-color: rgba(52,152,219,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            padding: 14px 20px;
+            text-align: left;
+        }
+        .stat-tile-wide .stat-tile-icon { font-size: 26px; margin: 0; }
+        .stat-tile-wide .stat-tile-val { font-size: 22px; color: #3498db; margin: 0; }
+        .stat-tile-wide .stat-tile-lbl { margin: 0; }
+
+        /* Ачивки — полоска */
+        .achievements-tile {
+            grid-column: 1 / -1;
+            background: rgba(155,89,182,0.05);
+            border-color: rgba(155,89,182,0.15);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            text-align: left;
+        }
+        .achievements-tile .stat-tile-icon { font-size: 24px; margin: 0; }
+        .ach-text { flex: 1; }
+        .ach-bar-wrap { flex: 1.5; }
+        .ach-bar-row { display: flex; justify-content: space-between; font-size: 11px; color: #555; margin-bottom: 5px; }
+        .ach-bar { height: 6px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
+        .ach-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #8e44ad, #9b59b6); transition: width 0.6s ease; }
+
+        /* Кнопки внизу карточки */
+        .profile-actions {
+            padding: 0 28px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .profile-btn-logout {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #aaa;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: Door, Arial, sans-serif;
+        }
+        .profile-btn-logout:hover { background: rgba(255,255,255,0.09); color: white; }
+        .profile-btn-delete {
+            background: none; border: none;
+            color: #3a1a1a; font-size: 13px;
+            cursor: pointer; text-decoration: underline;
+            transition: color 0.2s;
+            font-family: Door, Arial, sans-serif;
+        }
+        .profile-btn-delete:hover { color: #e74c3c; }
+
+        /* Заглушка — нет данных */
+        .no-stats-hint {
+            display: none;
+            text-align: center;
+            padding: 16px 28px 20px;
+            color: #444;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .no-stats-hint span { color: #666; }
+
+        /* ═══════════════════════════════════════
+           Цвета рангов
+        ═══════════════════════════════════════ */
+        .rank-bronze  { color: #cd7f32; }
+        .rank-silver  { color: #aaa; }
+        .rank-gold    { color: #f1c40f; }
+        .rank-plat    { color: #5dade2; }
+        .rank-diamond { color: #a9cce3; }
+        .rank-master  { color: #e74c3c; }
+
+        /* ДРУЗЬЯ */
         .friends-section { background: rgba(15,15,15,0.9); border: 1px solid #333; border-radius: 15px; padding: 20px; margin-bottom: 20px; text-align: left; }
         .friends-section h3 { color: #3498db; margin-top: 0; font-size: 18px; border-bottom: 1px solid #222; padding-bottom: 10px; }
         .friend-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid #222; border-radius: 12px; margin-bottom: 8px; transition: 0.2s; }
@@ -117,11 +354,16 @@
         .search-box { display: flex; gap: 10px; margin-bottom: 20px; max-width: 400px; }
         .search-box input { margin: 0; flex: 1; max-width: none; }
         .search-result { background: rgba(15,15,15,0.9); border: 1px solid #333; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: none; }
-
         .req-badge { display: inline-block; background: #e74c3c; color: white; border-radius: 50%; font-size: 11px; width: 18px; height: 18px; line-height: 18px; text-align: center; margin-left: 4px; vertical-align: middle; }
+
+        .admin-section { background: rgba(20,20,20,0.8); border: 1px solid #333; border-radius: 15px; padding: 20px; margin-bottom: 40px; }
+        .admin-section h3 { color: #f1c40f; margin-top: 0; font-size: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
 
         .viewer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
         .viewer img { max-width: 90%; max-height: 80%; border: 2px solid white; }
+
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        .loading-val { animation: pulse 1.2s infinite; color: #333 !important; }
     </style>
 </head>
 <body>
@@ -185,8 +427,6 @@
     <!-- ДРУЗЬЯ -->
     <div id="friends-page" class="page">
         <div style="max-width:700px; margin:0 auto;">
-
-            <!-- Поиск -->
             <div class="friends-section">
                 <h3>🔍 Найти игрока</h3>
                 <div class="search-box">
@@ -196,27 +436,20 @@
                 <div class="search-result" id="search-result"></div>
                 <p id="search-msg" style="color:#555; font-size:14px; display:none;"></p>
             </div>
-
-            <!-- Входящие заявки -->
             <div class="friends-section" id="incoming-section" style="display:none;">
                 <h3>📨 Входящие заявки <span id="incoming-count" style="color:#888; font-size:14px;"></span></h3>
                 <div id="incoming-list"></div>
                 <button class="f-btn f-btn-gray" style="margin-top:8px; font-size:13px;" onclick="clearAllRequests()">Очистить все заявки</button>
             </div>
-
-            <!-- Исходящие заявки -->
             <div class="friends-section" id="outgoing-section" style="display:none;">
                 <h3>📤 Исходящие заявки</h3>
                 <div id="outgoing-list"></div>
             </div>
-
-            <!-- Список друзей -->
             <div class="friends-section">
                 <h3>👥 Друзья <span id="friends-count" style="color:#555; font-size:14px;"></span></h3>
                 <div id="friends-list"></div>
                 <p id="friends-empty" style="color:#555; font-size:14px; display:none;">Пока нет друзей. Найди кого-нибудь выше!</p>
             </div>
-
         </div>
     </div>
 
@@ -237,6 +470,7 @@
 
     <!-- ПРОФИЛЬ -->
     <div id="profile-page" class="page">
+
         <div class="verify-screen" id="verify-screen">
             <h2>📬 Проверь почту</h2>
             <p id="verify-email-text">Мы отправили письмо на твой email.</p>
@@ -258,7 +492,6 @@
                 <button class="auth-link" onclick="showForm('reset-form')">Забыл пароль?</button>
                 <button class="auth-link" onclick="showForm('reg-form')">Нет аккаунта? Регистрация</button>
             </div>
-
             <div id="reg-form" style="display:none;">
                 <h2>Регистрация</h2>
                 <div class="err-box" id="reg-err"></div>
@@ -268,7 +501,6 @@
                 <button class="button" style="width:100%" onclick="register()">Создать аккаунт</button>
                 <button class="auth-link" onclick="showForm('login-form')">← Уже есть аккаунт</button>
             </div>
-
             <div id="reset-form" style="display:none;">
                 <h2>Сброс пароля</h2>
                 <p style="color:#888; font-size:14px; margin-bottom:15px;">Введи email — пришлём ссылку для создания нового пароля.</p>
@@ -279,7 +511,6 @@
                 <div class="info-box" id="reset-success" style="display:none;">✅ Письмо отправлено! Проверь почту и папку "Спам".</div>
                 <button class="auth-link" onclick="showForm('login-form')">← Назад ко входу</button>
             </div>
-
             <div id="google-finish-form" style="display:none;">
                 <h2 style="color:#f1c40f;">Последний шаг!</h2>
                 <p style="color:#888; font-size:14px; margin-bottom:15px;">Придумай ник для игры.</p>
@@ -290,63 +521,136 @@
             </div>
         </div>
 
+        <!-- ═══ ПРОФИЛЬ — АВТОРИЗОВАН ═══ -->
         <div id="profile-data" style="display:none;">
-            <div class="auth-box" style="border-color:#f1c40f;">
-                <h2 id="dispNick" style="margin-bottom:6px;">Ник</h2>
-                <div class="player-id-badge" id="dispId">#00000000</div>
-                <p id="dispEmail" style="color:#888; margin:6px 0;"></p>
 
-                <!-- ── Статистика игрока ── -->
-                <div class="stats-grid" id="player-stats-box" style="display:none;">
-                    <div class="stat-cell">
-                        <div class="stat-icon">🏆</div>
-                        <div class="stat-val" id="disp-cups" style="color:#f1c40f;">—</div>
-                        <div class="stat-lbl">Кубки</div>
+            <div class="profile-card">
+
+                <!-- Шапка -->
+                <div class="profile-header">
+                    <div class="profile-avatar-ring">👤</div>
+                    <div class="profile-nick" id="dispNick">Ник</div>
+                    <div class="profile-meta">
+                        <div class="profile-id-badge" id="dispId">#00000000</div>
+                        <div class="profile-rank-badge" id="dispRankBadge"></div>
                     </div>
-                    <div class="stat-cell">
-                        <div class="stat-icon">🎖</div>
-                        <div class="stat-val" id="disp-rank" style="color:#e74c3c; font-size:16px;">—</div>
-                        <div class="stat-lbl">Ранг</div>
+                    <div class="profile-email" id="dispEmail"></div>
+                </div>
+
+                <!-- Кубки + ранг + прогресс (скрыто пока нет данных) -->
+                <div class="profile-trophy-block" id="profile-trophy-block">
+                    <div class="trophy-main">
+                        <div>
+                            <div class="trophy-cups-num" id="disp-cups">0</div>
+                            <div class="trophy-cups-label">КУБКОВ</div>
+                        </div>
+                        <div class="trophy-rank-wrap">
+                            <div class="trophy-rank-name" id="disp-rank">—</div>
+                            <div class="trophy-rank-sub" id="disp-rank-sub">Нет данных из игры</div>
+                        </div>
                     </div>
-                    <div class="stat-cell">
-                        <div class="stat-icon">🎮</div>
-                        <div class="stat-val" id="disp-games" style="color:#3498db;">—</div>
-                        <div class="stat-lbl">Игр</div>
-                    </div>
-                    <div class="stat-cell">
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-val" id="disp-wins" style="color:#2ecc71;">—</div>
-                        <div class="stat-lbl">Побед</div>
-                    </div>
-                    <div class="stat-cell">
-                        <div class="stat-icon">❌</div>
-                        <div class="stat-val" id="disp-losses" style="color:#e74c3c;">—</div>
-                        <div class="stat-lbl">Поражений</div>
-                    </div>
-                    <div class="stat-cell">
-                        <div class="stat-icon">🏅</div>
-                        <div class="stat-val" id="disp-achievements" style="color:#9b59b6;">—</div>
-                        <div class="stat-lbl">Ачивок</div>
+                    <div class="rank-progress-wrap">
+                        <div class="rank-progress-labels">
+                            <span id="rank-prog-cur">—</span>
+                            <span id="rank-prog-next">следующий: —</span>
+                        </div>
+                        <div class="rank-progress-bar">
+                            <div class="rank-progress-fill" id="rank-prog-fill" style="width:0%"></div>
+                        </div>
                     </div>
                 </div>
 
-                <button class="button" style="font-size:16px; background:#222; color:white;" onclick="logout()">Выйти</button>
-                <div style="margin-top:20px; border-top:1px solid #333; padding-top:10px;">
-                    <button style="color:red; background:none; border:none; cursor:pointer; font-size:14px;" onclick="deleteAccount()">Удалить аккаунт</button>
+                <!-- Заглушка если нет playerStats -->
+                <div class="no-stats-hint" id="no-stats-hint">
+                    <span>📭</span><br>
+                    Статистика появится после<br>первой игры в CubiX
                 </div>
-            </div>
-            <div style="margin-top:40px; text-align:left;">
-                <h3 style="text-align:center; color:#888; font-size:18px; margin-bottom:0;">Мои одобренные скриншоты</h3>
+
+                <!-- Сетка статов -->
+                <div class="profile-stats-grid" id="profile-stats-grid" style="display:none;">
+
+                    <div class="stat-tile">
+                        <div class="stat-tile-icon">✅</div>
+                        <div class="stat-tile-val" id="disp-wins" style="color:#2ecc71;">—</div>
+                        <div class="stat-tile-lbl">Победы</div>
+                    </div>
+                    <div class="stat-tile">
+                        <div class="stat-tile-icon">❌</div>
+                        <div class="stat-tile-val" id="disp-losses" style="color:#e74c3c;">—</div>
+                        <div class="stat-tile-lbl">Поражения</div>
+                    </div>
+                    <div class="stat-tile">
+                        <div class="stat-tile-icon">🎮</div>
+                        <div class="stat-tile-val" id="disp-games" style="color:#3498db;">—</div>
+                        <div class="stat-tile-lbl">Всего игр</div>
+                    </div>
+
+                    <!-- Винрейт — 3 колонки -->
+                    <div class="stat-tile" style="grid-column:1/-1; background:rgba(241,196,15,0.04); border-color:rgba(241,196,15,0.1); flex-direction:row; display:flex; align-items:center; gap:14px; padding:12px 18px; text-align:left;">
+                        <div style="font-size:22px;">📊</div>
+                        <div style="flex:1;">
+                            <div style="font-size:11px; color:#555; text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px;">Винрейт</div>
+                            <div style="height:6px; background:rgba(255,255,255,0.06); border-radius:99px; overflow:hidden;">
+                                <div id="winrate-bar" style="height:100%; border-radius:99px; background:linear-gradient(90deg,#27ae60,#2ecc71); transition:width .6s;"></div>
+                            </div>
+                        </div>
+                        <div class="stat-tile-val" id="disp-winrate" style="color:#f1c40f; font-size:20px; min-width:48px; text-align:right;">—</div>
+                    </div>
+
+                    <!-- Плейтайм — широкий тайл -->
+                    <div class="stat-tile stat-tile-wide">
+                        <div class="stat-tile-icon">⏱</div>
+                        <div>
+                            <div class="stat-tile-val" id="disp-playtime" style="color:#3498db;">—</div>
+                            <div class="stat-tile-lbl">Плейтайм</div>
+                        </div>
+                    </div>
+
+                    <!-- Ачивки -->
+                    <div class="stat-tile achievements-tile">
+                        <div class="stat-tile-icon">🏅</div>
+                        <div class="ach-text">
+                            <div class="stat-tile-val" id="disp-ach" style="color:#9b59b6; font-size:20px;">—</div>
+                            <div class="stat-tile-lbl">Ачивок</div>
+                        </div>
+                        <div class="ach-bar-wrap">
+                            <div class="ach-bar-row">
+                                <span id="ach-label-cur">0</span>
+                                <span id="ach-label-total">/ ?</span>
+                            </div>
+                            <div class="ach-bar">
+                                <div class="ach-bar-fill" id="ach-bar-fill" style="width:0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Кнопки -->
+                <div class="profile-actions">
+                    <button class="profile-btn-logout" onclick="logout()">Выйти из аккаунта</button>
+                    <button class="profile-btn-delete" onclick="deleteAccount()">Удалить аккаунт</button>
+                </div>
+
+            </div><!-- /profile-card -->
+
+            <!-- Мои скриншоты -->
+            <div style="margin-top:50px; text-align:left;">
+                <h3 style="text-align:center; color:#888; font-size:18px; margin-bottom:0;">Мои скриншоты</h3>
                 <div id="my-gallery" class="gallery-grid"></div>
                 <p id="my-gallery-empty" style="color:#555; text-align:center; display:none;">Пока нет одобренных скриншотов.</p>
             </div>
         </div>
-    </div>
+
+    </div><!-- /profile-page -->
 </div>
 
 <div class="viewer" id="viewer" onclick="this.style.display='none'"><img id="viewImg"></div>
 
 <script>
+// ═══════════════════════════════════════════════════════════════
+// FIREBASE CONFIG
+// ═══════════════════════════════════════════════════════════════
 const firebaseConfig = {
     apiKey: "AIzaSyCA7XdMGOwDx_OQ8lGHyz0ttw5952KZHM8",
     authDomain: "cubix-web.firebaseapp.com",
@@ -360,15 +664,51 @@ const storage = firebase.storage();
 const auth    = firebase.auth();
 auth.languageCode = 'ru';
 
-let _isAdmin = false;
-let _myUid   = null;
-let _myNick  = null;
+let _isAdmin   = false;
+let _myUid     = null;
+let _myNick    = null;
 let _myShortId = null;
 
 function shortId(uid) { return '#' + uid.slice(0, 8).toUpperCase(); }
 function fmtTime(t)   { return t || '---'; }
 
-// ─── НАВИГАЦИЯ ────────────────────────────────────────────────
+// ─── Ранговая система (должна совпадать с Unity) ───────────────
+// Пути: playerStats/{uid}/cups, rank, wins, losses, gamesPlayed,
+//        playtimeSeconds, achievements/{id}: true
+const RANKS = [
+    { name:'Бронза',   min:0,    max:299,   cls:'rank-bronze'  },
+    { name:'Серебро',  min:300,  max:699,   cls:'rank-silver'  },
+    { name:'Золото',   min:700,  max:1199,  cls:'rank-gold'    },
+    { name:'Платина',  min:1200, max:1999,  cls:'rank-plat'    },
+    { name:'Алмаз',    min:2000, max:2999,  cls:'rank-diamond' },
+    { name:'Мастер',   min:3000, max:99999, cls:'rank-master'  },
+];
+const TOTAL_ACHIEVEMENTS = 20; // замени на реальное число ачивок в игре
+
+function getRankInfo(cups) {
+    for (let i = 0; i < RANKS.length; i++) {
+        if (cups >= RANKS[i].min && cups <= RANKS[i].max) {
+            const next = RANKS[i + 1];
+            const pct  = next
+                ? Math.round(((cups - RANKS[i].min) / (next.min - RANKS[i].min)) * 100)
+                : 100;
+            return { ...RANKS[i], nextName: next?.name || null, nextMin: next?.min || null, pct };
+        }
+    }
+    return RANKS[RANKS.length - 1];
+}
+
+function fmtPlaytime(seconds) {
+    if (!seconds || seconds < 60) return seconds + ' сек';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h > 0) return `${h} ч ${m} мин`;
+    return `${m} мин`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// НАВИГАЦИЯ / ФОРМЫ
+// ═══════════════════════════════════════════════════════════════
 function showPage(id, bg, el) {
     document.getElementById('bgLayer').style.backgroundImage = `url('${bg}')`;
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -377,7 +717,6 @@ function showPage(id, bg, el) {
     if (el) el.classList.add('active-link');
 }
 
-// ─── ФОРМЫ ────────────────────────────────────────────────────
 function showForm(id) {
     ['login-form','reg-form','reset-form','google-finish-form'].forEach(f => {
         const el = document.getElementById(f); if (el) el.style.display = 'none';
@@ -404,54 +743,55 @@ function showVerifyScreen(email) {
 async function checkVerified() {
     const user = auth.currentUser; if (!user) { showForm('login-form'); return; }
     await user.reload();
-    if (user.emailVerified) { authStateHandler(user); }
-    else { alert('Email ещё не подтверждён. Проверь почту (и папку Спам).'); }
+    if (user.emailVerified) authStateHandler(user);
+    else alert('Email ещё не подтверждён. Проверь почту (и папку Спам).');
 }
 async function resendVerification() {
     const user = auth.currentUser; if (!user) return;
-    try { await user.sendEmailVerification(); const m = document.getElementById('resend-msg'); m.style.display='block'; setTimeout(()=>{m.style.display='none';},4000); }
+    try { await user.sendEmailVerification(); const m=document.getElementById('resend-msg'); m.style.display='block'; setTimeout(()=>{m.style.display='none';},4000); }
     catch(e) { alert('Подожди немного перед повторной отправкой.'); }
 }
 async function cancelVerify() { await auth.signOut(); showForm('login-form'); }
 
-// ─── РЕГИСТРАЦИЯ ──────────────────────────────────────────────
+// ─── РЕГИСТРАЦИЯ / ВХОД ───────────────────────────────────────
 async function register() {
-    const nick = document.getElementById('regNick').value.trim();
-    const email = document.getElementById('regEmail').value.trim();
-    const pass  = document.getElementById('regPass').value;
+    const nick=document.getElementById('regNick').value.trim();
+    const email=document.getElementById('regEmail').value.trim();
+    const pass=document.getElementById('regPass').value;
     if (!nick)           return showErr('reg-err','Введи ник.');
     if (nick.length < 2) return showErr('reg-err','Ник слишком короткий (мин. 2 символа).');
     if (!email)          return showErr('reg-err','Введи email.');
     if (pass.length < 6) return showErr('reg-err','Пароль минимум 6 символов.');
     try {
         const res = await auth.createUserWithEmailAndPassword(email, pass);
-        await db.ref('users/' + res.user.uid).set({ nick, email, isBannedSite: false, banReason: '', isAdmin: false });
+        await db.ref('users/'+res.user.uid).set({ nick, email, isBannedSite:false, banReason:'', isAdmin:false });
         await res.user.sendEmailVerification();
         showVerifyScreen(email);
     } catch(e) {
-        const msgs = { 'auth/email-already-in-use':'Этот email уже зарегистрирован.','auth/invalid-email':'Некорректный email.','auth/weak-password':'Пароль слишком слабый.' };
+        const msgs = {'auth/email-already-in-use':'Этот email уже зарегистрирован.','auth/invalid-email':'Некорректный email.','auth/weak-password':'Пароль слишком слабый.'};
         showErr('reg-err', msgs[e.code] || e.message);
     }
 }
 
-// ─── ВХОД ─────────────────────────────────────────────────────
 async function login() {
-    const email = document.getElementById('authEmail').value.trim();
-    const pass  = document.getElementById('authPass').value;
+    const email=document.getElementById('authEmail').value.trim();
+    const pass=document.getElementById('authPass').value;
     if (!email) return showErr('login-err','Введи email.');
     if (!pass)  return showErr('login-err','Введи пароль.');
     try {
         const res = await auth.signInWithEmailAndPassword(email, pass);
-        if (!res.user.emailVerified) { showVerifyScreen(email); }
+        if (!res.user.emailVerified) showVerifyScreen(email);
     } catch(e) {
-        const msgs = { 'auth/user-not-found':'Аккаунт не найден.','auth/wrong-password':'Неверный пароль.','auth/invalid-email':'Некорректный email.','auth/too-many-requests':'Слишком много попыток. Попробуй позже.','auth/invalid-credential':'Неверный email или пароль.' };
+        const msgs = {'auth/user-not-found':'Аккаунт не найден.','auth/wrong-password':'Неверный пароль.','auth/invalid-email':'Некорректный email.','auth/too-many-requests':'Слишком много попыток. Попробуй позже.','auth/invalid-credential':'Неверный email или пароль.'};
         showErr('login-err', msgs[e.code] || e.message);
     }
 }
-function loginGoogle() { const p = new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(p).catch(()=>showErr('login-err','Ошибка входа через Google.')); }
+
+function loginGoogle() { const p=new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(p).catch(()=>showErr('login-err','Ошибка входа через Google.')); }
+
 async function finishGoogleReg() {
-    const user = auth.currentUser;
-    const nick = document.getElementById('gNick').value.trim();
+    const user=auth.currentUser;
+    const nick=document.getElementById('gNick').value.trim();
     if (!nick)           return showErr('gfinish-err','Введи ник.');
     if (nick.length < 2) return showErr('gfinish-err','Ник слишком короткий.');
     try { await db.ref('users/'+user.uid).set({ nick, email:user.email, isBannedSite:false, banReason:'', isAdmin:false }); authStateHandler(user); }
@@ -461,35 +801,29 @@ async function finishGoogleReg() {
 // ─── СБРОС ПАРОЛЯ ─────────────────────────────────────────────
 let resetCooldownTimer = null;
 async function resetPassword() {
-    const email = document.getElementById('resetEmail').value.trim();
+    const email=document.getElementById('resetEmail').value.trim();
     if (!email) return showErr('reset-err','Введи email.');
-    const lastReset = parseInt(localStorage.getItem('lastReset')||'0');
-    const now = Date.now();
-    if (now - lastReset < 60000) { startResetCooldown(Math.ceil((60000-(now-lastReset))/1000)); return; }
+    const lastReset=parseInt(localStorage.getItem('lastReset')||'0'), now=Date.now();
+    if (now-lastReset<60000) { startResetCooldown(Math.ceil((60000-(now-lastReset))/1000)); return; }
     try {
         await auth.sendPasswordResetEmail(email);
-        localStorage.setItem('lastReset', String(now));
-        document.getElementById('reset-success').style.display = 'block';
-        document.getElementById('reset-err').style.display = 'none';
+        localStorage.setItem('lastReset',String(now));
+        document.getElementById('reset-success').style.display='block';
+        document.getElementById('reset-err').style.display='none';
         startResetCooldown(60);
     } catch(e) {
-        const msgs = { 'auth/invalid-email':'Некорректный email.','auth/user-not-found':'Аккаунт с таким email не найден.' };
-        showErr('reset-err', msgs[e.code] || e.message);
+        const msgs={'auth/invalid-email':'Некорректный email.','auth/user-not-found':'Аккаунт с таким email не найден.'};
+        showErr('reset-err', msgs[e.code]||e.message);
     }
 }
 function startResetCooldown(seconds) {
-    const btn = document.getElementById('reset-btn');
-    const msg = document.getElementById('reset-cooldown');
+    const btn=document.getElementById('reset-btn'), msg=document.getElementById('reset-cooldown');
     if (!btn||!msg) return;
     btn.disabled=true; msg.style.display='block';
     if (resetCooldownTimer) clearInterval(resetCooldownTimer);
-    let left = seconds;
-    msg.innerText = `Повторно можно через ${left} сек.`;
-    resetCooldownTimer = setInterval(()=>{
-        left--;
-        if (left<=0) { clearInterval(resetCooldownTimer); btn.disabled=false; msg.style.display='none'; }
-        else { msg.innerText=`Повторно можно через ${left} сек.`; }
-    },1000);
+    let left=seconds;
+    msg.innerText=`Повторно можно через ${left} сек.`;
+    resetCooldownTimer=setInterval(()=>{ left--; if(left<=0){clearInterval(resetCooldownTimer);btn.disabled=false;msg.style.display='none';}else{msg.innerText=`Повторно можно через ${left} сек.`;} },1000);
 }
 (function(){ const left=Math.ceil((60000-(Date.now()-parseInt(localStorage.getItem('lastReset')||'0')))/1000); if(left>0) startResetCooldown(left); })();
 
@@ -497,186 +831,231 @@ function logout() { auth.signOut(); }
 async function deleteAccount() {
     if (!confirm('Удалить аккаунт навсегда?')) return;
     if (!confirm('Точно уверен? Это нельзя отменить.')) return;
-    const user = auth.currentUser;
+    const user=auth.currentUser;
     try { await db.ref('users/'+user.uid).remove(); await user.delete(); }
     catch(e) { alert('Для удаления нужно перезайти в аккаунт.'); }
 }
 
-// ─── AUTH STATE ───────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// AUTH STATE — главная логика после входа
+// ═══════════════════════════════════════════════════════════════
 async function authStateHandler(user) {
-    const authForms    = document.getElementById('auth-forms');
-    const profileData  = document.getElementById('profile-data');
-    const verifyScreen = document.getElementById('verify-screen');
-    const adminBtn     = document.getElementById('admin-nav-btn');
-    const friendsBtn   = document.getElementById('friends-nav-btn');
+    const authForms   = document.getElementById('auth-forms');
+    const profileData = document.getElementById('profile-data');
+    const verifyScr   = document.getElementById('verify-screen');
+    const adminBtn    = document.getElementById('admin-nav-btn');
+    const friendsBtn  = document.getElementById('friends-nav-btn');
     adminBtn.style.display  = 'none';
     friendsBtn.style.display = 'none';
     _isAdmin = false; _myUid = null;
 
     if (!user) {
-        authForms.style.display='block'; profileData.style.display='none'; verifyScreen.style.display='none';
+        authForms.style.display='block'; profileData.style.display='none'; verifyScr.style.display='none';
         showForm('login-form'); return;
     }
 
     const isGoogle = user.providerData.some(p=>p.providerId==='google.com');
     if (!user.emailVerified && !isGoogle) {
-        authForms.style.display='none'; profileData.style.display='none'; verifyScreen.style.display='block';
+        authForms.style.display='none'; profileData.style.display='none'; verifyScr.style.display='block';
         document.getElementById('verify-email-text').innerText=`Письмо отправлено на ${user.email}`; return;
     }
 
     const snap = await db.ref('users/'+user.uid).once('value');
     if (!snap.exists()) {
-        authForms.style.display='block'; profileData.style.display='none'; verifyScreen.style.display='none';
+        authForms.style.display='block'; profileData.style.display='none'; verifyScr.style.display='none';
         showForm('google-finish-form'); return;
     }
 
     const d = snap.val();
     if (d.isBannedSite) {
         await auth.signOut(); showBanModal(d.banReason);
-        authForms.style.display='block'; profileData.style.display='none'; verifyScreen.style.display='none';
+        authForms.style.display='block'; profileData.style.display='none'; verifyScr.style.display='none';
         showForm('login-form'); return;
     }
 
-    authForms.style.display='none'; verifyScreen.style.display='none'; profileData.style.display='block';
+    authForms.style.display='none'; verifyScr.style.display='none'; profileData.style.display='block';
     _myUid     = user.uid;
     _myNick    = d.nick;
     _myShortId = shortId(user.uid);
 
+    // Базовые данные профиля
     document.getElementById('dispNick').innerText  = d.nick;
     document.getElementById('dispId').innerText    = _myShortId;
     document.getElementById('dispEmail').innerText = user.email;
     document.getElementById('userNick').value      = d.nick;
-    window._currentUserData = { uid: user.uid, nick: d.nick, id: _myShortId };
+    window._currentUserData = { uid:user.uid, nick:d.nick, id:_myShortId };
 
-    // ── Статистика из playerStats ──────────────────────────────────────────
-    db.ref('playerStats/' + user.uid).on('value', statsSnap => {
-        const statsBox = document.getElementById('player-stats-box');
-        if (!statsSnap.exists()) { statsBox.style.display = 'none'; return; }
-        const s = statsSnap.val();
-        statsBox.style.display = 'flex';
-        document.getElementById('disp-cups').innerText   = s.cups        ?? 0;
-        document.getElementById('disp-rank').innerText   = s.rank        ?? '—';
-        document.getElementById('disp-games').innerText  = s.gamesPlayed ?? 0;
-        document.getElementById('disp-wins').innerText   = s.wins        ?? 0;
-        document.getElementById('disp-losses').innerText = s.losses      ?? 0;
-        // Ачивки — считаем количество ключей в объекте
-        const achCount = s.achievements ? Object.keys(s.achievements).length : 0;
-        document.getElementById('disp-achievements').innerText = achCount;
+    // ── Подписка на playerStats (realtime) ────────────────────
+    db.ref('playerStats/'+user.uid).on('value', statsSnap => {
+        updateProfileStats(statsSnap.exists() ? statsSnap.val() : null);
     });
 
-    // Показываем вкладку друзей
-    friendsBtn.style.display = 'inline-block';
-    listenFriends();
-    listenIncoming();
-    listenOutgoing();
+    friendsBtn.style.display='inline-block';
+    listenFriends(); listenIncoming(); listenOutgoing();
 
     if (d.isAdmin === true) {
         _isAdmin = true;
-        adminBtn.style.display = 'inline-block';
-        loadModeration();
-        loadAdminGallery();
+        adminBtn.style.display='inline-block';
+        loadModeration(); loadAdminGallery();
     }
     loadMyGallery(user.uid);
 }
 auth.onAuthStateChanged(authStateHandler);
 
-// ─── МОЯ ГАЛЕРЕЯ ─────────────────────────────────────────────
+// ─── Обновление UI статистики ─────────────────────────────────
+function updateProfileStats(s) {
+    const trophyBlock = document.getElementById('profile-trophy-block');
+    const statsGrid   = document.getElementById('profile-stats-grid');
+    const noStats     = document.getElementById('no-stats-hint');
+    const rankBadge   = document.getElementById('dispRankBadge');
+
+    if (!s) {
+        trophyBlock.style.display = 'none';
+        statsGrid.style.display   = 'none';
+        noStats.style.display     = 'block';
+        rankBadge.style.display   = 'none';
+        return;
+    }
+
+    trophyBlock.style.display = 'block';
+    statsGrid.style.display   = 'grid';
+    noStats.style.display     = 'none';
+
+    const cups   = s.cups        ?? 0;
+    const wins   = s.wins        ?? 0;
+    const losses = s.losses      ?? 0;
+    const games  = s.gamesPlayed ?? 0;
+    const playSec= s.playtimeSeconds ?? 0;
+    const achObj = s.achievements || {};
+    const achCount = Object.keys(achObj).length;
+
+    // Кубки и ранг
+    const rank = getRankInfo(cups);
+    document.getElementById('disp-cups').innerText   = cups;
+    document.getElementById('disp-rank').innerText   = s.rank || rank.name;
+    document.getElementById('disp-rank').className   = 'trophy-rank-name ' + rank.cls;
+
+    // Прогресс до следующего ранга
+    document.getElementById('rank-prog-cur').innerText  = rank.name;
+    document.getElementById('rank-prog-next').innerText = rank.nextName ? `следующий: ${rank.nextName} (${rank.nextMin} 🏆)` : '🏆 Макс. ранг!';
+    document.getElementById('rank-prog-fill').style.width = rank.pct + '%';
+
+    // Бейдж ранга в шапке
+    rankBadge.innerText = rank.name;
+    rankBadge.className = 'profile-rank-badge ' + rank.cls;
+    rankBadge.style.display = 'inline-block';
+    rankBadge.style.border  = '1px solid currentColor';
+
+    // Статы
+    document.getElementById('disp-wins').innerText   = wins;
+    document.getElementById('disp-losses').innerText = losses;
+    document.getElementById('disp-games').innerText  = games;
+
+    // Плейтайм
+    document.getElementById('disp-playtime').innerText = playSec > 0 ? fmtPlaytime(playSec) : '—';
+
+    // Винрейт
+    const wr = games > 0 ? Math.round((wins / games) * 100) : 0;
+    document.getElementById('disp-winrate').innerText     = games > 0 ? wr + '%' : '—';
+    document.getElementById('winrate-bar').style.width    = wr + '%';
+
+    // Ачивки
+    document.getElementById('disp-ach').innerText        = achCount;
+    document.getElementById('ach-label-cur').innerText   = achCount;
+    document.getElementById('ach-label-total').innerText = '/ ' + TOTAL_ACHIEVEMENTS;
+    document.getElementById('ach-bar-fill').style.width  = Math.min(100, Math.round((achCount / TOTAL_ACHIEVEMENTS) * 100)) + '%';
+
+    // Подзаголовок ранга
+    const sub = rank.nextName
+        ? `До ${rank.nextName}: ещё ${rank.nextMin - cups} 🏆`
+        : 'Высший ранг достигнут!';
+    document.getElementById('disp-rank-sub').innerText = sub;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ГАЛЕРЕЯ
+// ═══════════════════════════════════════════════════════════════
 function loadMyGallery(uid) {
-    const grid  = document.getElementById('my-gallery');
-    const empty = document.getElementById('my-gallery-empty');
+    const grid=document.getElementById('my-gallery'), empty=document.getElementById('my-gallery-empty');
     if (!grid) return;
     db.ref('gallery').orderByChild('uid').equalTo(uid).on('value', snap => {
-        grid.innerHTML = '';
-        let all = [];
-        snap.forEach(child => { all.push(child.val()); });
+        grid.innerHTML=''; let all=[];
+        snap.forEach(child=>{ all.push(child.val()); });
         all.reverse();
         all.forEach(d => {
             if (d.hidden) return;
-            const meta = (d.width&&d.height)?`${d.width}x${d.height}`:'';
-            grid.innerHTML += `<div class="card">
-                <div class="card-img-wrap"><img src="${d.url}" onclick="openFull('${d.url}')" loading="lazy"></div>
-                <div class="card-info">
-                    <div class="card-desc">${d.desc||''}</div>
-                    <div class="card-meta"><span>📅 ${fmtTime(d.time)}</span><span>📐 ${meta}</span></div>
-                </div>
-            </div>`;
+            const meta=(d.width&&d.height)?`${d.width}x${d.height}`:'';
+            grid.innerHTML+=`<div class="card"><div class="card-img-wrap"><img src="${d.url}" onclick="openFull('${d.url}')" loading="lazy"></div><div class="card-info"><div class="card-desc">${d.desc||''}</div><div class="card-meta"><span>📅 ${fmtTime(d.time)}</span><span>📐 ${meta}</span></div></div></div>`;
         });
-        empty.style.display = all.filter(x=>!x.hidden).length===0?'block':'none';
+        empty.style.display=all.filter(x=>!x.hidden).length===0?'block':'none';
     });
 }
 
-// ─── ПУБЛИЧНАЯ ГАЛЕРЕЯ ────────────────────────────────────────
 db.ref('gallery').on('value', snap => {
-    const h = document.getElementById('home-gallery');
-    const f = document.getElementById('full-gallery');
+    const h=document.getElementById('home-gallery'), f=document.getElementById('full-gallery');
     if (!h||!f) return;
     h.innerHTML=''; f.innerHTML='';
-    let all = [];
-    snap.forEach(child => { all.push({ key:child.key, ...child.val() }); });
-    all.reverse(); // новые сверху — push() генерирует возрастающие ключи
-    let shown = 0;
+    let all=[];
+    snap.forEach(child=>{ all.push({key:child.key,...child.val()}); });
+    all.reverse();
+    let shown=0;
     all.forEach(d => {
         if (d.hidden) return;
-        const meta    = (d.width&&d.height)?`${d.width}x${d.height}`:'';
-        const idBadge = d.authorId?`<span class="card-author-id">${d.authorId}</span>`:'';
-        const card = `<div class="card">
-            <div class="card-img-wrap"><img src="${d.url}" onclick="openFull('${d.url}')" loading="lazy"></div>
-            <div class="card-info">
-                <div class="card-author">${d.author}${idBadge}</div>
-                <div class="card-desc">${d.desc||''}</div>
-                <div class="card-meta"><span>📅 ${fmtTime(d.time)}</span><span>📐 ${meta}</span></div>
-            </div>
-        </div>`;
-        if (shown<5) { h.innerHTML+=card; shown++; }
+        const meta=(d.width&&d.height)?`${d.width}x${d.height}`:'';
+        const idBadge=d.authorId?`<span class="card-author-id">${d.authorId}</span>`:'';
+        const card=`<div class="card"><div class="card-img-wrap"><img src="${d.url}" onclick="openFull('${d.url}')" loading="lazy"></div><div class="card-info"><div class="card-author">${d.author}${idBadge}</div><div class="card-desc">${d.desc||''}</div><div class="card-meta"><span>📅 ${fmtTime(d.time)}</span><span>📐 ${meta}</span></div></div></div>`;
+        if (shown<5){h.innerHTML+=card;shown++;}
         f.innerHTML+=card;
     });
 });
 
-// ─── СКАЧИВАНИЕ ───────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// СКАЧИВАНИЕ
+// ═══════════════════════════════════════════════════════════════
 async function downloadGame() { await db.ref('downloads/v05').transaction(c=>(c||0)+1); window.open('ССЫЛКА','_blank'); }
-db.ref('downloads/v05').on('value', snap => { const el=document.getElementById('dl-count'); if(el) el.innerText=`⬇ загрузок: ${snap.val()||0}`; });
+db.ref('downloads/v05').on('value', snap=>{ const el=document.getElementById('dl-count'); if(el) el.innerText=`⬇ загрузок: ${snap.val()||0}`; });
 
-// ─── ЗАГРУЗКА СКРИНШОТА ───────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// ЗАГРУЗКА СКРИНШОТА
+// ═══════════════════════════════════════════════════════════════
 async function checkAuthAndTriggerUpload() {
-    const user = auth.currentUser;
+    const user=auth.currentUser;
     if (!user) { showPage('profile-page','background-red.png',null); return; }
-    const snap = await db.ref('users/'+user.uid).once('value');
-    const d = snap.val();
+    const snap=await db.ref('users/'+user.uid).once('value');
+    const d=snap.val();
     if (!snap.exists()||d.isBannedSite) { showBanModal(d?.banReason); return; }
     document.getElementById('fileInput').click();
 }
 async function handleUpload() {
-    const user = auth.currentUser; if (!user) return;
-    const now  = Date.now();
-    const last = parseInt(localStorage.getItem('lastUp')||'0');
-    const COOLDOWN = 300000; // 5 минут
-    if (now-last < COOLDOWN) {
-        const left = Math.ceil((COOLDOWN-(now-last))/1000);
-        const mins = Math.floor(left/60), secs = left%60;
-        document.getElementById('statusMsg').innerText = `⏳ Подожди ещё ${mins>0?mins+' мин ':''}${secs} сек.`;
+    const user=auth.currentUser; if (!user) return;
+    const now=Date.now(), last=parseInt(localStorage.getItem('lastUp')||'0'), COOLDOWN=300000;
+    if (now-last<COOLDOWN) {
+        const left=Math.ceil((COOLDOWN-(now-last))/1000), mins=Math.floor(left/60), secs=left%60;
+        document.getElementById('statusMsg').innerText=`⏳ Подожди ещё ${mins>0?mins+' мин ':''}${secs} сек.`;
         return;
     }
-    const file = document.getElementById('fileInput').files[0]; if (!file) return;
-    const status = document.getElementById('statusMsg');
-    const btn    = document.getElementById('uploadBtn');
+    const file=document.getElementById('fileInput').files[0]; if (!file) return;
+    const status=document.getElementById('statusMsg'), btn=document.getElementById('uploadBtn');
     status.innerText='⏳ Загрузка...'; btn.disabled=true;
     try {
-        const imgInfo = await new Promise(res=>{ const i=new Image(); i.onload=()=>res({w:i.width,h:i.height}); i.src=URL.createObjectURL(file); });
-        const storagePath = 'submissions/'+now+'_'+file.name;
-        const ref = storage.ref(storagePath);
+        const imgInfo=await new Promise(res=>{ const i=new Image(); i.onload=()=>res({w:i.width,h:i.height}); i.src=URL.createObjectURL(file); });
+        const storagePath='submissions/'+now+'_'+file.name;
+        const ref=storage.ref(storagePath);
         await ref.put(file);
-        const url = await ref.getDownloadURL();
-        const ud  = window._currentUserData||{};
+        const url=await ref.getDownloadURL();
+        const ud=window._currentUserData||{};
         await db.ref('moderation').push({ url, storagePath, author:ud.nick||'Unknown', authorId:ud.id||'', uid:user.uid, desc:document.getElementById('userDesc').value, width:imgInfo.w, height:imgInfo.h, time:new Date().toLocaleString() });
         fetch('https://us-central1-cubix-web.cloudfunctions.net/sendtotelegram',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ photoUrl:url, author:ud.nick||'Unknown', authorId:ud.id||'', desc:document.getElementById('userDesc').value, width:imgInfo.w, height:imgInfo.h }) });
-        localStorage.setItem('lastUp', String(now));
+        localStorage.setItem('lastUp',String(now));
         status.innerText='✅ Отправлено на модерацию!';
         document.getElementById('userDesc').value='';
     } catch(e) { status.innerText='❌ Ошибка загрузки.'; console.error(e); }
     btn.disabled=false;
 }
 
-// ─── МОДЕРАЦИЯ ────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// МОДЕРАЦИЯ
+// ═══════════════════════════════════════════════════════════════
 function loadModeration() {
     const grid=document.getElementById('moderation-grid'), empty=document.getElementById('mod-empty'), badge=document.getElementById('mod-count'), qcount=document.getElementById('mod-queue-count');
     if (!grid) return;
@@ -690,384 +1069,100 @@ function loadModeration() {
         snap.forEach(child=>{
             const d=child.val(), key=child.key;
             const card=document.createElement('div'); card.className='card'; card.id='modcard-'+key;
-            card.innerHTML=`
-                <div class="card-img-wrap"><img src="${d.url}" onclick="openFull('${d.url}')"></div>
-                <div class="card-info">
-                    <div class="card-author">${d.author} <span class="card-author-id">${d.authorId||''}</span></div>
-                    <div id="mod-view-${key}">
-                        <div class="card-desc">${d.desc||'<em style="color:#555">нет описания</em>'}</div>
-                        <div class="card-meta" style="margin-bottom:10px;"><span>📅 ${fmtTime(d.time)}</span><span>📐 ${d.width&&d.height?d.width+'x'+d.height:''}</span></div>
-                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                            <button class="mod-btn mod-btn-approve" onclick="approvePhoto('${key}')">✅ Одобрить</button>
-                            <button class="mod-btn mod-btn-reject"  onclick="rejectPhoto('${key}')">🗑 Удалить</button>
-                            <button class="mod-btn mod-btn-edit"    onclick="startEditMod('${key}')">✏️ Изменить</button>
-                        </div>
-                    </div>
-                    <div id="mod-edit-${key}" style="display:none;">
-                        <div style="margin-bottom:6px;color:#f39c12;font-size:13px;">✏️ Редактирование</div>
-                        <textarea class="edit-field" id="mod-edit-desc-${key}" style="min-height:60px;resize:vertical;">${d.desc||''}</textarea>
-                        <input class="edit-field" id="mod-edit-time-${key}" value="${d.time||''}">
-                        <div style="display:flex;gap:6px;margin-top:4px;">
-                            <button class="mod-btn mod-btn-approve" onclick="saveMod('${key}')">💾 Сохранить</button>
-                            <button class="mod-btn mod-btn-hide"    onclick="cancelEditMod('${key}')">✕ Отмена</button>
-                        </div>
-                    </div>
-                    <p id="mod-status-${key}" style="color:#f1c40f;font-size:13px;margin-top:8px;min-height:1em;"></p>
-                </div>`;
+            card.innerHTML=`<div class="card-img-wrap"><img src="${d.url}" onclick="openFull('${d.url}')"></div><div class="card-info"><div class="card-author">${d.author} <span class="card-author-id">${d.authorId||''}</span></div><div id="mod-view-${key}"><div class="card-desc">${d.desc||'<em style="color:#555">нет описания</em>'}</div><div class="card-meta" style="margin-bottom:10px;"><span>📅 ${fmtTime(d.time)}</span><span>📐 ${d.width&&d.height?d.width+'x'+d.height:''}</span></div><div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="mod-btn mod-btn-approve" onclick="approvePhoto('${key}')">✅ Одобрить</button><button class="mod-btn mod-btn-reject" onclick="rejectPhoto('${key}')">🗑 Удалить</button><button class="mod-btn mod-btn-edit" onclick="startEditMod('${key}')">✏️ Изменить</button></div></div><div id="mod-edit-${key}" style="display:none;"><div style="margin-bottom:6px;color:#f39c12;font-size:13px;">✏️ Редактирование</div><textarea class="edit-field" id="mod-edit-desc-${key}" style="min-height:60px;resize:vertical;">${d.desc||''}</textarea><input class="edit-field" id="mod-edit-time-${key}" value="${d.time||''}"><div style="display:flex;gap:6px;margin-top:4px;"><button class="mod-btn mod-btn-approve" onclick="saveMod('${key}')">💾 Сохранить</button><button class="mod-btn mod-btn-hide" onclick="cancelEditMod('${key}')">✕ Отмена</button></div></div><p id="mod-status-${key}" style="color:#f1c40f;font-size:13px;margin-top:8px;min-height:1em;"></p></div>`;
             grid.appendChild(card);
         });
     });
 }
-function startEditMod(key) { document.getElementById('mod-view-'+key).style.display='none'; document.getElementById('mod-edit-'+key).style.display='block'; }
-function cancelEditMod(key) { document.getElementById('mod-view-'+key).style.display='block'; document.getElementById('mod-edit-'+key).style.display='none'; }
-async function saveMod(key) {
-    const desc=document.getElementById('mod-edit-desc-'+key).value, time=document.getElementById('mod-edit-time-'+key).value, st=document.getElementById('mod-status-'+key);
-    st.innerText='⏳';
-    try { await db.ref('moderation/'+key).update({desc,time}); cancelEditMod(key); st.innerText='✅ Сохранено!'; setTimeout(()=>{st.innerText='';},2000); }
-    catch(e) { st.innerText='❌ Ошибка.'; }
-}
-async function approvePhoto(key) {
-    const st=document.getElementById('mod-status-'+key); st.innerText='⏳ Публикуем...';
-    try { const snap=await db.ref('moderation/'+key).once('value'); if(!snap.exists())return; await db.ref('gallery').push(snap.val()); await db.ref('moderation/'+key).remove(); }
-    catch(e) { st.innerText='❌ Ошибка.'; }
-}
-async function rejectPhoto(key) {
-    if (!confirm('Удалить фото навсегда? Файл тоже удалится из хранилища.')) return;
-    const st=document.getElementById('mod-status-'+key); st.innerText='⏳ Удаляем...';
-    try {
-        const snap=await db.ref('moderation/'+key).once('value');
-        if (snap.exists()) { const data=snap.val(); if(data.storagePath){try{await storage.ref(data.storagePath).delete();}catch(_){}} await db.ref('moderation/'+key).remove(); }
-    } catch(e) { st.innerText='❌ Ошибка.'; }
-}
+function startEditMod(key){document.getElementById('mod-view-'+key).style.display='none';document.getElementById('mod-edit-'+key).style.display='block';}
+function cancelEditMod(key){document.getElementById('mod-view-'+key).style.display='block';document.getElementById('mod-edit-'+key).style.display='none';}
+async function saveMod(key){const desc=document.getElementById('mod-edit-desc-'+key).value,time=document.getElementById('mod-edit-time-'+key).value,st=document.getElementById('mod-status-'+key);st.innerText='⏳';try{await db.ref('moderation/'+key).update({desc,time});cancelEditMod(key);st.innerText='✅ Сохранено!';setTimeout(()=>{st.innerText='';},2000);}catch(e){st.innerText='❌ Ошибка.';}}
+async function approvePhoto(key){const st=document.getElementById('mod-status-'+key);st.innerText='⏳ Публикуем...';try{const snap=await db.ref('moderation/'+key).once('value');if(!snap.exists())return;await db.ref('gallery').push(snap.val());await db.ref('moderation/'+key).remove();}catch(e){st.innerText='❌ Ошибка.';}}
+async function rejectPhoto(key){if(!confirm('Удалить фото навсегда?'))return;const st=document.getElementById('mod-status-'+key);st.innerText='⏳ Удаляем...';try{const snap=await db.ref('moderation/'+key).once('value');if(snap.exists()){const data=snap.val();if(data.storagePath){try{await storage.ref(data.storagePath).delete();}catch(_){}}await db.ref('moderation/'+key).remove();}}catch(e){st.innerText='❌ Ошибка.';}}
 
-// ─── АДМИН ГАЛЕРЕЯ ────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// АДМИН ГАЛЕРЕЯ
+// ═══════════════════════════════════════════════════════════════
 function loadAdminGallery() {
     const grid=document.getElementById('admin-gallery-grid'); if(!grid) return;
     db.ref('gallery').on('value', snap=>{
-        grid.innerHTML='';
-        let all=[];
+        grid.innerHTML=''; let all=[];
         snap.forEach(child=>{ all.push({key:child.key,...child.val()}); });
         all.reverse();
         if(all.length===0){grid.innerHTML='<p style="color:#555;">Галерея пуста.</p>';return;}
         all.forEach(d=>{
             const isHidden=d.hidden===true, meta=(d.width&&d.height)?`${d.width}x${d.height}`:'';
             const card=document.createElement('div'); card.className='card'+(isHidden?' hidden-card':''); card.id='admcard-'+d.key;
-            card.innerHTML=`
-                <div class="card-img-wrap" style="position:relative;">
-                    <img src="${d.url}" onclick="openFull('${d.url}')" loading="lazy">
-                    ${isHidden?`<div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;pointer-events:none;font-size:16px;color:#e74c3c;letter-spacing:2px;">🚫 СКРЫТО</div>`:''}
-                </div>
-                <div class="card-info">
-                    <div class="card-author">${d.author} <span class="card-author-id">${d.authorId||''}</span></div>
-                    <div id="admview-${d.key}">
-                        <div class="card-desc">${d.desc||'<em style="color:#555">нет описания</em>'}</div>
-                        <div class="card-meta"><span>📅 ${fmtTime(d.time)}</span><span>📐 ${meta}</span></div>
-                        <div class="card-actions">
-                            <button class="icon-btn hide-btn" title="${isHidden?'Показать':'Скрыть'}" onclick="toggleHide('${d.key}',${isHidden})">${isHidden?'👁':'🙈'}</button>
-                            <button class="icon-btn" title="Редактировать" onclick="startEditGallery('${d.key}')">✏️</button>
-                            <span class="card-actions-spacer"></span>
-                            <button class="icon-btn del" title="Удалить навсегда" onclick="deleteFromGallery('${d.key}')">🗑️</button>
-                        </div>
-                    </div>
-                    <div id="admedit-${d.key}" style="display:none;">
-                        <div style="margin-bottom:6px;color:#f39c12;font-size:13px;">✏️ Редактирование</div>
-                        <textarea class="edit-field" id="adm-edit-desc-${d.key}" style="min-height:60px;resize:vertical;">${d.desc||''}</textarea>
-                        <input class="edit-field" id="adm-edit-time-${d.key}" value="${d.time||''}">
-                        <div style="display:flex;gap:6px;margin-top:6px;">
-                            <button class="mod-btn mod-btn-approve" onclick="saveGalleryEdit('${d.key}')">💾 Сохранить</button>
-                            <button class="mod-btn mod-btn-hide"    onclick="cancelEditGallery('${d.key}')">✕ Отмена</button>
-                        </div>
-                    </div>
-                    <p id="adm-status-${d.key}" style="color:#f1c40f;font-size:13px;margin-top:6px;min-height:1em;"></p>
-                </div>`;
+            card.innerHTML=`<div class="card-img-wrap" style="position:relative;"><img src="${d.url}" onclick="openFull('${d.url}')" loading="lazy">${isHidden?`<div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;pointer-events:none;font-size:16px;color:#e74c3c;letter-spacing:2px;">🚫 СКРЫТО</div>`:''}</div><div class="card-info"><div class="card-author">${d.author} <span class="card-author-id">${d.authorId||''}</span></div><div id="admview-${d.key}"><div class="card-desc">${d.desc||'<em style="color:#555">нет описания</em>'}</div><div class="card-meta"><span>📅 ${fmtTime(d.time)}</span><span>📐 ${meta}</span></div><div class="card-actions"><button class="icon-btn hide-btn" title="${isHidden?'Показать':'Скрыть'}" onclick="toggleHide('${d.key}',${isHidden})">${isHidden?'👁':'🙈'}</button><button class="icon-btn" title="Редактировать" onclick="startEditGallery('${d.key}')">✏️</button><span class="card-actions-spacer"></span><button class="icon-btn del" title="Удалить навсегда" onclick="deleteFromGallery('${d.key}')">🗑️</button></div></div><div id="admedit-${d.key}" style="display:none;"><div style="margin-bottom:6px;color:#f39c12;font-size:13px;">✏️ Редактирование</div><textarea class="edit-field" id="adm-edit-desc-${d.key}" style="min-height:60px;resize:vertical;">${d.desc||''}</textarea><input class="edit-field" id="adm-edit-time-${d.key}" value="${d.time||''}"><div style="display:flex;gap:6px;margin-top:6px;"><button class="mod-btn mod-btn-approve" onclick="saveGalleryEdit('${d.key}')">💾 Сохранить</button><button class="mod-btn mod-btn-hide" onclick="cancelEditGallery('${d.key}')">✕ Отмена</button></div></div><p id="adm-status-${d.key}" style="color:#f1c40f;font-size:13px;margin-top:6px;min-height:1em;"></p></div>`;
             grid.appendChild(card);
         });
     });
 }
-async function toggleHide(key,cur) { try{await db.ref('gallery/'+key).update({hidden:!cur});}catch(e){console.error(e);} }
-function startEditGallery(key) { document.getElementById('admview-'+key).style.display='none'; document.getElementById('admedit-'+key).style.display='block'; }
-function cancelEditGallery(key) { document.getElementById('admview-'+key).style.display='block'; document.getElementById('admedit-'+key).style.display='none'; }
-async function saveGalleryEdit(key) {
-    const desc=document.getElementById('adm-edit-desc-'+key).value, time=document.getElementById('adm-edit-time-'+key).value, st=document.getElementById('adm-status-'+key);
-    st.innerText='⏳';
-    try { await db.ref('gallery/'+key).update({desc,time}); cancelEditGallery(key); st.innerText='✅ Сохранено!'; setTimeout(()=>{st.innerText='';},2000); }
-    catch(e) { st.innerText='❌ Ошибка.'; }
-}
-async function deleteFromGallery(key) {
-    if (!confirm('Удалить фото из галереи навсегда? Файл тоже удалится.')) return;
-    const st=document.getElementById('adm-status-'+key); st.innerText='⏳ Удаляем...';
-    try {
-        const snap=await db.ref('gallery/'+key).once('value');
-        if(snap.exists()){const data=snap.val();if(data.storagePath){try{await storage.ref(data.storagePath).delete();}catch(_){}}await db.ref('gallery/'+key).remove();}
-    } catch(e) { st.innerText='❌ Ошибка.'; }
-}
+async function toggleHide(key,cur){try{await db.ref('gallery/'+key).update({hidden:!cur});}catch(e){console.error(e);}}
+function startEditGallery(key){document.getElementById('admview-'+key).style.display='none';document.getElementById('admedit-'+key).style.display='block';}
+function cancelEditGallery(key){document.getElementById('admview-'+key).style.display='block';document.getElementById('admedit-'+key).style.display='none';}
+async function saveGalleryEdit(key){const desc=document.getElementById('adm-edit-desc-'+key).value,time=document.getElementById('adm-edit-time-'+key).value,st=document.getElementById('adm-status-'+key);st.innerText='⏳';try{await db.ref('gallery/'+key).update({desc,time});cancelEditGallery(key);st.innerText='✅ Сохранено!';setTimeout(()=>{st.innerText='';},2000);}catch(e){st.innerText='❌ Ошибка.';}}
+async function deleteFromGallery(key){if(!confirm('Удалить фото из галереи навсегда?'))return;const st=document.getElementById('adm-status-'+key);st.innerText='⏳ Удаляем...';try{const snap=await db.ref('gallery/'+key).once('value');if(snap.exists()){const data=snap.val();if(data.storagePath){try{await storage.ref(data.storagePath).delete();}catch(_){}}await db.ref('gallery/'+key).remove();}}catch(e){st.innerText='❌ Ошибка.';}}
 
-// ════════════════════════════════════════════════════════════
-// ─── СИСТЕМА ДРУЗЕЙ ──────────────────────────────────────────
-// ════════════════════════════════════════════════════════════
-
-// Поиск игрока по ID (#XXXXXXXX) или нику
+// ═══════════════════════════════════════════════════════════════
+// СИСТЕМА ДРУЗЕЙ
+// ═══════════════════════════════════════════════════════════════
 async function searchPlayer() {
     if (!_myUid) { alert('Войди в аккаунт!'); return; }
-    const query = document.getElementById('friendSearchInput').value.trim();
-    const resultBox = document.getElementById('search-result');
-    const msgBox    = document.getElementById('search-msg');
+    const query=document.getElementById('friendSearchInput').value.trim();
+    const resultBox=document.getElementById('search-result'), msgBox=document.getElementById('search-msg');
     resultBox.style.display='none'; msgBox.style.display='none';
     if (!query) return;
 
-    // Ищем по всем юзерам
-    const usersSnap = await db.ref('users').once('value');
-    let found = null, foundUid = null;
-
-    usersSnap.forEach(child => {
-        const d = child.val();
-        const sid = shortId(child.key);
-        if (child.key === _myUid) return; // себя не ищем
-        if (query.toUpperCase() === sid || query.toLowerCase() === (d.nick||'').toLowerCase()) {
-            found = d; foundUid = child.key;
-        }
+    const usersSnap=await db.ref('users').once('value');
+    let found=null, foundUid=null;
+    usersSnap.forEach(child=>{
+        const d=child.val(), sid=shortId(child.key);
+        if (child.key===_myUid) return;
+        if (query.toUpperCase()===sid || query.toLowerCase()===(d.nick||'').toLowerCase()) { found=d; foundUid=child.key; }
     });
+    if (!found) { msgBox.innerText='Игрок не найден.'; msgBox.style.display='block'; return; }
 
-    if (!found) {
-        msgBox.innerText='Игрок не найден.'; msgBox.style.display='block'; return;
-    }
+    const fSnap=await db.ref(`friends/${_myUid}/${foundUid}`).once('value');
+    const outSnap=await db.ref(`friendRequests/${foundUid}/${_myUid}`).once('value');
+    const inSnap=await db.ref(`friendRequests/${_myUid}/${foundUid}`).once('value');
+    const isFriend=fSnap.exists(), sentReq=outSnap.exists(), hasIncoming=inSnap.exists();
 
-    // Проверяем статус
-    const fSnap  = await db.ref(`friends/${_myUid}/${foundUid}`).once('value');
-    const outSnap = await db.ref(`friendRequests/${foundUid}/${_myUid}`).once('value');
-    const inSnap  = await db.ref(`friendRequests/${_myUid}/${foundUid}`).once('value');
+    let actionBtn='';
+    if (isFriend)          actionBtn=`<button class="f-btn f-btn-red" onclick="removeFriend('${foundUid}')">Удалить из друзей</button>`;
+    else if (sentReq)      actionBtn=`<button class="f-btn f-btn-gray" disabled>Заявка отправлена</button>`;
+    else if (hasIncoming)  actionBtn=`<button class="f-btn f-btn-green" onclick="acceptRequest('${foundUid}')">Принять заявку</button>`;
+    else                   actionBtn=`<button class="f-btn f-btn-blue" onclick="sendRequest('${foundUid}','${(found.nick||'').replace(/'/g,"\\'")}')">Добавить в друзья</button>`;
 
-    const isFriend  = fSnap.exists();
-    const sentReq   = outSnap.exists();
-    const hasIncoming = inSnap.exists();
-
-    let actionBtn = '';
-    if (isFriend) {
-        actionBtn = `<button class="f-btn f-btn-red" onclick="removeFriend('${foundUid}')">Удалить из друзей</button>`;
-    } else if (sentReq) {
-        actionBtn = `<button class="f-btn f-btn-gray" disabled>Заявка отправлена</button>`;
-    } else if (hasIncoming) {
-        actionBtn = `<button class="f-btn f-btn-green" onclick="acceptRequest('${foundUid}')">Принять заявку</button>`;
-    } else {
-        actionBtn = `<button class="f-btn f-btn-blue" onclick="sendRequest('${foundUid}','${(found.nick||'').replace(/'/g,"\\'")}')">Добавить в друзья</button>`;
-    }
-
-    resultBox.innerHTML = `
-        <div class="friend-card" style="margin:0;">
-            <div class="friend-avatar">👤</div>
-            <div class="friend-info">
-                <div class="friend-nick">${found.nick}</div>
-                <div class="friend-id">${shortId(foundUid)}</div>
-            </div>
-            <div class="friend-actions">${actionBtn}</div>
-        </div>`;
+    resultBox.innerHTML=`<div class="friend-card" style="margin:0;"><div class="friend-avatar">👤</div><div class="friend-info"><div class="friend-nick">${found.nick}</div><div class="friend-id">${shortId(foundUid)}</div></div><div class="friend-actions">${actionBtn}</div></div>`;
     resultBox.style.display='block';
 }
 
-// Отправить заявку
-async function sendRequest(toUid, toNick) {
-    if (!_myUid) return;
-
-    // Проверяем лимит друзей (макс 100)
-    const myFriendsSnap = await db.ref(`friends/${_myUid}`).once('value');
-    if (myFriendsSnap.numChildren() >= 100) { alert('Максимум 100 друзей!'); return; }
-
-    // Антиспам — не чаще раза в 30 сек на одного юзера
-    const lastReqKey = `lastReq_${toUid}`;
-    const lastReq = parseInt(localStorage.getItem(lastReqKey)||'0');
-    if (Date.now()-lastReq < 30000) { alert('Подожди перед повторной заявкой этому игроку.'); return; }
-
-    // Проверяем что уже не друзья и нет заявки
-    const already = await db.ref(`friends/${_myUid}/${toUid}`).once('value');
-    if (already.exists()) { alert('Уже в друзьях!'); return; }
-    const alreadyReq = await db.ref(`friendRequests/${toUid}/${_myUid}`).once('value');
-    if (alreadyReq.exists()) { alert('Заявка уже отправлена!'); return; }
-
-    await db.ref(`friendRequests/${toUid}/${_myUid}`).set({
-        nick: _myNick, id: _myShortId, time: Date.now()
-    });
-    localStorage.setItem(lastReqKey, String(Date.now()));
-    alert(`Заявка отправлена игроку ${toNick}!`);
-    searchPlayer(); // обновляем результат поиска
-}
-
-// Принять заявку
-async function acceptRequest(fromUid) {
-    if (!_myUid) return;
-
-    // Проверяем лимит
-    const myFriendsSnap = await db.ref(`friends/${_myUid}`).once('value');
-    if (myFriendsSnap.numChildren() >= 100) { alert('У тебя максимум друзей (100)!'); return; }
-
-    const reqSnap = await db.ref(`friendRequests/${_myUid}/${fromUid}`).once('value');
-    if (!reqSnap.exists()) return;
-    const req = reqSnap.val();
-
-    // Добавляем в друзья с обеих сторон
-    const since = Date.now();
-    await db.ref(`friends/${_myUid}/${fromUid}`).set({ nick: req.nick, id: req.id, since });
-    // Получаем данные другого пользователя
-    const otherSnap = await db.ref(`users/${fromUid}`).once('value');
-    const otherData = otherSnap.val();
-    await db.ref(`friends/${fromUid}/${_myUid}`).set({ nick: _myNick, id: _myShortId, since });
-    // Удаляем заявку
-    await db.ref(`friendRequests/${_myUid}/${fromUid}`).remove();
-    // Удаляем возможную встречную заявку
-    await db.ref(`friendRequests/${fromUid}/${_myUid}`).remove();
-}
-
-// Отклонить заявку
-async function declineRequest(fromUid) {
-    if (!_myUid) return;
-    await db.ref(`friendRequests/${_myUid}/${fromUid}`).remove();
-}
-
-// Отменить исходящую заявку
-async function cancelRequest(toUid) {
-    if (!_myUid) return;
-    await db.ref(`friendRequests/${toUid}/${_myUid}`).remove();
-}
-
-// Удалить из друзей
-async function removeFriend(friendUid) {
-    if (!_myUid) return;
-    if (!confirm('Удалить из друзей?')) return;
-    await db.ref(`friends/${_myUid}/${friendUid}`).remove();
-    await db.ref(`friends/${friendUid}/${_myUid}`).remove();
-}
-
-// Очистить все входящие заявки
-async function clearAllRequests() {
-    if (!_myUid) return;
-    if (!confirm('Удалить все входящие заявки?')) return;
-    await db.ref(`friendRequests/${_myUid}`).remove();
-}
-
-// Слушаем список друзей
-function listenFriends() {
-    if (!_myUid) return;
-    db.ref(`friends/${_myUid}`).on('value', snap => {
-        const list  = document.getElementById('friends-list');
-        const empty = document.getElementById('friends-empty');
-        const count = document.getElementById('friends-count');
-        if (!list) return;
-        list.innerHTML='';
-        const n = snap.numChildren();
-        count.innerText = n > 0 ? `(${n}/100)` : '';
-        empty.style.display = n===0?'block':'none';
-        snap.forEach(child => {
-            const d=child.val(), fUid=child.key;
-            const div=document.createElement('div'); div.className='friend-card';
-            div.innerHTML=`
-                <div class="friend-avatar">👤</div>
-                <div class="friend-info">
-                    <div class="friend-nick">${d.nick}</div>
-                    <div class="friend-id">${d.id}</div>
-                </div>
-                <div class="friend-actions">
-                    <button class="f-btn f-btn-red" onclick="removeFriend('${fUid}')">Удалить</button>
-                </div>`;
-            list.appendChild(div);
-        });
-    });
-}
-
-// Слушаем входящие заявки
-function listenIncoming() {
-    if (!_myUid) return;
-    db.ref(`friendRequests/${_myUid}`).on('value', snap => {
-        const section = document.getElementById('incoming-section');
-        const list    = document.getElementById('incoming-list');
-        const countEl = document.getElementById('incoming-count');
-        const badge   = document.getElementById('req-badge');
-        if (!list) return;
-        list.innerHTML='';
-        const n = snap.numChildren();
-        section.style.display = n>0?'block':'none';
-        countEl.innerText = n>0?`(${n})`:'';
-        badge.style.display = n>0?'inline-block':'none';
-        badge.innerText = n;
-        snap.forEach(child => {
-            const d=child.val(), fromUid=child.key;
-            const div=document.createElement('div'); div.className='friend-card';
-            div.innerHTML=`
-                <div class="friend-avatar">👤</div>
-                <div class="friend-info">
-                    <div class="friend-nick">${d.nick}</div>
-                    <div class="friend-id">${d.id}</div>
-                </div>
-                <div class="friend-actions">
-                    <button class="f-btn f-btn-green" onclick="acceptRequest('${fromUid}')">✓ Принять</button>
-                    <button class="f-btn f-btn-red"   onclick="declineRequest('${fromUid}')">✕</button>
-                </div>`;
-            list.appendChild(div);
-        });
-    });
-}
-
-// Слушаем исходящие заявки
-function listenOutgoing() {
-    if (!_myUid) return;
-    // Слушаем заявки где мы — отправитель
-    // Структура: friendRequests/{toUid}/{myUid}
-    // Нет прямого индекса, поэтому отслеживаем через отдельный узел
-    db.ref(`outgoingRequests/${_myUid}`).on('value', snap => {
-        const section = document.getElementById('outgoing-section');
-        const list    = document.getElementById('outgoing-list');
-        if (!list) return;
-        list.innerHTML='';
-        const n = snap.numChildren();
-        section.style.display = n>0?'block':'none';
-        snap.forEach(child => {
-            const d=child.val(), toUid=child.key;
-            const div=document.createElement('div'); div.className='friend-card';
-            div.innerHTML=`
-                <div class="friend-avatar">👤</div>
-                <div class="friend-info">
-                    <div class="friend-nick">${d.nick}</div>
-                    <div class="friend-id">${d.id}</div>
-                </div>
-                <div class="friend-actions">
-                    <button class="f-btn f-btn-gray" onclick="cancelRequest('${toUid}')">Отменить</button>
-                </div>`;
-            list.appendChild(div);
-        });
-    });
-}
-
-// Переопределяем sendRequest чтобы писать и в outgoingRequests
-const _origSendRequest = sendRequest;
 window.sendRequest = async function(toUid, toNick) {
     if (!_myUid) return;
-    const myFriendsSnap = await db.ref(`friends/${_myUid}`).once('value');
-    if (myFriendsSnap.numChildren() >= 100) { alert('Максимум 100 друзей!'); return; }
-    const lastReqKey = `lastReq_${toUid}`;
-    const lastReq = parseInt(localStorage.getItem(lastReqKey)||'0');
-    if (Date.now()-lastReq < 30000) { alert('Подожди 30 секунд перед повторной заявкой.'); return; }
-    const already = await db.ref(`friends/${_myUid}/${toUid}`).once('value');
+    const myFSnap=await db.ref(`friends/${_myUid}`).once('value');
+    if (myFSnap.numChildren()>=100) { alert('Максимум 100 друзей!'); return; }
+    const lastReqKey=`lastReq_${toUid}`, lastReq=parseInt(localStorage.getItem(lastReqKey)||'0');
+    if (Date.now()-lastReq<30000) { alert('Подожди 30 секунд.'); return; }
+    const already=await db.ref(`friends/${_myUid}/${toUid}`).once('value');
     if (already.exists()) { alert('Уже в друзьях!'); return; }
-    const alreadyReq = await db.ref(`friendRequests/${toUid}/${_myUid}`).once('value');
+    const alreadyReq=await db.ref(`friendRequests/${toUid}/${_myUid}`).once('value');
     if (alreadyReq.exists()) { alert('Заявка уже отправлена!'); return; }
-
-    // Получаем ник получателя
-    const toSnap = await db.ref(`users/${toUid}`).once('value');
-    const toData = toSnap.val();
-
+    const toSnap=await db.ref(`users/${toUid}`).once('value');
+    const toData=toSnap.val();
     await db.ref(`friendRequests/${toUid}/${_myUid}`).set({ nick:_myNick, id:_myShortId, time:Date.now() });
     await db.ref(`outgoingRequests/${_myUid}/${toUid}`).set({ nick:toData?.nick||'?', id:shortId(toUid), time:Date.now() });
     localStorage.setItem(lastReqKey, String(Date.now()));
     searchPlayer();
 };
 
-// Переопределяем acceptRequest чтобы чистить outgoingRequests
 window.acceptRequest = async function(fromUid) {
     if (!_myUid) return;
-    const myFriendsSnap = await db.ref(`friends/${_myUid}`).once('value');
-    if (myFriendsSnap.numChildren() >= 100) { alert('У тебя максимум друзей (100)!'); return; }
-    const reqSnap = await db.ref(`friendRequests/${_myUid}/${fromUid}`).once('value');
+    const myFSnap=await db.ref(`friends/${_myUid}`).once('value');
+    if (myFSnap.numChildren()>=100) { alert('У тебя максимум друзей (100)!'); return; }
+    const reqSnap=await db.ref(`friendRequests/${_myUid}/${fromUid}`).once('value');
     if (!reqSnap.exists()) return;
-    const req = reqSnap.val();
-    const since = Date.now();
+    const req=reqSnap.val(), since=Date.now();
     await db.ref(`friends/${_myUid}/${fromUid}`).set({ nick:req.nick, id:req.id, since });
     await db.ref(`friends/${fromUid}/${_myUid}`).set({ nick:_myNick, id:_myShortId, since });
     await db.ref(`friendRequests/${_myUid}/${fromUid}`).remove();
@@ -1081,6 +1176,73 @@ window.cancelRequest = async function(toUid) {
     await db.ref(`friendRequests/${toUid}/${_myUid}`).remove();
     await db.ref(`outgoingRequests/${_myUid}/${toUid}`).remove();
 };
+
+async function declineRequest(fromUid) {
+    if (!_myUid) return;
+    await db.ref(`friendRequests/${_myUid}/${fromUid}`).remove();
+}
+async function removeFriend(friendUid) {
+    if (!_myUid) return;
+    if (!confirm('Удалить из друзей?')) return;
+    await db.ref(`friends/${_myUid}/${friendUid}`).remove();
+    await db.ref(`friends/${friendUid}/${_myUid}`).remove();
+}
+async function clearAllRequests() {
+    if (!_myUid) return;
+    if (!confirm('Удалить все входящие заявки?')) return;
+    await db.ref(`friendRequests/${_myUid}`).remove();
+}
+
+function listenFriends() {
+    if (!_myUid) return;
+    db.ref(`friends/${_myUid}`).on('value', snap=>{
+        const list=document.getElementById('friends-list'), empty=document.getElementById('friends-empty'), count=document.getElementById('friends-count');
+        if (!list) return;
+        list.innerHTML=''; const n=snap.numChildren();
+        count.innerText=n>0?`(${n}/100)`:'';
+        empty.style.display=n===0?'block':'none';
+        snap.forEach(child=>{
+            const d=child.val(), fUid=child.key;
+            const div=document.createElement('div'); div.className='friend-card';
+            div.innerHTML=`<div class="friend-avatar">👤</div><div class="friend-info"><div class="friend-nick">${d.nick}</div><div class="friend-id">${d.id}</div></div><div class="friend-actions"><button class="f-btn f-btn-red" onclick="removeFriend('${fUid}')">Удалить</button></div>`;
+            list.appendChild(div);
+        });
+    });
+}
+
+function listenIncoming() {
+    if (!_myUid) return;
+    db.ref(`friendRequests/${_myUid}`).on('value', snap=>{
+        const section=document.getElementById('incoming-section'), list=document.getElementById('incoming-list'), countEl=document.getElementById('incoming-count'), badge=document.getElementById('req-badge');
+        if (!list) return;
+        list.innerHTML=''; const n=snap.numChildren();
+        section.style.display=n>0?'block':'none';
+        countEl.innerText=n>0?`(${n})`:'';
+        badge.style.display=n>0?'inline-block':'none'; badge.innerText=n;
+        snap.forEach(child=>{
+            const d=child.val(), fromUid=child.key;
+            const div=document.createElement('div'); div.className='friend-card';
+            div.innerHTML=`<div class="friend-avatar">👤</div><div class="friend-info"><div class="friend-nick">${d.nick}</div><div class="friend-id">${d.id}</div></div><div class="friend-actions"><button class="f-btn f-btn-green" onclick="acceptRequest('${fromUid}')">✓ Принять</button><button class="f-btn f-btn-red" onclick="declineRequest('${fromUid}')">✕</button></div>`;
+            list.appendChild(div);
+        });
+    });
+}
+
+function listenOutgoing() {
+    if (!_myUid) return;
+    db.ref(`outgoingRequests/${_myUid}`).on('value', snap=>{
+        const section=document.getElementById('outgoing-section'), list=document.getElementById('outgoing-list');
+        if (!list) return;
+        list.innerHTML=''; const n=snap.numChildren();
+        section.style.display=n>0?'block':'none';
+        snap.forEach(child=>{
+            const d=child.val(), toUid=child.key;
+            const div=document.createElement('div'); div.className='friend-card';
+            div.innerHTML=`<div class="friend-avatar">👤</div><div class="friend-info"><div class="friend-nick">${d.nick}</div><div class="friend-id">${d.id}</div></div><div class="friend-actions"><button class="f-btn f-btn-gray" onclick="cancelRequest('${toUid}')">Отменить</button></div>`;
+            list.appendChild(div);
+        });
+    });
+}
 
 function openFull(u) { document.getElementById('viewer').style.display='flex'; document.getElementById('viewImg').src=u; }
 </script>
