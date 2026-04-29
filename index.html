@@ -764,7 +764,17 @@ async function register() {
     if (pass.length < 6) return showErr('reg-err','Пароль минимум 6 символов.');
     try {
         const res = await auth.createUserWithEmailAndPassword(email, pass);
-        await db.ref('users/'+res.user.uid).set({ nick, email, isBannedSite:false, banReason:'', isAdmin:false });
+        await db.ref('users/' + res.user.uid).set({ nick, email, isBannedSite: false, banReason: '', isAdmin: false });
+        await db.ref('playerStats/' + res.user.uid).set({
+            cups: 0,
+            rank: 'Бронза',
+            wins: 0,
+            losses: 0,
+            gamesPlayed: 0,
+            playtimeSeconds: 0,
+            lastOnline: Date.now(),
+            achievements: {}
+        });
         await res.user.sendEmailVerification();
         showVerifyScreen(email);
     } catch(e) {
@@ -794,7 +804,18 @@ async function finishGoogleReg() {
     const nick=document.getElementById('gNick').value.trim();
     if (!nick)           return showErr('gfinish-err','Введи ник.');
     if (nick.length < 2) return showErr('gfinish-err','Ник слишком короткий.');
-    try { await db.ref('users/'+user.uid).set({ nick, email:user.email, isBannedSite:false, banReason:'', isAdmin:false }); authStateHandler(user); }
+    try { await db.ref('users/'+user.uid).set({ nick, email:user.email, isBannedSite:false, banReason:'', isAdmin:false });
+    await db.ref('playerStats/'+user.uid).set({
+        cups: 0,
+        rank: 'Бронза',
+        wins: 0,
+        losses: 0,
+        gamesPlayed: 0,
+        playtimeSeconds: 0,
+        lastOnline: Date.now(),
+        achievements: {}
+    }); 
+    authStateHandler(user); }
     catch(e) { showErr('gfinish-err','Ошибка. Попробуй снова.'); }
 }
 
