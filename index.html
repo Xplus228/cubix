@@ -586,7 +586,20 @@ async function login() {
     }
 }
 
-function loginGoogle() { const p = new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(p).catch(() => showErr('login-err','Ошибка входа через Google.')); }
+function loginGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    auth.signInWithPopup(provider).catch(e => {
+        const msgs = {
+            'auth/popup-closed-by-user':    'Окно входа было закрыто.',
+            'auth/popup-blocked':           'Разреши всплывающие окна в браузере.',
+            'auth/unauthorized-domain':     'Домен не авторизован в Firebase.',
+            'auth/cancelled-popup-request': ''
+        };
+        const msg = msgs[e.code];
+        if (msg !== '') showErr('login-err', msg || e.message);
+    });
+}
 
 async function finishGoogleReg() {
     const user = auth.currentUser;
@@ -644,6 +657,90 @@ async function deleteAccount() {
 // ═══════════════════════════════════════
 // AUTH STATE HANDLER
 // ═══════════════════════════════════════
+async function ensurePlayerStats(uid) {
+    const snap = await db.ref('playerStats/' + uid).once('value');
+    if (!snap.exists()) {
+        await db.ref('playerStats/' + uid).set({
+            cups: 0, rank: 'Бронза', wins: 0, losses: 0,
+            gamesPlayed: 0, playtimeSeconds: 0,
+            lastOnline: Date.now(), achievements: {}
+        });
+    } else {
+        db.ref('playerStats/' + uid + '/lastOnline').set(Date.now());
+    }
+}
+const RANKS = [
+    { name:'Бронза',  min:0,    max:299,   cls:'rank-bronze'  },
+    { name:'Серебро', min:300,  max:699,   cls:'rank-silver'  },
+    { name:'Золото',  min:700,  max:1199,  cls:'rank-gold'    },
+    { name:'Платина', min:1200, max:1999,  cls:'rank-plat'    },
+    { name:'Алмаз',   min:2000, max:2999,  cls:'rank-diamond' },
+    { name:'Мастер',  min:3000, max:99999, cls:'rank-master'  },
+];
+const TOTAL_ACHIEVEMENTS = 20;
+
+function getRankInfo(cups) {
+    for (let i = 0; i < RANKS.length; i++) {
+        if (cups >= RANKS[i].min && cups <= RANKS[i].max) {
+            const next = RANKS[i+1];
+            const pct = next ? Math.round(((cups - RANKS[i].min) / (next.min - RANKS[i].min)) * 100) : 100;
+            return { ...RANKS[i], nextName: next?.name||null, nextMin: next?.min||null, pct };
+        }
+    }
+    return { ...RANKS[RANKS.length-1], nextName:null, nextMin:null, pct:100 };
+}
+
+function fmtPlaytime(sec) {
+    if (!sec || sec < 60) return (sec||0) + ' сек';
+    const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60);
+    return h > 0 ? `${h} ч ${m} мин` : `${m} мин`;
+}
+
+function updateProfileStats(s) {
+    const trophyBlock = document.getElementById('profile-trophy-block');
+    const statsGrid   = document.getElementById('profile-stats-grid');
+    const noStats     = document.getElementById('no-stats-hint');
+    const rankBadge   = document.getElementById('dispRankBadge');
+    if (!s) { trophyBlock.style.display='none'; statsGrid.style.display='none'; if(noStats) noStats.style.display='block'; rankBadge.style.display='none'; return; }
+    trophyBlock.style.display = 'block';
+    statsGrid.style.display   = 'grid';
+    if(noStats) noStats.style.display = 'none';
+
+    const cups    = s.cups            ?? 0;
+    const wins    = s.wins            ?? 0;
+    const losses  = s.losses          ?? 0;
+    const games   = s.gamesPlayed     ?? 0;
+    const playSec = s.playtimeSeconds ?? 0;
+    const achCount = Object.keys(s.achievements || {}).length;
+    const rank = getRankInfo(cups);
+
+    document.getElementById('disp-cups').innerText        = cups;
+    document.getElementById('disp-rank').innerText        = s.rank || rank.name;
+    document.getElementById('disp-rank').className        = 'trophy-rank-name ' + rank.cls;
+    document.getElementById('disp-rank-sub').innerText    = rank.nextName ? `До ${rank.nextName}: ещё ${rank.nextMin - cups} 🏆` : 'Высший ранг!';
+    document.getElementById('rank-prog-cur').innerText    = rank.name;
+    document.getElementById('rank-prog-next').innerText   = rank.nextName ? `следующий: ${rank.nextName} (${rank.nextMin} 🏆)` : '🏆 Макс. ранг!';
+    document.getElementById('rank-prog-fill').style.width = rank.pct + '%';
+
+    rankBadge.innerText     = rank.name;
+    rankBadge.className     = 'profile-rank-badge ' + rank.cls;
+    rankBadge.style.display = 'inline-block';
+    rankBadge.style.border  = '1px solid currentColor';
+
+    document.getElementById('disp-wins').innerText   = wins;
+    document.getElementById('disp-losses').innerText = losses;
+    document.getElementById('disp-games').innerText  = games;
+    document.getElementById('disp-playtime').innerText = fmtPlaytime(playSec);
+
+    const wr = games > 0 ? Math.round((wins/games)*100) : 0;
+    document.getElementById('disp-winrate').innerText  = games > 0 ? wr+'%' : '—';
+    document.getElementById('winrate-bar').style.width = wr + '%';
+
+    document.getElementById('disp-ach').innerText        = achCount;
+    document.getElementById('ach-label-cur').innerText   = achCount;
+    document.getElementById('ach-label-total').innerText = '/ ' + TOTAL_ACHIEVEMENTS;
+    document.getElementById('ach-bar-fill').style.width  = Math.min(100, Math.round((achCount/TOTAL_ACHIEVEMENTS)*100)) + '%';
+}
 async function authStateHandler(user) {
     const authForms   = document.getElementById('auth-forms');
     const profileData = document.getElementById('profile-data');
@@ -692,6 +789,8 @@ async function authStateHandler(user) {
     document.getElementById('dispEmail').innerText = user.email;
     document.getElementById('userNick').value      = d.nick;
     window._currentUserData = { uid: user.uid, nick: d.nick, id: _myShortId };
+    // Создаём playerStats если нет (для старых аккаунтов)
+    await ensurePlayerStats(user.uid);
 
     db.ref('playerStats/' + user.uid).on('value', statsSnap => {
         updateProfileStats(statsSnap.exists() ? statsSnap.val() : null);
