@@ -24,7 +24,7 @@
 
         h1 { font-size: clamp(60px, 12vw, 100px); text-shadow: 0 0 20px red; margin: 10px 0; }
         .main-nav { display: flex; justify-content: center; gap: 30px; margin: 40px 0; flex-wrap: wrap; }
-        .nav-btn { color: #888; text-decoration: none; font-size: 22px; cursor: pointer; transition: 0.3s; border-bottom: 2px solid transparent; }
+        .nav-btn { color: #888; text-decoration: none; font-size: 22px; cursor: pointer; transition: 0.3s; border-bottom: 2px solid transparent; user-select: none; }
         .nav-btn:hover, .nav-btn.active-link { color: white; border-color: red; text-shadow: 0 0 10px white; }
 
         .button { display: inline-block; background: white; border: 2px solid white; padding: 15px 40px; color: black; text-decoration: none; font-size: 22px; border-radius: 10px; transition: 0.3s; cursor: pointer; margin: 10px 0; }
@@ -86,197 +86,44 @@
         .player-id-badge { display: inline-block; background: rgba(255,255,255,0.07); border: 1px solid #333; border-radius: 8px; padding: 4px 12px; font-size: 14px; color: #888; letter-spacing: 1px; }
         .mod-badge { display: inline-block; background: red; color: white; border-radius: 50%; font-size: 12px; width: 20px; height: 20px; line-height: 20px; text-align: center; margin-left: 6px; vertical-align: middle; }
 
-        /* ═══════════════════════════════════════
-           ПРОФИЛЬ — КАРТОЧКА ИГРОКА
-        ═══════════════════════════════════════ */
-        .profile-card {
-            max-width: 520px;
-            margin: 0 auto;
-            background: linear-gradient(160deg, rgba(25,25,25,0.98) 0%, rgba(15,15,15,0.98) 100%);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 0 60px rgba(231,76,60,0.08), 0 20px 60px rgba(0,0,0,0.6);
-        }
+        /* профиль */
+        .profile-card { max-width: 520px; margin: 0 auto; background: linear-gradient(160deg, rgba(25,25,25,0.98) 0%, rgba(15,15,15,0.98) 100%); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; overflow: hidden; box-shadow: 0 0 60px rgba(231,76,60,0.08), 0 20px 60px rgba(0,0,0,0.6); }
+        .profile-header { position: relative; padding: 32px 28px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); text-align: center; }
+        .profile-header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, #e74c3c, transparent); }
+        .profile-avatar-ring { width: 72px; height: 72px; margin: 0 auto 14px; border-radius: 50%; background: linear-gradient(135deg, #e74c3c 0%, #8e44ad 100%); display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 0 0 3px rgba(231,76,60,0.3), 0 0 20px rgba(231,76,60,0.2); }
+        .profile-nick { font-size: 28px; font-weight: bold; letter-spacing: 1px; margin: 0 0 6px; }
+        .profile-meta { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .profile-id-badge { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 3px 12px; font-size: 12px; color: #666; letter-spacing: 2px; }
+        .profile-rank-badge { border-radius: 20px; padding: 3px 14px; font-size: 13px; font-weight: bold; letter-spacing: 1px; display: none; }
+        .profile-email { font-size: 13px; color: #444; margin-top: 8px; }
 
-        /* Шапка с именем */
-        .profile-header {
-            position: relative;
-            padding: 32px 28px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            text-align: center;
-        }
-        .profile-header::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 3px;
-            background: linear-gradient(90deg, transparent, #e74c3c, transparent);
-        }
-        .profile-avatar-ring {
-            width: 72px; height: 72px;
-            margin: 0 auto 14px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #e74c3c 0%, #8e44ad 100%);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 30px;
-            box-shadow: 0 0 0 3px rgba(231,76,60,0.3), 0 0 20px rgba(231,76,60,0.2);
-        }
-        .profile-nick {
-            font-size: 28px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            margin: 0 0 6px;
-        }
-        .profile-meta {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .profile-id-badge {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 3px 12px;
-            font-size: 12px;
-            color: #666;
-            letter-spacing: 2px;
-        }
-        .profile-rank-badge {
-            border-radius: 20px;
-            padding: 3px 14px;
-            font-size: 13px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            display: none;
-        }
-        .profile-email {
-            font-size: 13px;
-            color: #444;
-            margin-top: 8px;
-        }
-
-        /* Блок кубков + ранг */
-        .profile-trophy-block {
-            display: none;
-            padding: 20px 28px 0;
-        }
-        .trophy-main {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            background: rgba(241,196,15,0.05);
-            border: 1px solid rgba(241,196,15,0.15);
-            border-radius: 16px;
-            padding: 16px 20px;
-            margin-bottom: 12px;
-            position: relative;
-            overflow: hidden;
-        }
-        .trophy-main::before {
-            content: '🏆';
-            position: absolute;
-            right: 16px; top: 50%;
-            transform: translateY(-50%);
-            font-size: 48px;
-            opacity: 0.06;
-        }
-        .trophy-cups-num {
-            font-size: 46px;
-            font-weight: bold;
-            color: #f1c40f;
-            line-height: 1;
-            text-shadow: 0 0 20px rgba(241,196,15,0.4);
-        }
+        .profile-trophy-block { display: none; padding: 20px 28px 0; }
+        .trophy-main { display: flex; align-items: center; gap: 16px; background: rgba(241,196,15,0.05); border: 1px solid rgba(241,196,15,0.15); border-radius: 16px; padding: 16px 20px; margin-bottom: 12px; position: relative; overflow: hidden; }
+        .trophy-main::before { content: '🏆'; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 48px; opacity: 0.06; }
+        .trophy-cups-num { font-size: 46px; font-weight: bold; color: #f1c40f; line-height: 1; text-shadow: 0 0 20px rgba(241,196,15,0.4); }
         .trophy-cups-label { font-size: 12px; color: #888; margin-top: 2px; }
         .trophy-rank-wrap { margin-left: 4px; }
-        .trophy-rank-name {
-            font-size: 20px;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
+        .trophy-rank-name { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
         .trophy-rank-sub { font-size: 12px; color: #555; margin-top: 2px; }
 
-        /* Прогресс-бар до следующего ранга */
-        .rank-progress-wrap {
-            margin-bottom: 16px;
-            padding: 0 2px;
-        }
-        .rank-progress-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            color: #555;
-            margin-bottom: 6px;
-        }
-        .rank-progress-bar {
-            height: 6px;
-            background: rgba(255,255,255,0.06);
-            border-radius: 99px;
-            overflow: hidden;
-        }
-        .rank-progress-fill {
-            height: 100%;
-            border-radius: 99px;
-            background: linear-gradient(90deg, #e74c3c, #f39c12);
-            transition: width 0.6s ease;
-        }
+        .rank-progress-wrap { margin-bottom: 16px; padding: 0 2px; }
+        .rank-progress-labels { display: flex; justify-content: space-between; font-size: 11px; color: #555; margin-bottom: 6px; }
+        .rank-progress-bar { height: 6px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
+        .rank-progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #e74c3c, #f39c12); transition: width 0.6s ease; }
 
-        /* Сетка статистики */
-        .profile-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            padding: 0 28px 20px;
-        }
-        .stat-tile {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 14px;
-            padding: 14px 10px 12px;
-            text-align: center;
-            transition: border-color 0.2s, background 0.2s;
-            position: relative;
-            overflow: hidden;
-        }
+        .profile-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 28px 20px; }
+        .stat-tile { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 14px 10px 12px; text-align: center; transition: border-color 0.2s, background 0.2s; position: relative; overflow: hidden; }
         .stat-tile:hover { border-color: rgba(255,255,255,0.14); background: rgba(255,255,255,0.05); }
         .stat-tile-icon { font-size: 20px; margin-bottom: 6px; }
-        .stat-tile-val {
-            font-size: 22px;
-            font-weight: bold;
-            line-height: 1;
-            margin-bottom: 4px;
-        }
+        .stat-tile-val { font-size: 22px; font-weight: bold; line-height: 1; margin-bottom: 4px; }
         .stat-tile-lbl { font-size: 10px; color: #555; letter-spacing: 0.5px; text-transform: uppercase; }
 
-        /* Большой тайл — плейтайм на всю ширину */
-        .stat-tile-wide {
-            grid-column: 1 / -1;
-            background: rgba(52,152,219,0.05);
-            border-color: rgba(52,152,219,0.12);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
-            padding: 14px 20px;
-            text-align: left;
-        }
+        .stat-tile-wide { grid-column: 1 / -1; background: rgba(52,152,219,0.05); border-color: rgba(52,152,219,0.12); display: flex; align-items: center; justify-content: center; gap: 14px; padding: 14px 20px; text-align: left; }
         .stat-tile-wide .stat-tile-icon { font-size: 26px; margin: 0; }
         .stat-tile-wide .stat-tile-val { font-size: 22px; color: #3498db; margin: 0; }
         .stat-tile-wide .stat-tile-lbl { margin: 0; }
 
-        /* Ачивки — полоска */
-        .achievements-tile {
-            grid-column: 1 / -1;
-            background: rgba(155,89,182,0.05);
-            border-color: rgba(155,89,182,0.15);
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 14px 18px;
-            text-align: left;
-        }
+        .achievements-tile { grid-column: 1 / -1; background: rgba(155,89,182,0.05); border-color: rgba(155,89,182,0.15); display: flex; align-items: center; gap: 14px; padding: 14px 18px; text-align: left; }
         .achievements-tile .stat-tile-icon { font-size: 24px; margin: 0; }
         .ach-text { flex: 1; }
         .ach-bar-wrap { flex: 1.5; }
@@ -284,49 +131,15 @@
         .ach-bar { height: 6px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
         .ach-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #8e44ad, #9b59b6); transition: width 0.6s ease; }
 
-        /* Кнопки внизу карточки */
-        .profile-actions {
-            padding: 0 28px 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .profile-btn-logout {
-            width: 100%;
-            padding: 12px;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #aaa;
-            font-size: 16px;
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: Door, Arial, sans-serif;
-        }
+        .profile-actions { padding: 0 28px 24px; display: flex; flex-direction: column; gap: 8px; }
+        .profile-btn-logout { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #aaa; font-size: 16px; cursor: pointer; transition: 0.2s; font-family: Door, Arial, sans-serif; }
         .profile-btn-logout:hover { background: rgba(255,255,255,0.09); color: white; }
-        .profile-btn-delete {
-            background: none; border: none;
-            color: #3a1a1a; font-size: 13px;
-            cursor: pointer; text-decoration: underline;
-            transition: color 0.2s;
-            font-family: Door, Arial, sans-serif;
-        }
+        .profile-btn-delete { background: none; border: none; color: #3a1a1a; font-size: 13px; cursor: pointer; text-decoration: underline; transition: color 0.2s; font-family: Door, Arial, sans-serif; }
         .profile-btn-delete:hover { color: #e74c3c; }
 
-        /* Заглушка — нет данных */
-        .no-stats-hint {
-            display: none;
-            text-align: center;
-            padding: 16px 28px 20px;
-            color: #444;
-            font-size: 14px;
-            line-height: 1.6;
-        }
+        .no-stats-hint { display: none; text-align: center; padding: 16px 28px 20px; color: #444; font-size: 14px; line-height: 1.6; }
         .no-stats-hint span { color: #666; }
 
-        /* ═══════════════════════════════════════
-           Цвета рангов
-        ═══════════════════════════════════════ */
         .rank-bronze  { color: #cd7f32; }
         .rank-silver  { color: #aaa; }
         .rank-gold    { color: #f1c40f; }
@@ -334,7 +147,6 @@
         .rank-diamond { color: #a9cce3; }
         .rank-master  { color: #e74c3c; }
 
-        /* ДРУЗЬЯ */
         .friends-section { background: rgba(15,15,15,0.9); border: 1px solid #333; border-radius: 15px; padding: 20px; margin-bottom: 20px; text-align: left; }
         .friends-section h3 { color: #3498db; margin-top: 0; font-size: 18px; border-bottom: 1px solid #222; padding-bottom: 10px; }
         .friend-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid #222; border-radius: 12px; margin-bottom: 8px; transition: 0.2s; }
@@ -361,6 +173,11 @@
 
         .viewer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
         .viewer img { max-width: 90%; max-height: 80%; border: 2px solid white; }
+
+        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 25px; flex-wrap: wrap; }
+        .page-btn { background: #1a1a1a; color: #aaa; border: 1px solid #333; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 16px; transition: 0.2s; font-family: Door, Arial, sans-serif; }
+        .page-btn:hover { background: #333; color: white; }
+        .page-btn.active { background: red; border-color: red; color: white; }
 
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
         .loading-val { animation: pulse 1.2s infinite; color: #333 !important; }
@@ -405,6 +222,7 @@
     <!-- ГАЛЕРЕЯ -->
     <div id="gallery-page" class="page">
         <div id="full-gallery" class="gallery-grid"></div>
+        <div id="gallery-pagination" class="pagination"></div>
         <div style="margin-top:50px; background:rgba(20,20,20,0.8); padding:30px; border-radius:20px; border:1px solid #333; text-align:center;">
             <h3 style="margin-bottom:20px;">Поделиться скриншотом</h3>
             <div style="display:flex; flex-direction:column; align-items:center;">
@@ -430,7 +248,7 @@
             <div class="friends-section">
                 <h3>🔍 Найти игрока</h3>
                 <div class="search-box">
-                    <input type="text" id="friendSearchInput" placeholder="Введи ID (#AB12CD34) или ник" style="max-width:none;">
+                    <input type="text" id="friendSearchInput" placeholder="Введи ID (#AB12CD34) или ник">
                     <button class="button" style="padding:12px 20px; font-size:16px; margin:0;" onclick="searchPlayer()">Найти</button>
                 </div>
                 <div class="search-result" id="search-result"></div>
@@ -465,12 +283,12 @@
             <h3>🖼 Управление галереей</h3>
             <p style="color:#888; font-size:14px; margin-top:0;">Скрытые фото видны только тебе. Удаление — навсегда.</p>
             <div id="admin-gallery-grid" class="gallery-grid"></div>
+            <div id="admin-gallery-pagination" class="pagination"></div>
         </div>
     </div>
 
     <!-- ПРОФИЛЬ -->
     <div id="profile-page" class="page">
-
         <div class="verify-screen" id="verify-screen">
             <h2>📬 Проверь почту</h2>
             <p id="verify-email-text">Мы отправили письмо на твой email.</p>
@@ -521,12 +339,8 @@
             </div>
         </div>
 
-        <!-- ═══ ПРОФИЛЬ — АВТОРИЗОВАН ═══ -->
         <div id="profile-data" style="display:none;">
-
             <div class="profile-card">
-
-                <!-- Шапка -->
                 <div class="profile-header">
                     <div class="profile-avatar-ring">👤</div>
                     <div class="profile-nick" id="dispNick">Ник</div>
@@ -537,7 +351,6 @@
                     <div class="profile-email" id="dispEmail"></div>
                 </div>
 
-                <!-- Кубки + ранг + прогресс (скрыто пока нет данных) -->
                 <div class="profile-trophy-block" id="profile-trophy-block">
                     <div class="trophy-main">
                         <div>
@@ -560,15 +373,12 @@
                     </div>
                 </div>
 
-                <!-- Заглушка если нет playerStats -->
                 <div class="no-stats-hint" id="no-stats-hint">
                     <span>📭</span><br>
                     Статистика появится после<br>первой игры в CubiX
                 </div>
 
-                <!-- Сетка статов -->
                 <div class="profile-stats-grid" id="profile-stats-grid" style="display:none;">
-
                     <div class="stat-tile">
                         <div class="stat-tile-icon">✅</div>
                         <div class="stat-tile-val" id="disp-wins" style="color:#2ecc71;">—</div>
@@ -585,7 +395,6 @@
                         <div class="stat-tile-lbl">Всего игр</div>
                     </div>
 
-                    <!-- Винрейт — 3 колонки -->
                     <div class="stat-tile" style="grid-column:1/-1; background:rgba(241,196,15,0.04); border-color:rgba(241,196,15,0.1); flex-direction:row; display:flex; align-items:center; gap:14px; padding:12px 18px; text-align:left;">
                         <div style="font-size:22px;">📊</div>
                         <div style="flex:1;">
@@ -597,7 +406,6 @@
                         <div class="stat-tile-val" id="disp-winrate" style="color:#f1c40f; font-size:20px; min-width:48px; text-align:right;">—</div>
                     </div>
 
-                    <!-- Плейтайм — широкий тайл -->
                     <div class="stat-tile stat-tile-wide">
                         <div class="stat-tile-icon">⏱</div>
                         <div>
@@ -606,7 +414,6 @@
                         </div>
                     </div>
 
-                    <!-- Ачивки -->
                     <div class="stat-tile achievements-tile">
                         <div class="stat-tile-icon">🏅</div>
                         <div class="ach-text">
@@ -623,34 +430,29 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
 
-                <!-- Кнопки -->
                 <div class="profile-actions">
                     <button class="profile-btn-logout" onclick="logout()">Выйти из аккаунта</button>
                     <button class="profile-btn-delete" onclick="deleteAccount()">Удалить аккаунт</button>
                 </div>
+            </div>
 
-            </div><!-- /profile-card -->
-
-            <!-- Мои скриншоты -->
             <div style="margin-top:50px; text-align:left;">
                 <h3 style="text-align:center; color:#888; font-size:18px; margin-bottom:0;">Мои скриншоты</h3>
                 <div id="my-gallery" class="gallery-grid"></div>
                 <p id="my-gallery-empty" style="color:#555; text-align:center; display:none;">Пока нет одобренных скриншотов.</p>
             </div>
         </div>
-
-    </div><!-- /profile-page -->
+    </div>
 </div>
 
 <div class="viewer" id="viewer" onclick="this.style.display='none'"><img id="viewImg"></div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 // FIREBASE CONFIG
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 const firebaseConfig = {
     apiKey: "AIzaSyCA7XdMGOwDx_OQ8lGHyz0ttw5952KZHM8",
     authDomain: "cubix-web.firebaseapp.com",
@@ -664,51 +466,39 @@ const storage = firebase.storage();
 const auth    = firebase.auth();
 auth.languageCode = 'ru';
 
+// ═══════════════════════════════════════
+// УТИЛИТЫ
+// ═══════════════════════════════════════
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return String(unsafe)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function shortId(uid) { return '#' + uid.slice(0, 8).toUpperCase(); }
+function fmtTime(t)   { return t || '---'; }
+
+function showErr(id, msg) { const el = document.getElementById(id); el.innerText = msg; el.style.display = 'block'; }
+
+// ═══════════════════════════════════════
+// ГЛОБАЛЬНОЕ СОСТОЯНИЕ
+// ═══════════════════════════════════════
 let _isAdmin   = false;
 let _myUid     = null;
 let _myNick    = null;
 let _myShortId = null;
 
-function shortId(uid) { return '#' + uid.slice(0, 8).toUpperCase(); }
-function fmtTime(t)   { return t || '---'; }
+let galleryListener = null;
+let adminGalleryListener = null;
+let moderationListener = null;
 
-// ─── Ранговая система (должна совпадать с Unity) ───────────────
-// Пути: playerStats/{uid}/cups, rank, wins, losses, gamesPlayed,
-//        playtimeSeconds, achievements/{id}: true
-const RANKS = [
-    { name:'Бронза',   min:0,    max:299,   cls:'rank-bronze'  },
-    { name:'Серебро',  min:300,  max:699,   cls:'rank-silver'  },
-    { name:'Золото',   min:700,  max:1199,  cls:'rank-gold'    },
-    { name:'Платина',  min:1200, max:1999,  cls:'rank-plat'    },
-    { name:'Алмаз',    min:2000, max:2999,  cls:'rank-diamond' },
-    { name:'Мастер',   min:3000, max:99999, cls:'rank-master'  },
-];
-const TOTAL_ACHIEVEMENTS = 20; // замени на реальное число ачивок в игре
-
-function getRankInfo(cups) {
-    for (let i = 0; i < RANKS.length; i++) {
-        if (cups >= RANKS[i].min && cups <= RANKS[i].max) {
-            const next = RANKS[i + 1];
-            const pct  = next
-                ? Math.round(((cups - RANKS[i].min) / (next.min - RANKS[i].min)) * 100)
-                : 100;
-            return { ...RANKS[i], nextName: next?.name || null, nextMin: next?.min || null, pct };
-        }
-    }
-    return RANKS[RANKS.length - 1];
-}
-
-function fmtPlaytime(seconds) {
-    if (!seconds || seconds < 60) return seconds + ' сек';
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    if (h > 0) return `${h} ч ${m} мин`;
-    return `${m} мин`;
-}
-
-// ═══════════════════════════════════════════════════════════════
-// НАВИГАЦИЯ / ФОРМЫ
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════
+// НАВИГАЦИЯ
+// ═══════════════════════════════════════
 function showPage(id, bg, el) {
     document.getElementById('bgLayer').style.backgroundImage = `url('${bg}')`;
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -729,10 +519,13 @@ function showForm(id) {
     const rs = document.getElementById('reset-success'); if (rs) rs.style.display = 'none';
 }
 
-function showErr(id, msg) { const el = document.getElementById(id); el.innerText = msg; el.style.display = 'block'; }
-function showBanModal(reason) { document.getElementById('ban-reason-text').innerText = reason || 'Причина не указана.'; document.getElementById('ban-modal').classList.add('show'); }
-
-// ─── ВЕРИФИКАЦИЯ ──────────────────────────────────────────────
+// ═══════════════════════════════════════
+// БАН / ВЕРИФИКАЦИЯ
+// ═══════════════════════════════════════
+function showBanModal(reason) {
+    document.getElementById('ban-reason-text').innerText = reason || 'Причина не указана.';
+    document.getElementById('ban-modal').classList.add('show');
+}
 function showVerifyScreen(email) {
     document.getElementById('auth-forms').style.display    = 'none';
     document.getElementById('profile-data').style.display  = 'none';
@@ -753,27 +546,23 @@ async function resendVerification() {
 }
 async function cancelVerify() { await auth.signOut(); showForm('login-form'); }
 
-// ─── РЕГИСТРАЦИЯ / ВХОД ───────────────────────────────────────
+// ═══════════════════════════════════════
+// РЕГИСТРАЦИЯ / ВХОД
+// ═══════════════════════════════════════
 async function register() {
-    const nick=document.getElementById('regNick').value.trim();
-    const email=document.getElementById('regEmail').value.trim();
-    const pass=document.getElementById('regPass').value;
+    const nick = document.getElementById('regNick').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const pass = document.getElementById('regPass').value;
     if (!nick)           return showErr('reg-err','Введи ник.');
     if (nick.length < 2) return showErr('reg-err','Ник слишком короткий (мин. 2 символа).');
     if (!email)          return showErr('reg-err','Введи email.');
     if (pass.length < 6) return showErr('reg-err','Пароль минимум 6 символов.');
     try {
         const res = await auth.createUserWithEmailAndPassword(email, pass);
-        await db.ref('users/' + res.user.uid).set({ nick, email, isBannedSite: false, banReason: '', isAdmin: false });
+        await db.ref('users/' + res.user.uid).set({ nick: escapeHtml(nick), email, isBannedSite: false, banReason: '', isAdmin: false });
         await db.ref('playerStats/' + res.user.uid).set({
-            cups: 0,
-            rank: 'Бронза',
-            wins: 0,
-            losses: 0,
-            gamesPlayed: 0,
-            playtimeSeconds: 0,
-            lastOnline: Date.now(),
-            achievements: {}
+            cups: 0, rank: 'Бронза', wins: 0, losses: 0,
+            gamesPlayed: 0, playtimeSeconds: 0, lastOnline: Date.now(), achievements: {}
         });
         await res.user.sendEmailVerification();
         showVerifyScreen(email);
@@ -784,8 +573,8 @@ async function register() {
 }
 
 async function login() {
-    const email=document.getElementById('authEmail').value.trim();
-    const pass=document.getElementById('authPass').value;
+    const email = document.getElementById('authEmail').value.trim();
+    const pass = document.getElementById('authPass').value;
     if (!email) return showErr('login-err','Введи email.');
     if (!pass)  return showErr('login-err','Введи пароль.');
     try {
@@ -797,43 +586,38 @@ async function login() {
     }
 }
 
-function loginGoogle() { const p=new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(p).catch(()=>showErr('login-err','Ошибка входа через Google.')); }
+function loginGoogle() { const p = new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(p).catch(() => showErr('login-err','Ошибка входа через Google.')); }
 
 async function finishGoogleReg() {
-    const user=auth.currentUser;
-    const nick=document.getElementById('gNick').value.trim();
+    const user = auth.currentUser;
+    const nick = document.getElementById('gNick').value.trim();
     if (!nick)           return showErr('gfinish-err','Введи ник.');
     if (nick.length < 2) return showErr('gfinish-err','Ник слишком короткий.');
-    try { await db.ref('users/'+user.uid).set({ nick, email:user.email, isBannedSite:false, banReason:'', isAdmin:false });
-    await db.ref('playerStats/'+user.uid).set({
-        cups: 0,
-        rank: 'Бронза',
-        wins: 0,
-        losses: 0,
-        gamesPlayed: 0,
-        playtimeSeconds: 0,
-        lastOnline: Date.now(),
-        achievements: {}
-    }); 
-    authStateHandler(user); }
-    catch(e) { showErr('gfinish-err','Ошибка. Попробуй снова.'); }
+    try {
+        await db.ref('users/' + user.uid).set({ nick: escapeHtml(nick), email: user.email, isBannedSite: false, banReason: '', isAdmin: false });
+        await db.ref('playerStats/' + user.uid).set({
+            cups: 0, rank: 'Бронза', wins: 0, losses: 0,
+            gamesPlayed: 0, playtimeSeconds: 0, lastOnline: Date.now(), achievements: {}
+        });
+        authStateHandler(user);
+    } catch(e) { showErr('gfinish-err','Ошибка. Попробуй снова.'); }
 }
 
-// ─── СБРОС ПАРОЛЯ ─────────────────────────────────────────────
+// сброс пароля
 let resetCooldownTimer = null;
 async function resetPassword() {
-    const email=document.getElementById('resetEmail').value.trim();
+    const email = document.getElementById('resetEmail').value.trim();
     if (!email) return showErr('reset-err','Введи email.');
-    const lastReset=parseInt(localStorage.getItem('lastReset')||'0'), now=Date.now();
-    if (now-lastReset<60000) { startResetCooldown(Math.ceil((60000-(now-lastReset))/1000)); return; }
+    const lastReset = parseInt(localStorage.getItem('lastReset')||'0'), now = Date.now();
+    if (now - lastReset < 60000) { startResetCooldown(Math.ceil((60000-(now-lastReset))/1000)); return; }
     try {
         await auth.sendPasswordResetEmail(email);
-        localStorage.setItem('lastReset',String(now));
+        localStorage.setItem('lastReset', String(now));
         document.getElementById('reset-success').style.display='block';
         document.getElementById('reset-err').style.display='none';
         startResetCooldown(60);
     } catch(e) {
-        const msgs={'auth/invalid-email':'Некорректный email.','auth/user-not-found':'Аккаунт с таким email не найден.'};
+        const msgs = {'auth/invalid-email':'Некорректный email.','auth/user-not-found':'Аккаунт с таким email не найден.'};
         showErr('reset-err', msgs[e.code]||e.message);
     }
 }
@@ -842,9 +626,9 @@ function startResetCooldown(seconds) {
     if (!btn||!msg) return;
     btn.disabled=true; msg.style.display='block';
     if (resetCooldownTimer) clearInterval(resetCooldownTimer);
-    let left=seconds;
-    msg.innerText=`Повторно можно через ${left} сек.`;
-    resetCooldownTimer=setInterval(()=>{ left--; if(left<=0){clearInterval(resetCooldownTimer);btn.disabled=false;msg.style.display='none';}else{msg.innerText=`Повторно можно через ${left} сек.`;} },1000);
+    let left = seconds;
+    msg.innerText = `Повторно можно через ${left} сек.`;
+    resetCooldownTimer = setInterval(()=>{ left--; if(left<=0){clearInterval(resetCooldownTimer);btn.disabled=false;msg.style.display='none';}else{msg.innerText=`Повторно можно через ${left} сек.`;} },1000);
 }
 (function(){ const left=Math.ceil((60000-(Date.now()-parseInt(localStorage.getItem('lastReset')||'0')))/1000); if(left>0) startResetCooldown(left); })();
 
@@ -852,36 +636,40 @@ function logout() { auth.signOut(); }
 async function deleteAccount() {
     if (!confirm('Удалить аккаунт навсегда?')) return;
     if (!confirm('Точно уверен? Это нельзя отменить.')) return;
-    const user=auth.currentUser;
+    const user = auth.currentUser;
     try { await db.ref('users/'+user.uid).remove(); await user.delete(); }
     catch(e) { alert('Для удаления нужно перезайти в аккаунт.'); }
 }
 
-// ═══════════════════════════════════════════════════════════════
-// AUTH STATE — главная логика после входа
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════
+// AUTH STATE HANDLER
+// ═══════════════════════════════════════
 async function authStateHandler(user) {
     const authForms   = document.getElementById('auth-forms');
     const profileData = document.getElementById('profile-data');
     const verifyScr   = document.getElementById('verify-screen');
     const adminBtn    = document.getElementById('admin-nav-btn');
     const friendsBtn  = document.getElementById('friends-nav-btn');
-    adminBtn.style.display  = 'none';
+    adminBtn.style.display = 'none';
     friendsBtn.style.display = 'none';
     _isAdmin = false; _myUid = null;
+
+    if (galleryListener) { db.ref('gallery').off('value', galleryListener); galleryListener = null; }
+    if (adminGalleryListener) { db.ref('gallery').off('value', adminGalleryListener); adminGalleryListener = null; }
+    if (moderationListener) { db.ref('moderation').off('value', moderationListener); moderationListener = null; }
 
     if (!user) {
         authForms.style.display='block'; profileData.style.display='none'; verifyScr.style.display='none';
         showForm('login-form'); return;
     }
 
-    const isGoogle = user.providerData.some(p=>p.providerId==='google.com');
+    const isGoogle = user.providerData.some(p => p.providerId === 'google.com');
     if (!user.emailVerified && !isGoogle) {
         authForms.style.display='none'; profileData.style.display='none'; verifyScr.style.display='block';
-        document.getElementById('verify-email-text').innerText=`Письмо отправлено на ${user.email}`; return;
+        document.getElementById('verify-email-text').innerText = `Письмо отправлено на ${user.email}`; return;
     }
 
-    const snap = await db.ref('users/'+user.uid).once('value');
+    const snap = await db.ref('users/' + user.uid).once('value');
     if (!snap.exists()) {
         authForms.style.display='block'; profileData.style.display='none'; verifyScr.style.display='none';
         showForm('google-finish-form'); return;
@@ -899,293 +687,485 @@ async function authStateHandler(user) {
     _myNick    = d.nick;
     _myShortId = shortId(user.uid);
 
-    // Базовые данные профиля
-    document.getElementById('dispNick').innerText  = d.nick;
-    document.getElementById('dispId').innerText    = _myShortId;
+    document.getElementById('dispNick').innerText = d.nick;
+    document.getElementById('dispId').innerText   = _myShortId;
     document.getElementById('dispEmail').innerText = user.email;
     document.getElementById('userNick').value      = d.nick;
-    window._currentUserData = { uid:user.uid, nick:d.nick, id:_myShortId };
+    window._currentUserData = { uid: user.uid, nick: d.nick, id: _myShortId };
 
-    // ── Подписка на playerStats (realtime) ────────────────────
-    db.ref('playerStats/'+user.uid).on('value', statsSnap => {
+    db.ref('playerStats/' + user.uid).on('value', statsSnap => {
         updateProfileStats(statsSnap.exists() ? statsSnap.val() : null);
     });
 
-    friendsBtn.style.display='inline-block';
+    friendsBtn.style.display = 'inline-block';
     listenFriends(); listenIncoming(); listenOutgoing();
 
     if (d.isAdmin === true) {
         _isAdmin = true;
-        adminBtn.style.display='inline-block';
-        loadModeration(); loadAdminGallery();
+        adminBtn.style.display = 'inline-block';
+        loadModeration();
+        loadAdminGallery();
     }
     loadMyGallery(user.uid);
+    attachGalleryListener();
 }
 auth.onAuthStateChanged(authStateHandler);
 
-// ─── Обновление UI статистики ─────────────────────────────────
-function updateProfileStats(s) {
-    const trophyBlock = document.getElementById('profile-trophy-block');
-    const statsGrid   = document.getElementById('profile-stats-grid');
-    const noStats     = document.getElementById('no-stats-hint');
-    const rankBadge   = document.getElementById('dispRankBadge');
+// ═══════════════════════════════════════
+// ПОДПИСКА НА ГАЛЕРЕЮ (общая)
+// ═══════════════════════════════════════
+const ITEMS_PER_PAGE = 10;
+let currentPage = 1;
+let allGalleryItems = [];
 
-    if (!s) {
-        trophyBlock.style.display = 'none';
-        statsGrid.style.display   = 'none';
-        noStats.style.display     = 'block';
-        rankBadge.style.display   = 'none';
-        return;
-    }
-
-    trophyBlock.style.display = 'block';
-    statsGrid.style.display   = 'grid';
-    noStats.style.display     = 'none';
-
-    const cups   = s.cups        ?? 0;
-    const wins   = s.wins        ?? 0;
-    const losses = s.losses      ?? 0;
-    const games  = s.gamesPlayed ?? 0;
-    const playSec= s.playtimeSeconds ?? 0;
-    const achObj = s.achievements || {};
-    const achCount = Object.keys(achObj).length;
-
-    // Кубки и ранг
-    const rank = getRankInfo(cups);
-    document.getElementById('disp-cups').innerText   = cups;
-    document.getElementById('disp-rank').innerText   = s.rank || rank.name;
-    document.getElementById('disp-rank').className   = 'trophy-rank-name ' + rank.cls;
-
-    // Прогресс до следующего ранга
-    document.getElementById('rank-prog-cur').innerText  = rank.name;
-    document.getElementById('rank-prog-next').innerText = rank.nextName ? `следующий: ${rank.nextName} (${rank.nextMin} 🏆)` : '🏆 Макс. ранг!';
-    document.getElementById('rank-prog-fill').style.width = rank.pct + '%';
-
-    // Бейдж ранга в шапке
-    rankBadge.innerText = rank.name;
-    rankBadge.className = 'profile-rank-badge ' + rank.cls;
-    rankBadge.style.display = 'inline-block';
-    rankBadge.style.border  = '1px solid currentColor';
-
-    // Статы
-    document.getElementById('disp-wins').innerText   = wins;
-    document.getElementById('disp-losses').innerText = losses;
-    document.getElementById('disp-games').innerText  = games;
-
-    // Плейтайм
-    document.getElementById('disp-playtime').innerText = playSec > 0 ? fmtPlaytime(playSec) : '—';
-
-    // Винрейт
-    const wr = games > 0 ? Math.round((wins / games) * 100) : 0;
-    document.getElementById('disp-winrate').innerText     = games > 0 ? wr + '%' : '—';
-    document.getElementById('winrate-bar').style.width    = wr + '%';
-
-    // Ачивки
-    document.getElementById('disp-ach').innerText        = achCount;
-    document.getElementById('ach-label-cur').innerText   = achCount;
-    document.getElementById('ach-label-total').innerText = '/ ' + TOTAL_ACHIEVEMENTS;
-    document.getElementById('ach-bar-fill').style.width  = Math.min(100, Math.round((achCount / TOTAL_ACHIEVEMENTS) * 100)) + '%';
-
-    // Подзаголовок ранга
-    const sub = rank.nextName
-        ? `До ${rank.nextName}: ещё ${rank.nextMin - cups} 🏆`
-        : 'Высший ранг достигнут!';
-    document.getElementById('disp-rank-sub').innerText = sub;
+function attachGalleryListener() {
+    if (galleryListener) db.ref('gallery').off('value', galleryListener);
+    galleryListener = db.ref('gallery').on('value', snap => {
+        allGalleryItems = [];
+        snap.forEach(child => { allGalleryItems.push({key: child.key, ...child.val()}); });
+        allGalleryItems.reverse();
+        renderHomeGallery();
+        renderFullGallery();
+    });
 }
 
-// ═══════════════════════════════════════════════════════════════
-// ГАЛЕРЕЯ
-// ═══════════════════════════════════════════════════════════════
+function renderHomeGallery() {
+    const h = document.getElementById('home-gallery');
+    if (!h) return;
+    h.innerHTML = '';
+    const visible = allGalleryItems.filter(d => !d.hidden).slice(0, 5);
+    visible.forEach(d => h.appendChild(createCardElement(d)));
+}
+
+function renderFullGallery() {
+    const grid = document.getElementById('full-gallery');
+    const pagination = document.getElementById('gallery-pagination');
+    if (!grid || !pagination) return;
+    const visible = allGalleryItems.filter(d => !d.hidden);
+    const totalPages = Math.ceil(visible.length / ITEMS_PER_PAGE) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const pageItems = visible.slice(start, start + ITEMS_PER_PAGE);
+
+    grid.innerHTML = '';
+    pageItems.forEach(d => grid.appendChild(createCardElement(d)));
+
+    pagination.innerHTML = '';
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+        btn.textContent = i;
+        btn.onclick = () => { currentPage = i; renderFullGallery(); };
+        pagination.appendChild(btn);
+    }
+}
+
+// ═══════════════════════════════════════
+// СОЗДАНИЕ КАРТОЧКИ (XSS защита)
+// ═══════════════════════════════════════
+function createCardElement(d) {
+    const meta = (d.width && d.height) ? `${d.width}x${d.height}` : '';
+    const idBadge = d.authorId ? `<span class="card-author-id">${escapeHtml(d.authorId)}</span>` : '';
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+        <div class="card-img-wrap"><img src="${escapeHtml(d.url)}" onclick="openFull('${escapeHtml(d.url)}')" loading="lazy"></div>
+        <div class="card-info">
+            <div class="card-author">${escapeHtml(d.author)}${idBadge}</div>
+            <div class="card-desc">${escapeHtml(d.desc) || '<em style="color:#555">нет описания</em>'}</div>
+            <div class="card-meta">
+                <span>📅 ${escapeHtml(fmtTime(d.time))}</span>
+                <span>📐 ${meta}</span>
+            </div>
+        </div>`;
+    return card;
+}
+
+// ═══════════════════════════════════════
+// МОИ СКРИНШОТЫ
+// ═══════════════════════════════════════
 function loadMyGallery(uid) {
-    const grid=document.getElementById('my-gallery'), empty=document.getElementById('my-gallery-empty');
+    const grid = document.getElementById('my-gallery'), empty = document.getElementById('my-gallery-empty');
     if (!grid) return;
     db.ref('gallery').orderByChild('uid').equalTo(uid).on('value', snap => {
-        grid.innerHTML=''; let all=[];
-        snap.forEach(child=>{ all.push(child.val()); });
+        grid.innerHTML = ''; let all = [];
+        snap.forEach(child => { all.push(child.val()); });
         all.reverse();
         all.forEach(d => {
             if (d.hidden) return;
-            const meta=(d.width&&d.height)?`${d.width}x${d.height}`:'';
-            grid.innerHTML+=`<div class="card"><div class="card-img-wrap"><img src="${d.url}" onclick="openFull('${d.url}')" loading="lazy"></div><div class="card-info"><div class="card-desc">${d.desc||''}</div><div class="card-meta"><span>📅 ${fmtTime(d.time)}</span><span>📐 ${meta}</span></div></div></div>`;
+            const meta = (d.width && d.height) ? `${d.width}x${d.height}` : '';
+            grid.innerHTML += `<div class="card"><div class="card-img-wrap"><img src="${escapeHtml(d.url)}" onclick="openFull('${escapeHtml(d.url)}')" loading="lazy"></div><div class="card-info"><div class="card-desc">${escapeHtml(d.desc)||''}</div><div class="card-meta"><span>📅 ${escapeHtml(fmtTime(d.time))}</span><span>📐 ${meta}</span></div></div></div>`;
         });
-        empty.style.display=all.filter(x=>!x.hidden).length===0?'block':'none';
+        empty.style.display = all.filter(x => !x.hidden).length === 0 ? 'block' : 'none';
     });
 }
 
-db.ref('gallery').on('value', snap => {
-    const h=document.getElementById('home-gallery'), f=document.getElementById('full-gallery');
-    if (!h||!f) return;
-    h.innerHTML=''; f.innerHTML='';
-    let all=[];
-    snap.forEach(child=>{ all.push({key:child.key,...child.val()}); });
-    all.reverse();
-    let shown=0;
-    all.forEach(d => {
-        if (d.hidden) return;
-        const meta=(d.width&&d.height)?`${d.width}x${d.height}`:'';
-        const idBadge=d.authorId?`<span class="card-author-id">${d.authorId}</span>`:'';
-        const card=`<div class="card"><div class="card-img-wrap"><img src="${d.url}" onclick="openFull('${d.url}')" loading="lazy"></div><div class="card-info"><div class="card-author">${d.author}${idBadge}</div><div class="card-desc">${d.desc||''}</div><div class="card-meta"><span>📅 ${fmtTime(d.time)}</span><span>📐 ${meta}</span></div></div></div>`;
-        if (shown<5){h.innerHTML+=card;shown++;}
-        f.innerHTML+=card;
-    });
+// ═══════════════════════════════════════
+// СКАЧИВАНИЕ
+// ═══════════════════════════════════════
+async function downloadGame() {
+    await db.ref('downloads/v05').transaction(c => (c||0)+1);
+    window.open('#', '_blank'); // замени на реальную ссылку
+}
+db.ref('downloads/v05').on('value', snap => {
+    const el = document.getElementById('dl-count');
+    if(el) el.innerText = `⬇ загрузок: ${snap.val()||0}`;
 });
 
-// ═══════════════════════════════════════════════════════════════
-// СКАЧИВАНИЕ
-// ═══════════════════════════════════════════════════════════════
-async function downloadGame() { await db.ref('downloads/v05').transaction(c=>(c||0)+1); window.open('ССЫЛКА','_blank'); }
-db.ref('downloads/v05').on('value', snap=>{ const el=document.getElementById('dl-count'); if(el) el.innerText=`⬇ загрузок: ${snap.val()||0}`; });
-
-// ═══════════════════════════════════════════════════════════════
-// ЗАГРУЗКА СКРИНШОТА
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════
+// ЗАГРУЗКА ФАЙЛА (лимит 5 МБ, тип image/*)
+// ═══════════════════════════════════════
 async function checkAuthAndTriggerUpload() {
-    const user=auth.currentUser;
+    const user = auth.currentUser;
     if (!user) { showPage('profile-page','background-red.png',null); return; }
-    const snap=await db.ref('users/'+user.uid).once('value');
-    const d=snap.val();
+    const snap = await db.ref('users/'+user.uid).once('value');
+    const d = snap.val();
     if (!snap.exists()||d.isBannedSite) { showBanModal(d?.banReason); return; }
     document.getElementById('fileInput').click();
 }
+
 async function handleUpload() {
-    const user=auth.currentUser; if (!user) return;
-    const now=Date.now(), last=parseInt(localStorage.getItem('lastUp')||'0'), COOLDOWN=300000;
-    if (now-last<COOLDOWN) {
-        const left=Math.ceil((COOLDOWN-(now-last))/1000), mins=Math.floor(left/60), secs=left%60;
-        document.getElementById('statusMsg').innerText=`⏳ Подожди ещё ${mins>0?mins+' мин ':''}${secs} сек.`;
+    const user = auth.currentUser; if (!user) return;
+    const now = Date.now(), last = parseInt(localStorage.getItem('lastUp')||'0'), COOLDOWN = 300000;
+    if (now - last < COOLDOWN) {
+        const left = Math.ceil((COOLDOWN-(now-last))/1000);
+        const mins = Math.floor(left/60), secs = left%60;
+        document.getElementById('statusMsg').innerText = `⏳ Подожди ещё ${mins>0?mins+' мин ':''}${secs} сек.`;
         return;
     }
-    const file=document.getElementById('fileInput').files[0]; if (!file) return;
-    const status=document.getElementById('statusMsg'), btn=document.getElementById('uploadBtn');
-    status.innerText='⏳ Загрузка...'; btn.disabled=true;
+
+    const file = document.getElementById('fileInput').files[0];
+    if (!file) return;
+
+    // проверка типа
+    if (!file.type.startsWith('image/')) {
+        document.getElementById('statusMsg').innerText = '❌ Только изображения!';
+        return;
+    }
+    // ОГРАНИЧЕНИЕ 5 МБ (как в Storage rules)
+    if (file.size > 5 * 1024 * 1024) {
+        document.getElementById('statusMsg').innerText = '❌ Файл слишком большой (макс. 5 МБ).';
+        return;
+    }
+
+    const status = document.getElementById('statusMsg'), btn = document.getElementById('uploadBtn');
+    status.innerText = '⏳ Загрузка...'; btn.disabled = true;
     try {
-        const imgInfo=await new Promise(res=>{ const i=new Image(); i.onload=()=>res({w:i.width,h:i.height}); i.src=URL.createObjectURL(file); });
-        const storagePath='submissions/'+now+'_'+file.name;
-        const ref=storage.ref(storagePath);
+        const imgInfo = await new Promise(res => {
+            const i = new Image();
+            i.onload = () => res({w:i.width, h:i.height});
+            i.src = URL.createObjectURL(file);
+        });
+        const storagePath = 'submissions/' + now + '_' + file.name;
+        const ref = storage.ref(storagePath);
         await ref.put(file);
-        const url=await ref.getDownloadURL();
-        const ud=window._currentUserData||{};
-        await db.ref('moderation').push({ url, storagePath, author:ud.nick||'Unknown', authorId:ud.id||'', uid:user.uid, desc:document.getElementById('userDesc').value, width:imgInfo.w, height:imgInfo.h, time:new Date().toLocaleString() });
-        fetch('https://us-central1-cubix-web.cloudfunctions.net/sendtotelegram',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ photoUrl:url, author:ud.nick||'Unknown', authorId:ud.id||'', desc:document.getElementById('userDesc').value, width:imgInfo.w, height:imgInfo.h }) });
-        localStorage.setItem('lastUp',String(now));
-        status.innerText='✅ Отправлено на модерацию!';
-        document.getElementById('userDesc').value='';
-    } catch(e) { status.innerText='❌ Ошибка загрузки.'; console.error(e); }
-    btn.disabled=false;
+        const url = await ref.getDownloadURL();
+        const ud = window._currentUserData || {};
+        await db.ref('moderation').push({
+            url, storagePath,
+            author: escapeHtml(ud.nick||'Unknown'),
+            authorId: escapeHtml(ud.id||''),
+            uid: user.uid,
+            desc: escapeHtml(document.getElementById('userDesc').value),
+            width: imgInfo.w, height: imgInfo.h,
+            time: new Date().toLocaleString()
+        });
+        fetch('https://us-central1-cubix-web.cloudfunctions.net/sendtotelegram', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+                photoUrl: url,
+                author: ud.nick||'Unknown',
+                authorId: ud.id||'',
+                desc: document.getElementById('userDesc').value,
+                width: imgInfo.w, height: imgInfo.h
+            })
+        });
+        localStorage.setItem('lastUp', String(now));
+        status.innerText = '✅ Отправлено на модерацию!';
+        document.getElementById('userDesc').value = '';
+    } catch(e) {
+        status.innerText = '❌ Ошибка загрузки.';
+        console.error(e);
+    }
+    btn.disabled = false;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// МОДЕРАЦИЯ
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════
+// МОДЕРАЦИЯ / АДМИН-ГАЛЕРЕЯ
+// ═══════════════════════════════════════
 function loadModeration() {
-    const grid=document.getElementById('moderation-grid'), empty=document.getElementById('mod-empty'), badge=document.getElementById('mod-count'), qcount=document.getElementById('mod-queue-count');
+    const grid = document.getElementById('moderation-grid'), empty = document.getElementById('mod-empty'),
+          badge = document.getElementById('mod-count'), qcount = document.getElementById('mod-queue-count');
     if (!grid) return;
-    db.ref('moderation').on('value', snap=>{
-        grid.innerHTML='';
-        const count=snap.numChildren();
-        badge.style.display=count>0?'inline-block':'none'; badge.innerText=count;
-        qcount.innerText=count>0?`(${count})`:'';
-        empty.style.display=count===0?'block':'none';
-        if (count===0) return;
-        snap.forEach(child=>{
-            const d=child.val(), key=child.key;
-            const card=document.createElement('div'); card.className='card'; card.id='modcard-'+key;
-            card.innerHTML=`<div class="card-img-wrap"><img src="${d.url}" onclick="openFull('${d.url}')"></div><div class="card-info"><div class="card-author">${d.author} <span class="card-author-id">${d.authorId||''}</span></div><div id="mod-view-${key}"><div class="card-desc">${d.desc||'<em style="color:#555">нет описания</em>'}</div><div class="card-meta" style="margin-bottom:10px;"><span>📅 ${fmtTime(d.time)}</span><span>📐 ${d.width&&d.height?d.width+'x'+d.height:''}</span></div><div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="mod-btn mod-btn-approve" onclick="approvePhoto('${key}')">✅ Одобрить</button><button class="mod-btn mod-btn-reject" onclick="rejectPhoto('${key}')">🗑 Удалить</button><button class="mod-btn mod-btn-edit" onclick="startEditMod('${key}')">✏️ Изменить</button></div></div><div id="mod-edit-${key}" style="display:none;"><div style="margin-bottom:6px;color:#f39c12;font-size:13px;">✏️ Редактирование</div><textarea class="edit-field" id="mod-edit-desc-${key}" style="min-height:60px;resize:vertical;">${d.desc||''}</textarea><input class="edit-field" id="mod-edit-time-${key}" value="${d.time||''}"><div style="display:flex;gap:6px;margin-top:4px;"><button class="mod-btn mod-btn-approve" onclick="saveMod('${key}')">💾 Сохранить</button><button class="mod-btn mod-btn-hide" onclick="cancelEditMod('${key}')">✕ Отмена</button></div></div><p id="mod-status-${key}" style="color:#f1c40f;font-size:13px;margin-top:8px;min-height:1em;"></p></div>`;
+    if (moderationListener) db.ref('moderation').off('value', moderationListener);
+    moderationListener = db.ref('moderation').on('value', snap => {
+        grid.innerHTML = '';
+        const count = snap.numChildren();
+        badge.style.display = count>0 ? 'inline-block' : 'none'; badge.innerText = count;
+        qcount.innerText = count>0 ? `(${count})` : '';
+        empty.style.display = count === 0 ? 'block' : 'none';
+        if (count === 0) return;
+        snap.forEach(child => {
+            const d = child.val(), key = child.key;
+            const card = document.createElement('div'); card.className = 'card'; card.id = 'modcard-'+key;
+            card.innerHTML = `
+                <div class="card-img-wrap"><img src="${escapeHtml(d.url)}" onclick="openFull('${escapeHtml(d.url)}')"></div>
+                <div class="card-info">
+                    <div class="card-author">${escapeHtml(d.author)} <span class="card-author-id">${escapeHtml(d.authorId||'')}</span></div>
+                    <div id="mod-view-${key}">
+                        <div class="card-desc">${escapeHtml(d.desc)||'<em style="color:#555">нет описания</em>'}</div>
+                        <div class="card-meta" style="margin-bottom:10px;">
+                            <span>📅 ${escapeHtml(fmtTime(d.time))}</span>
+                            <span>📐 ${d.width&&d.height?d.width+'x'+d.height:''}</span>
+                        </div>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <button class="mod-btn mod-btn-approve" onclick="approvePhoto('${key}')">✅ Одобрить</button>
+                            <button class="mod-btn mod-btn-reject" onclick="rejectPhoto('${key}')">🗑 Удалить</button>
+                            <button class="mod-btn mod-btn-edit" onclick="startEditMod('${key}')">✏️ Изменить</button>
+                        </div>
+                    </div>
+                    <div id="mod-edit-${key}" style="display:none;">
+                        <div style="margin-bottom:6px;color:#f39c12;font-size:13px;">✏️ Редактирование</div>
+                        <textarea class="edit-field" id="mod-edit-desc-${key}" style="min-height:60px;resize:vertical;">${escapeHtml(d.desc||'')}</textarea>
+                        <input class="edit-field" id="mod-edit-time-${key}" value="${escapeHtml(d.time||'')}">
+                        <div style="display:flex;gap:6px;margin-top:4px;">
+                            <button class="mod-btn mod-btn-approve" onclick="saveMod('${key}')">💾 Сохранить</button>
+                            <button class="mod-btn mod-btn-hide" onclick="cancelEditMod('${key}')">✕ Отмена</button>
+                        </div>
+                    </div>
+                    <p id="mod-status-${key}" style="color:#f1c40f;font-size:13px;margin-top:8px;min-height:1em;"></p>
+                </div>`;
             grid.appendChild(card);
         });
     });
 }
-function startEditMod(key){document.getElementById('mod-view-'+key).style.display='none';document.getElementById('mod-edit-'+key).style.display='block';}
-function cancelEditMod(key){document.getElementById('mod-view-'+key).style.display='block';document.getElementById('mod-edit-'+key).style.display='none';}
-async function saveMod(key){const desc=document.getElementById('mod-edit-desc-'+key).value,time=document.getElementById('mod-edit-time-'+key).value,st=document.getElementById('mod-status-'+key);st.innerText='⏳';try{await db.ref('moderation/'+key).update({desc,time});cancelEditMod(key);st.innerText='✅ Сохранено!';setTimeout(()=>{st.innerText='';},2000);}catch(e){st.innerText='❌ Ошибка.';}}
-async function approvePhoto(key){const st=document.getElementById('mod-status-'+key);st.innerText='⏳ Публикуем...';try{const snap=await db.ref('moderation/'+key).once('value');if(!snap.exists())return;await db.ref('gallery').push(snap.val());await db.ref('moderation/'+key).remove();}catch(e){st.innerText='❌ Ошибка.';}}
-async function rejectPhoto(key){if(!confirm('Удалить фото навсегда?'))return;const st=document.getElementById('mod-status-'+key);st.innerText='⏳ Удаляем...';try{const snap=await db.ref('moderation/'+key).once('value');if(snap.exists()){const data=snap.val();if(data.storagePath){try{await storage.ref(data.storagePath).delete();}catch(_){}}await db.ref('moderation/'+key).remove();}}catch(e){st.innerText='❌ Ошибка.';}}
 
-// ═══════════════════════════════════════════════════════════════
-// АДМИН ГАЛЕРЕЯ
-// ═══════════════════════════════════════════════════════════════
+function startEditMod(key) {
+    document.getElementById('mod-view-'+key).style.display='none';
+    document.getElementById('mod-edit-'+key).style.display='block';
+}
+function cancelEditMod(key) {
+    document.getElementById('mod-view-'+key).style.display='block';
+    document.getElementById('mod-edit-'+key).style.display='none';
+}
+async function saveMod(key) {
+    const desc = document.getElementById('mod-edit-desc-'+key).value,
+          time = document.getElementById('mod-edit-time-'+key).value,
+          st   = document.getElementById('mod-status-'+key);
+    st.innerText='⏳';
+    try {
+        await db.ref('moderation/'+key).update({desc, time});
+        cancelEditMod(key);
+        st.innerText='✅ Сохранено!';
+        setTimeout(()=>{st.innerText='';},2000);
+    } catch(e) { st.innerText='❌ Ошибка.'; }
+}
+async function approvePhoto(key) {
+    const st = document.getElementById('mod-status-'+key);
+    st.innerText='⏳ Публикуем...';
+    try {
+        const snap = await db.ref('moderation/'+key).once('value');
+        if (!snap.exists()) return;
+        await db.ref('gallery').push(snap.val());
+        await db.ref('moderation/'+key).remove();
+    } catch(e) { st.innerText='❌ Ошибка.'; }
+}
+async function rejectPhoto(key) {
+    if (!confirm('Удалить фото навсегда?')) return;
+    const st = document.getElementById('mod-status-'+key);
+    st.innerText='⏳ Удаляем...';
+    try {
+        const snap = await db.ref('moderation/'+key).once('value');
+        if (snap.exists()) {
+            const data = snap.val();
+            if (data.storagePath) { try { await storage.ref(data.storagePath).delete(); } catch(_) {} }
+            await db.ref('moderation/'+key).remove();
+        }
+    } catch(e) { st.innerText='❌ Ошибка.'; }
+}
+
+// Админ-галерея с пагинацией
+let adminPage = 1;
+let adminAllItems = [];
+
 function loadAdminGallery() {
-    const grid=document.getElementById('admin-gallery-grid'); if(!grid) return;
-    db.ref('gallery').on('value', snap=>{
-        grid.innerHTML=''; let all=[];
-        snap.forEach(child=>{ all.push({key:child.key,...child.val()}); });
-        all.reverse();
-        if(all.length===0){grid.innerHTML='<p style="color:#555;">Галерея пуста.</p>';return;}
-        all.forEach(d=>{
-            const isHidden=d.hidden===true, meta=(d.width&&d.height)?`${d.width}x${d.height}`:'';
-            const card=document.createElement('div'); card.className='card'+(isHidden?' hidden-card':''); card.id='admcard-'+d.key;
-            card.innerHTML=`<div class="card-img-wrap" style="position:relative;"><img src="${d.url}" onclick="openFull('${d.url}')" loading="lazy">${isHidden?`<div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;pointer-events:none;font-size:16px;color:#e74c3c;letter-spacing:2px;">🚫 СКРЫТО</div>`:''}</div><div class="card-info"><div class="card-author">${d.author} <span class="card-author-id">${d.authorId||''}</span></div><div id="admview-${d.key}"><div class="card-desc">${d.desc||'<em style="color:#555">нет описания</em>'}</div><div class="card-meta"><span>📅 ${fmtTime(d.time)}</span><span>📐 ${meta}</span></div><div class="card-actions"><button class="icon-btn hide-btn" title="${isHidden?'Показать':'Скрыть'}" onclick="toggleHide('${d.key}',${isHidden})">${isHidden?'👁':'🙈'}</button><button class="icon-btn" title="Редактировать" onclick="startEditGallery('${d.key}')">✏️</button><span class="card-actions-spacer"></span><button class="icon-btn del" title="Удалить навсегда" onclick="deleteFromGallery('${d.key}')">🗑️</button></div></div><div id="admedit-${d.key}" style="display:none;"><div style="margin-bottom:6px;color:#f39c12;font-size:13px;">✏️ Редактирование</div><textarea class="edit-field" id="adm-edit-desc-${d.key}" style="min-height:60px;resize:vertical;">${d.desc||''}</textarea><input class="edit-field" id="adm-edit-time-${d.key}" value="${d.time||''}"><div style="display:flex;gap:6px;margin-top:6px;"><button class="mod-btn mod-btn-approve" onclick="saveGalleryEdit('${d.key}')">💾 Сохранить</button><button class="mod-btn mod-btn-hide" onclick="cancelEditGallery('${d.key}')">✕ Отмена</button></div></div><p id="adm-status-${d.key}" style="color:#f1c40f;font-size:13px;margin-top:6px;min-height:1em;"></p></div>`;
-            grid.appendChild(card);
-        });
+    const grid = document.getElementById('admin-gallery-grid');
+    const pagination = document.getElementById('admin-gallery-pagination');
+    if (!grid) return;
+    if (adminGalleryListener) db.ref('gallery').off('value', adminGalleryListener);
+    adminGalleryListener = db.ref('gallery').on('value', snap => {
+        adminAllItems = [];
+        snap.forEach(child => { adminAllItems.push({key: child.key, ...child.val()}); });
+        adminAllItems.reverse();
+        renderAdminGalleryPage(grid, pagination);
     });
 }
-async function toggleHide(key,cur){try{await db.ref('gallery/'+key).update({hidden:!cur});}catch(e){console.error(e);}}
-function startEditGallery(key){document.getElementById('admview-'+key).style.display='none';document.getElementById('admedit-'+key).style.display='block';}
-function cancelEditGallery(key){document.getElementById('admview-'+key).style.display='block';document.getElementById('admedit-'+key).style.display='none';}
-async function saveGalleryEdit(key){const desc=document.getElementById('adm-edit-desc-'+key).value,time=document.getElementById('adm-edit-time-'+key).value,st=document.getElementById('adm-status-'+key);st.innerText='⏳';try{await db.ref('gallery/'+key).update({desc,time});cancelEditGallery(key);st.innerText='✅ Сохранено!';setTimeout(()=>{st.innerText='';},2000);}catch(e){st.innerText='❌ Ошибка.';}}
-async function deleteFromGallery(key){if(!confirm('Удалить фото из галереи навсегда?'))return;const st=document.getElementById('adm-status-'+key);st.innerText='⏳ Удаляем...';try{const snap=await db.ref('gallery/'+key).once('value');if(snap.exists()){const data=snap.val();if(data.storagePath){try{await storage.ref(data.storagePath).delete();}catch(_){}}await db.ref('gallery/'+key).remove();}}catch(e){st.innerText='❌ Ошибка.';}}
 
-// ═══════════════════════════════════════════════════════════════
-// СИСТЕМА ДРУЗЕЙ
-// ═══════════════════════════════════════════════════════════════
+function renderAdminGalleryPage(grid, pagination) {
+    const totalPages = Math.ceil(adminAllItems.length / ITEMS_PER_PAGE) || 1;
+    if (adminPage > totalPages) adminPage = totalPages;
+    const start = (adminPage - 1) * ITEMS_PER_PAGE;
+    const pageItems = adminAllItems.slice(start, start + ITEMS_PER_PAGE);
+
+    grid.innerHTML = '';
+    pageItems.forEach(d => {
+        const isHidden = d.hidden === true;
+        const meta = (d.width && d.height) ? `${d.width}x${d.height}` : '';
+        const card = document.createElement('div');
+        card.className = 'card' + (isHidden ? ' hidden-card' : '');
+        card.id = 'admcard-' + d.key;
+        card.innerHTML = `
+            <div class="card-img-wrap" style="position:relative;">
+                <img src="${escapeHtml(d.url)}" onclick="openFull('${escapeHtml(d.url)}')" loading="lazy">
+                ${isHidden ? `<div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;pointer-events:none;font-size:16px;color:#e74c3c;letter-spacing:2px;">🚫 СКРЫТО</div>` : ''}
+            </div>
+            <div class="card-info">
+                <div class="card-author">${escapeHtml(d.author)} <span class="card-author-id">${escapeHtml(d.authorId||'')}</span></div>
+                <div id="admview-${d.key}">
+                    <div class="card-desc">${escapeHtml(d.desc)||'<em style="color:#555">нет описания</em>'}</div>
+                    <div class="card-meta">
+                        <span>📅 ${escapeHtml(fmtTime(d.time))}</span>
+                        <span>📐 ${meta}</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="icon-btn hide-btn" title="${isHidden?'Показать':'Скрыть'}" onclick="toggleHide('${d.key}',${isHidden})">${isHidden?'👁':'🙈'}</button>
+                        <button class="icon-btn" title="Редактировать" onclick="startEditGallery('${d.key}')">✏️</button>
+                        <span class="card-actions-spacer"></span>
+                        <button class="icon-btn del" title="Удалить навсегда" onclick="deleteFromGallery('${d.key}')">🗑️</button>
+                    </div>
+                </div>
+                <div id="admedit-${d.key}" style="display:none;">
+                    <div style="margin-bottom:6px;color:#f39c12;font-size:13px;">✏️ Редактирование</div>
+                    <textarea class="edit-field" id="adm-edit-desc-${d.key}" style="min-height:60px;resize:vertical;">${escapeHtml(d.desc||'')}</textarea>
+                    <input class="edit-field" id="adm-edit-time-${d.key}" value="${escapeHtml(d.time||'')}">
+                    <div style="display:flex;gap:6px;margin-top:6px;">
+                        <button class="mod-btn mod-btn-approve" onclick="saveGalleryEdit('${d.key}')">💾 Сохранить</button>
+                        <button class="mod-btn mod-btn-hide" onclick="cancelEditGallery('${d.key}')">✕ Отмена</button>
+                    </div>
+                </div>
+                <p id="adm-status-${d.key}" style="color:#f1c40f;font-size:13px;margin-top:6px;min-height:1em;"></p>
+            </div>`;
+        grid.appendChild(card);
+    });
+
+    pagination.innerHTML = '';
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'page-btn' + (i === adminPage ? ' active' : '');
+        btn.textContent = i;
+        btn.onclick = () => { adminPage = i; renderAdminGalleryPage(grid, pagination); };
+        pagination.appendChild(btn);
+    }
+}
+
+async function toggleHide(key, cur) {
+    try { await db.ref('gallery/'+key).update({hidden: !cur}); } catch(e) { console.error(e); }
+}
+function startEditGallery(key) {
+    document.getElementById('admview-'+key).style.display='none';
+    document.getElementById('admedit-'+key).style.display='block';
+}
+function cancelEditGallery(key) {
+    document.getElementById('admview-'+key).style.display='block';
+    document.getElementById('admedit-'+key).style.display='none';
+}
+async function saveGalleryEdit(key) {
+    const desc = document.getElementById('adm-edit-desc-'+key).value,
+          time = document.getElementById('adm-edit-time-'+key).value,
+          st   = document.getElementById('adm-status-'+key);
+    st.innerText='⏳';
+    try {
+        await db.ref('gallery/'+key).update({desc, time});
+        cancelEditGallery(key);
+        st.innerText='✅ Сохранено!';
+        setTimeout(()=>{st.innerText='';},2000);
+    } catch(e) { st.innerText='❌ Ошибка.'; }
+}
+async function deleteFromGallery(key) {
+    if (!confirm('Удалить фото из галереи навсегда?')) return;
+    const st = document.getElementById('adm-status-'+key);
+    st.innerText='⏳ Удаляем...';
+    try {
+        const snap = await db.ref('gallery/'+key).once('value');
+        if (snap.exists()) {
+            const data = snap.val();
+            if (data.storagePath) { try { await storage.ref(data.storagePath).delete(); } catch(_) {} }
+            await db.ref('gallery/'+key).remove();
+        }
+    } catch(e) { st.innerText='❌ Ошибка.'; }
+}
+
+// ═══════════════════════════════════════
+// ДРУЗЬЯ (с экранированием)
+// ═══════════════════════════════════════
 async function searchPlayer() {
     if (!_myUid) { alert('Войди в аккаунт!'); return; }
-    const query=document.getElementById('friendSearchInput').value.trim();
-    const resultBox=document.getElementById('search-result'), msgBox=document.getElementById('search-msg');
+    const query = document.getElementById('friendSearchInput').value.trim();
+    const resultBox = document.getElementById('search-result'), msgBox = document.getElementById('search-msg');
     resultBox.style.display='none'; msgBox.style.display='none';
     if (!query) return;
 
-    const usersSnap=await db.ref('users').once('value');
-    let found=null, foundUid=null;
-    usersSnap.forEach(child=>{
-        const d=child.val(), sid=shortId(child.key);
-        if (child.key===_myUid) return;
-        if (query.toUpperCase()===sid || query.toLowerCase()===(d.nick||'').toLowerCase()) { found=d; foundUid=child.key; }
+    const usersSnap = await db.ref('users').once('value');
+    let found = null, foundUid = null;
+    usersSnap.forEach(child => {
+        const d = child.val(), sid = shortId(child.key);
+        if (child.key === _myUid) return;
+        if (query.toUpperCase() === sid || query.toLowerCase() === (d.nick||'').toLowerCase()) {
+            found = d; foundUid = child.key;
+        }
     });
     if (!found) { msgBox.innerText='Игрок не найден.'; msgBox.style.display='block'; return; }
 
-    const fSnap=await db.ref(`friends/${_myUid}/${foundUid}`).once('value');
-    const outSnap=await db.ref(`friendRequests/${foundUid}/${_myUid}`).once('value');
-    const inSnap=await db.ref(`friendRequests/${_myUid}/${foundUid}`).once('value');
-    const isFriend=fSnap.exists(), sentReq=outSnap.exists(), hasIncoming=inSnap.exists();
+    const fSnap = await db.ref(`friends/${_myUid}/${foundUid}`).once('value');
+    const outSnap = await db.ref(`friendRequests/${foundUid}/${_myUid}`).once('value');
+    const inSnap = await db.ref(`friendRequests/${_myUid}/${foundUid}`).once('value');
+    const isFriend = fSnap.exists(), sentReq = outSnap.exists(), hasIncoming = inSnap.exists();
 
-    let actionBtn='';
-    if (isFriend)          actionBtn=`<button class="f-btn f-btn-red" onclick="removeFriend('${foundUid}')">Удалить из друзей</button>`;
-    else if (sentReq)      actionBtn=`<button class="f-btn f-btn-gray" disabled>Заявка отправлена</button>`;
-    else if (hasIncoming)  actionBtn=`<button class="f-btn f-btn-green" onclick="acceptRequest('${foundUid}')">Принять заявку</button>`;
-    else                   actionBtn=`<button class="f-btn f-btn-blue" onclick="sendRequest('${foundUid}','${(found.nick||'').replace(/'/g,"\\'")}')">Добавить в друзья</button>`;
+    let actionBtn = '';
+    if (isFriend)          actionBtn = `<button class="f-btn f-btn-red" onclick="removeFriend('${foundUid}')">Удалить из друзей</button>`;
+    else if (sentReq)      actionBtn = `<button class="f-btn f-btn-gray" disabled>Заявка отправлена</button>`;
+    else if (hasIncoming)  actionBtn = `<button class="f-btn f-btn-green" onclick="acceptRequest('${foundUid}')">Принять заявку</button>`;
+    else                   actionBtn = `<button class="f-btn f-btn-blue" onclick="sendRequest('${foundUid}','${escapeHtml(found.nick||'')}')">Добавить в друзья</button>`;
 
-    resultBox.innerHTML=`<div class="friend-card" style="margin:0;"><div class="friend-avatar">👤</div><div class="friend-info"><div class="friend-nick">${found.nick}</div><div class="friend-id">${shortId(foundUid)}</div></div><div class="friend-actions">${actionBtn}</div></div>`;
+    resultBox.innerHTML = `<div class="friend-card" style="margin:0;">
+        <div class="friend-avatar">👤</div>
+        <div class="friend-info">
+            <div class="friend-nick">${escapeHtml(found.nick)}</div>
+            <div class="friend-id">${shortId(foundUid)}</div>
+        </div>
+        <div class="friend-actions">${actionBtn}</div>
+    </div>`;
     resultBox.style.display='block';
 }
 
 window.sendRequest = async function(toUid, toNick) {
     if (!_myUid) return;
-    const myFSnap=await db.ref(`friends/${_myUid}`).once('value');
-    if (myFSnap.numChildren()>=100) { alert('Максимум 100 друзей!'); return; }
-    const lastReqKey=`lastReq_${toUid}`, lastReq=parseInt(localStorage.getItem(lastReqKey)||'0');
-    if (Date.now()-lastReq<30000) { alert('Подожди 30 секунд.'); return; }
-    const already=await db.ref(`friends/${_myUid}/${toUid}`).once('value');
+    const myFSnap = await db.ref(`friends/${_myUid}`).once('value');
+    if (myFSnap.numChildren() >= 100) { alert('Максимум 100 друзей!'); return; }
+    const lastReqKey = `lastReq_${toUid}`, lastReq = parseInt(localStorage.getItem(lastReqKey)||'0');
+    if (Date.now() - lastReq < 30000) { alert('Подожди 30 секунд.'); return; }
+    const already = await db.ref(`friends/${_myUid}/${toUid}`).once('value');
     if (already.exists()) { alert('Уже в друзьях!'); return; }
-    const alreadyReq=await db.ref(`friendRequests/${toUid}/${_myUid}`).once('value');
+    const alreadyReq = await db.ref(`friendRequests/${toUid}/${_myUid}`).once('value');
     if (alreadyReq.exists()) { alert('Заявка уже отправлена!'); return; }
-    const toSnap=await db.ref(`users/${toUid}`).once('value');
-    const toData=toSnap.val();
-    await db.ref(`friendRequests/${toUid}/${_myUid}`).set({ nick:_myNick, id:_myShortId, time:Date.now() });
-    await db.ref(`outgoingRequests/${_myUid}/${toUid}`).set({ nick:toData?.nick||'?', id:shortId(toUid), time:Date.now() });
+    const toSnap = await db.ref(`users/${toUid}`).once('value');
+    const toData = toSnap.val();
+    await db.ref(`friendRequests/${toUid}/${_myUid}`).set({ nick: _myNick, id: _myShortId, time: Date.now() });
+    await db.ref(`outgoingRequests/${_myUid}/${toUid}`).set({ nick: escapeHtml(toData?.nick||'?'), id: shortId(toUid), time: Date.now() });
     localStorage.setItem(lastReqKey, String(Date.now()));
     searchPlayer();
 };
 
 window.acceptRequest = async function(fromUid) {
     if (!_myUid) return;
-    const myFSnap=await db.ref(`friends/${_myUid}`).once('value');
-    if (myFSnap.numChildren()>=100) { alert('У тебя максимум друзей (100)!'); return; }
-    const reqSnap=await db.ref(`friendRequests/${_myUid}/${fromUid}`).once('value');
+    const myFSnap = await db.ref(`friends/${_myUid}`).once('value');
+    if (myFSnap.numChildren() >= 100) { alert('У тебя максимум друзей (100)!'); return; }
+    const reqSnap = await db.ref(`friendRequests/${_myUid}/${fromUid}`).once('value');
     if (!reqSnap.exists()) return;
-    const req=reqSnap.val(), since=Date.now();
-    await db.ref(`friends/${_myUid}/${fromUid}`).set({ nick:req.nick, id:req.id, since });
-    await db.ref(`friends/${fromUid}/${_myUid}`).set({ nick:_myNick, id:_myShortId, since });
+    const req = reqSnap.val(), since = Date.now();
+    await db.ref(`friends/${_myUid}/${fromUid}`).set({ nick: req.nick, id: req.id, since });
+    await db.ref(`friends/${fromUid}/${_myUid}`).set({ nick: _myNick, id: _myShortId, since });
     await db.ref(`friendRequests/${_myUid}/${fromUid}`).remove();
     await db.ref(`friendRequests/${fromUid}/${_myUid}`).remove();
     await db.ref(`outgoingRequests/${fromUid}/${_myUid}`).remove();
@@ -1216,16 +1196,16 @@ async function clearAllRequests() {
 
 function listenFriends() {
     if (!_myUid) return;
-    db.ref(`friends/${_myUid}`).on('value', snap=>{
-        const list=document.getElementById('friends-list'), empty=document.getElementById('friends-empty'), count=document.getElementById('friends-count');
+    db.ref(`friends/${_myUid}`).on('value', snap => {
+        const list = document.getElementById('friends-list'), empty = document.getElementById('friends-empty'), count = document.getElementById('friends-count');
         if (!list) return;
-        list.innerHTML=''; const n=snap.numChildren();
-        count.innerText=n>0?`(${n}/100)`:'';
-        empty.style.display=n===0?'block':'none';
-        snap.forEach(child=>{
-            const d=child.val(), fUid=child.key;
-            const div=document.createElement('div'); div.className='friend-card';
-            div.innerHTML=`<div class="friend-avatar">👤</div><div class="friend-info"><div class="friend-nick">${d.nick}</div><div class="friend-id">${d.id}</div></div><div class="friend-actions"><button class="f-btn f-btn-red" onclick="removeFriend('${fUid}')">Удалить</button></div>`;
+        list.innerHTML = ''; const n = snap.numChildren();
+        count.innerText = n>0 ? `(${n}/100)` : '';
+        empty.style.display = n===0 ? 'block' : 'none';
+        snap.forEach(child => {
+            const d = child.val(), fUid = child.key;
+            const div = document.createElement('div'); div.className = 'friend-card';
+            div.innerHTML = `<div class="friend-avatar">👤</div><div class="friend-info"><div class="friend-nick">${escapeHtml(d.nick)}</div><div class="friend-id">${escapeHtml(d.id)}</div></div><div class="friend-actions"><button class="f-btn f-btn-red" onclick="removeFriend('${fUid}')">Удалить</button></div>`;
             list.appendChild(div);
         });
     });
@@ -1233,17 +1213,17 @@ function listenFriends() {
 
 function listenIncoming() {
     if (!_myUid) return;
-    db.ref(`friendRequests/${_myUid}`).on('value', snap=>{
-        const section=document.getElementById('incoming-section'), list=document.getElementById('incoming-list'), countEl=document.getElementById('incoming-count'), badge=document.getElementById('req-badge');
+    db.ref(`friendRequests/${_myUid}`).on('value', snap => {
+        const section = document.getElementById('incoming-section'), list = document.getElementById('incoming-list'), countEl = document.getElementById('incoming-count'), badge = document.getElementById('req-badge');
         if (!list) return;
-        list.innerHTML=''; const n=snap.numChildren();
-        section.style.display=n>0?'block':'none';
-        countEl.innerText=n>0?`(${n})`:'';
-        badge.style.display=n>0?'inline-block':'none'; badge.innerText=n;
-        snap.forEach(child=>{
-            const d=child.val(), fromUid=child.key;
-            const div=document.createElement('div'); div.className='friend-card';
-            div.innerHTML=`<div class="friend-avatar">👤</div><div class="friend-info"><div class="friend-nick">${d.nick}</div><div class="friend-id">${d.id}</div></div><div class="friend-actions"><button class="f-btn f-btn-green" onclick="acceptRequest('${fromUid}')">✓ Принять</button><button class="f-btn f-btn-red" onclick="declineRequest('${fromUid}')">✕</button></div>`;
+        list.innerHTML = ''; const n = snap.numChildren();
+        section.style.display = n>0 ? 'block' : 'none';
+        countEl.innerText = n>0 ? `(${n})` : '';
+        badge.style.display = n>0 ? 'inline-block' : 'none'; badge.innerText = n;
+        snap.forEach(child => {
+            const d = child.val(), fromUid = child.key;
+            const div = document.createElement('div'); div.className = 'friend-card';
+            div.innerHTML = `<div class="friend-avatar">👤</div><div class="friend-info"><div class="friend-nick">${escapeHtml(d.nick)}</div><div class="friend-id">${escapeHtml(d.id)}</div></div><div class="friend-actions"><button class="f-btn f-btn-green" onclick="acceptRequest('${fromUid}')">✓ Принять</button><button class="f-btn f-btn-red" onclick="declineRequest('${fromUid}')">✕</button></div>`;
             list.appendChild(div);
         });
     });
@@ -1251,15 +1231,15 @@ function listenIncoming() {
 
 function listenOutgoing() {
     if (!_myUid) return;
-    db.ref(`outgoingRequests/${_myUid}`).on('value', snap=>{
-        const section=document.getElementById('outgoing-section'), list=document.getElementById('outgoing-list');
+    db.ref(`outgoingRequests/${_myUid}`).on('value', snap => {
+        const section = document.getElementById('outgoing-section'), list = document.getElementById('outgoing-list');
         if (!list) return;
-        list.innerHTML=''; const n=snap.numChildren();
-        section.style.display=n>0?'block':'none';
-        snap.forEach(child=>{
-            const d=child.val(), toUid=child.key;
-            const div=document.createElement('div'); div.className='friend-card';
-            div.innerHTML=`<div class="friend-avatar">👤</div><div class="friend-info"><div class="friend-nick">${d.nick}</div><div class="friend-id">${d.id}</div></div><div class="friend-actions"><button class="f-btn f-btn-gray" onclick="cancelRequest('${toUid}')">Отменить</button></div>`;
+        list.innerHTML = ''; const n = snap.numChildren();
+        section.style.display = n>0 ? 'block' : 'none';
+        snap.forEach(child => {
+            const d = child.val(), toUid = child.key;
+            const div = document.createElement('div'); div.className = 'friend-card';
+            div.innerHTML = `<div class="friend-avatar">👤</div><div class="friend-info"><div class="friend-nick">${escapeHtml(d.nick)}</div><div class="friend-id">${escapeHtml(d.id)}</div></div><div class="friend-actions"><button class="f-btn f-btn-gray" onclick="cancelRequest('${toUid}')">Отменить</button></div>`;
             list.appendChild(div);
         });
     });
