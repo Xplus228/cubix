@@ -809,6 +809,7 @@ async function authStateHandler(user) {
     attachGalleryListener();
 }
 auth.onAuthStateChanged(authStateHandler);
+attachGalleryListener(); // галерея видна всем, даже без логина
 
 // ═══════════════════════════════════════
 // ПОДПИСКА НА ГАЛЕРЕЮ (общая)
