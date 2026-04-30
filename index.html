@@ -822,9 +822,20 @@ function attachGalleryListener() {
     if (galleryListener) db.ref('gallery').off('value', galleryListener);
     galleryListener = db.ref('gallery').on('value', snap => {
         allGalleryItems = [];
-        snap.forEach(child => { allGalleryItems.push({key: child.key, ...child.val()}); });
+        snap.forEach(child => {
+            const d = child.val();
+            if (!d.hidden) allGalleryItems.push({ key: child.key, ...d });
+        });
         allGalleryItems.reverse();
-        renderHomeGallery();
+
+        // Главная — 5 последних
+        const h = document.getElementById('home-gallery');
+        if (h) {
+            h.innerHTML = '';
+            allGalleryItems.slice(0, 5).forEach(d => h.appendChild(createCardElement(d)));
+        }
+
+        // Полная галерея с пагинацией
         renderFullGallery();
     });
 }
