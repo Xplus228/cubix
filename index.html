@@ -4,7 +4,7 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubiX | Portal</title>
+    <title>CubiX | Game</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -73,21 +73,30 @@
         .avatar-picker {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 14px;
+            gap: 12px;
             margin: 16px 0;
-            max-height: 400px;
+            max-height: 380px;
             overflow-y: auto;
-            padding: 4px 6px 4px 4px;
+            padding: 4px 8px 4px 4px;
         }
         .av-opt {
+            position: relative;
             width: 100%;
-            aspect-ratio: 1;
+            padding-bottom: 100%; /* трюк для квадрата */
             border-radius: 50%;
             overflow: hidden;
             cursor: pointer;
             border: 3px solid transparent;
             transition: 0.2s;
             background: rgba(255,255,255,0.05);
+        }
+        .av-opt img {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: 50%;
         }
         .av-opt:hover { border-color: #e74c3c; transform: scale(1.08); }
         .av-opt.selected { border-color: #f1c40f; box-shadow: 0 0 14px rgba(241,196,15,0.6); }
@@ -439,7 +448,8 @@ auth.languageCode='ru';
 // Папка с аватарами на GitHub. Файлы: 1.jpg/png ... 127.jpg/png
 // Если добавишь 128.jpg — просто измени AVATAR_COUNT на 128
 const AVATAR_BASE  = 'https://xplus228.github.io/cubix/achievements/';
-const AVATAR_COUNT = 127;
+const AVATAR_COUNT = 126; // файлы: 0.jpg ... 126.jpg
+const AVATAR_START = 0;   // начинаем с 0
 const TOTAL_ACHIEVEMENTS = 20;
 const ONLINE_MS   = 5 * 60 * 1000;
 const ITEMS_PER_PAGE = 10;
@@ -506,7 +516,7 @@ function isOnline(ts){ return ts&&(Date.now()-ts)<ONLINE_MS; }
 // СОСТОЯНИЕ
 // ══════════════════════════════════════════════
 let _isAdmin=false,_myUid=null,_myNick=null,_myShortId=null,_myAvatar=0;
-let _selectedAvatar=0;
+let _selectedAvatar=null;
 let allGalleryItems=[],currentPage=1,adminAllItems=[],adminPage=1;
 
 // ══════════════════════════════════════════════
@@ -548,7 +558,7 @@ function openAvatarPicker(){
     _selectedAvatar=_myAvatar;
     const picker=document.getElementById('avatar-picker');
     picker.innerHTML='';
-    for(let i=1;i<=AVATAR_COUNT;i++){
+    for(let i=AVATAR_START;i<AVATAR_COUNT;i++){
         const div=document.createElement('div');
         div.className='av-opt'+(i===_selectedAvatar?' selected':'');
         const img=document.createElement('img');
@@ -567,7 +577,7 @@ function openAvatarPicker(){
 }
 function closeAvatarPicker(){document.getElementById('avatar-modal').classList.remove('show');}
 async function saveAvatar(){
-    if(!_myUid||!_selectedAvatar)return;
+    if(!_myUid||_selectedAvatar===null||_selectedAvatar===undefined)return;
     await db.ref('users/'+_myUid+'/avatarIndex').set(_selectedAvatar);
     _myAvatar=_selectedAvatar;
     renderAvatar(document.getElementById('myAvatarRing'),_myAvatar,84);
