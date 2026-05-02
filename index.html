@@ -434,7 +434,7 @@ auth.languageCode='ru';
 // ════════════════════════════════════════
 // Базовый URL аватаров — папка avatares на GitHub
 // Файлы: 1.png, 2.jpg, 3.png... (скрипт сам пробует png, потом jpg)
-const AVATAR_BASE = 'https://xplus228.github.io/cubix/avatares/';
+const AVATAR_BASE = 'https://xplus228.github.io/cubix/achievements/';
 const AVATAR_COUNT = 127;       // сколько аватаров загружено
 const TOTAL_ACHIEVEMENTS = 20;
 const ONLINE_MS = 5 * 60 * 1000;
@@ -754,22 +754,30 @@ async function authStateHandler(user){
     loadMyGallery(user.uid);
 }
 auth.onAuthStateChanged(authStateHandler);
-attachGalleryListener(); // галерея видна всем без логина
+//attachGalleryListener(); // галерея видна всем без логина
 
 // ════════════════════════════════════════
 // ГАЛЕРЕЯ
 // ════════════════════════════════════════
 function attachGalleryListener(){
-    if(galleryListener) db.ref('gallery').off('value',galleryListener);
+    if(galleryListener){ db.ref('gallery').off('value',galleryListener); galleryListener=null; }
     galleryListener=db.ref('gallery').on('value',snap=>{
         allGalleryItems=[];
-        snap.forEach(child=>{const d=child.val();if(!d.hidden)allGalleryItems.push({key:child.key,...d});});
+        snap.forEach(child=>{
+            const d=child.val();
+            if(!d.hidden) allGalleryItems.push({key:child.key,...d});
+        });
         allGalleryItems.reverse();
         const h=document.getElementById('home-gallery');
-        if(h){h.innerHTML='';allGalleryItems.slice(0,5).forEach(d=>h.appendChild(createCardEl(d)));}
+        if(h){ h.innerHTML=''; allGalleryItems.slice(0,5).forEach(d=>h.appendChild(createCardEl(d))); }
         renderFullGallery();
     });
 }
+
+// Запускаем галерею сразу после инициализации Firebase
+firebase.database().ref('.info/connected').once('value').then(()=>{
+    attachGalleryListener();
+});
 function renderFullGallery(){
     const grid=document.getElementById('full-gallery'),pag=document.getElementById('gallery-pagination');
     if(!grid||!pag) return;
