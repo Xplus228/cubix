@@ -448,8 +448,8 @@ auth.languageCode='ru';
 // Папка с аватарами на GitHub. Файлы: 1.jpg/png ... 127.jpg/png
 // Если добавишь 128.jpg — просто измени AVATAR_COUNT на 128
 const AVATAR_BASE  = 'https://xplus228.github.io/cubix/achievements/';
-const AVATAR_COUNT = 126; // файлы: 0.jpg ... 126.jpg
-const AVATAR_START = 0;   // начинаем с 0
+const AVATAR_COUNT = 127; // файлы: 0.jpg ... 126.jpg — итого 127 штук
+const AVATAR_START = 0;
 const TOTAL_ACHIEVEMENTS = 20;
 const ONLINE_MS   = 5 * 60 * 1000;
 const ITEMS_PER_PAGE = 10;
@@ -466,7 +466,7 @@ function showErr(id,msg){ const el=document.getElementById(id); el.innerText=msg
 function renderAvatar(container, idx, size=84) {
     container.innerHTML='';
     container.style.fontSize = Math.round(size*0.36)+'px';
-    if(idx && idx>0){
+    if(idx !== null && idx !== undefined && idx >= 0){
         const img=document.createElement('img');
         img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;';
         img.src=AVATAR_BASE+idx+'.jpg';
@@ -516,7 +516,7 @@ function isOnline(ts){ return ts&&(Date.now()-ts)<ONLINE_MS; }
 // СОСТОЯНИЕ
 // ══════════════════════════════════════════════
 let _isAdmin=false,_myUid=null,_myNick=null,_myShortId=null,_myAvatar=0;
-let _selectedAvatar=null;
+let _selectedAvatar=-1;
 let allGalleryItems=[],currentPage=1,adminAllItems=[],adminPage=1;
 
 // ══════════════════════════════════════════════
@@ -577,7 +577,7 @@ function openAvatarPicker(){
 }
 function closeAvatarPicker(){document.getElementById('avatar-modal').classList.remove('show');}
 async function saveAvatar(){
-    if(!_myUid||_selectedAvatar===null||_selectedAvatar===undefined)return;
+    if(!_myUid||_selectedAvatar<0)return;
     await db.ref('users/'+_myUid+'/avatarIndex').set(_selectedAvatar);
     _myAvatar=_selectedAvatar;
     renderAvatar(document.getElementById('myAvatarRing'),_myAvatar,84);
@@ -729,7 +729,7 @@ async function authStateHandler(user){
     if(d.isBannedSite){await auth.signOut();showBanModal(d.banReason);af.style.display='block';pd.style.display='none';vs.style.display='none';showForm('login-form');return;}
 
     af.style.display='none';vs.style.display='none';pd.style.display='block';
-    _myUid=user.uid;_myNick=d.nick;_myShortId=shortId(user.uid);_myAvatar=d.avatarIndex||0;
+    _myUid=user.uid;_myNick=d.nick;_myShortId=shortId(user.uid);_myAvatar = (d.avatarIndex !== undefined && d.avatarIndex !== null) ? d.avatarIndex : -1;
 
     document.getElementById('dispNick').innerText=d.nick;
     document.getElementById('dispId').innerText=_myShortId;
