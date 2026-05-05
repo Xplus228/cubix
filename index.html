@@ -176,6 +176,40 @@
         .search-result { background: rgba(15,15,15,0.9); border: 1px solid #333; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: none; }
         .req-badge { display: inline-block; background: #e74c3c; color: white; border-radius: 50%; font-size: 11px; width: 18px; height: 18px; line-height: 18px; text-align: center; margin-left: 4px; vertical-align: middle; }
         .admin-section { background: rgba(20,20,20,0.8); border: 1px solid #333; border-radius: 15px; padding: 20px; margin-bottom: 40px; }
+        
+        /* ── СИСТЕМНЫЕ НАСТРОЙКИ ── */
+        .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid #1a1a1a; gap:16px; }
+        .toggle-row:last-child { border-bottom:none; padding-bottom:0; }
+        .toggle-info h4 { margin:0 0 4px; font-size:15px; color:white; }
+        .toggle-info p { margin:0; font-size:12px; color:#555; line-height:1.4; }
+        .toggle-switch { position:relative; width:52px; height:28px; flex-shrink:0; }
+        .toggle-switch input { opacity:0; width:0; height:0; }
+        .toggle-slider { position:absolute; cursor:pointer; top:0;left:0;right:0;bottom:0; background:#333; border-radius:28px; transition:0.3s; }
+        .toggle-slider:before { position:absolute; content:""; height:20px; width:20px; left:4px; bottom:4px; background:white; border-radius:50%; transition:0.3s; }
+        .toggle-switch input:checked + .toggle-slider { background:#27ae60; }
+        .toggle-switch input:checked + .toggle-slider:before { transform:translateX(24px); }
+        .admin-input { background:#111; border:1px solid #333; color:white; padding:10px 14px; border-radius:8px; width:100%; font-size:14px; font-family:Door,Arial,sans-serif; margin-bottom:8px; transition:border-color 0.2s; }
+        .admin-input:focus { outline:none; border-color:#f1c40f; }
+        .admin-save-btn { background:#f39c12; border:none; color:black; padding:8px 20px; border-radius:8px; cursor:pointer; font-family:Door,Arial,sans-serif; font-size:14px; font-weight:bold; transition:0.2s; }
+        .admin-save-btn:hover { filter:brightness(1.15); }
+        .sub-box { background:rgba(255,255,255,0.03); border:1px solid #222; border-radius:10px; padding:14px; margin-top:6px; display:none; }
+        .user-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid #1a1a1a; }
+        .user-row:last-child { border-bottom:none; }
+        .user-av { width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#e74c3c,#8e44ad);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden; }
+        .user-av img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
+        .user-info { flex:1; min-width:0; }
+        .user-nick-row { font-size:14px; font-weight:bold; }
+        .user-meta { font-size:11px; color:#555; margin-top:2px; }
+        .user-actions { display:flex; gap:6px; flex-shrink:0; flex-wrap:wrap; }
+        .ua-btn { padding:5px 10px; border-radius:6px; border:none; cursor:pointer; font-size:12px; font-family:Door,Arial,sans-serif; transition:0.2s; white-space:nowrap; }
+        .ua-btn:hover { filter:brightness(1.2); }
+        .ua-btn-red { background:#c0392b; color:white; }
+        .ua-btn-green { background:#27ae60; color:white; }
+        .ua-btn-gray { background:#333; color:#aaa; }
+        .ua-btn-gold { background:#f39c12; color:black; }
+        /* Объявление */
+        #announcement-bar { display:none; position:fixed; top:0; left:0; right:0; z-index:450; background:rgba(241,196,15,0.13); border-bottom:1px solid rgba(241,196,15,0.3); padding:9px 20px; text-align:center; color:#f1c40f; font-size:14px; }
+        
         .admin-section h3 { color: #f1c40f; margin-top: 0; font-size: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .viewer { display: none; position: fixed; top:0;left:0;width:100%;height:100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
         .viewer img { max-width: 90%; max-height: 80%; border: 2px solid white; }
@@ -207,6 +241,19 @@
 <div class="bg-layer" id="bgLayer" style="background-image:url('background-red.png');"></div>
 <div class="overlay"></div>
 
+<div id="announcement-bar"></div>
+
+<!-- БАН ИГРОКА -->
+<div class="modal-overlay" id="banuser-modal">
+    <div class="modal-box">
+        <button class="modal-close-btn" onclick="document.getElementById('banuser-modal').classList.remove('show')">✕</button>
+        <h2>⛔ Забанить</h2>
+        <p id="banuser-nick-display" style="color:#aaa;margin-bottom:14px;font-size:16px;"></p>
+        <textarea id="banuser-reason" class="admin-input" style="min-height:80px;resize:vertical;max-width:none;margin-bottom:10px;" placeholder="Причина бана..."></textarea>
+        <button class="button" style="background:#e74c3c;border-color:#e74c3c;color:white;width:100%;font-size:18px;" onclick="confirmBanUser()">Забанить</button>
+    </div>
+</div>
+    
 <!-- БАН -->
 <div class="modal-overlay" id="ban-modal">
     <div class="modal-box">
@@ -270,7 +317,8 @@
     <div id="versions-page" class="page">
         <h2>Архив Версий</h2>
         <p id="dl-count" style="color:#888;font-size:18px;margin-bottom:5px;">⬇ загрузок: ...</p>
-        <button class="button" onclick="downloadGame()">Скачать v0.5</button>
+        <button class="button" id="dl-btn" onclick="downloadGame()">Скачать последнюю версию</button>
+        <p id="dl-version-label" style="color:#555;font-size:14px;margin-top:6px;"></p>
     </div>
 
     <div id="friends-page" class="page">
@@ -301,20 +349,123 @@
         </div>
     </div>
 
-    <div id="admin-page" class="page">
-        <h2 style="color:#f1c40f;">🛠 Панель администратора</h2>
-        <div class="admin-section">
-            <h3>📥 Очередь модерации <span id="mod-queue-count" style="color:#888;font-size:14px;"></span></h3>
-            <p id="mod-empty" style="color:#555;display:none;">Очередь пуста 😴</p>
-            <div id="moderation-grid" class="gallery-grid"></div>
+   <div id="admin-page" class="page">
+    <h2 style="color:#f1c40f;">🛠 Панель администратора</h2>
+
+    <!-- СИСТЕМНЫЕ НАСТРОЙКИ -->
+    <div class="admin-section">
+        <h3>⚙️ Системные настройки</h3>
+
+        <!-- Технический перерыв -->
+        <div class="toggle-row">
+            <div class="toggle-info">
+                <h4>🔧 Технический перерыв (Unity)</h4>
+                <p>При включении — в игре Unity появится окно «Сервер на перерыве». На сайте не влияет.</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="toggle-maintenance" onchange="setSetting('maintenance',this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
         </div>
-        <div class="admin-section">
-            <h3>🖼 Управление галереей</h3>
-            <p style="color:#888;font-size:14px;margin-top:0;">Скрытые фото видны только тебе. Удаление — навсегда.</p>
-            <div id="admin-gallery-grid" class="gallery-grid"></div>
-            <div id="admin-gallery-pagination" class="pagination"></div>
+        <div class="sub-box" id="maintenance-sub">
+            <p style="color:#888;font-size:12px;margin:0 0 8px;">Текст сообщения в игре:</p>
+            <input type="text" id="maintenance-msg-input" class="admin-input" placeholder="Сервер временно недоступен. Попробуй позже." style="max-width:none;">
+            <button class="admin-save-btn" onclick="saveTextSetting('maintenanceMsg','maintenance-msg-input','maintenance-saved')">Сохранить</button>
+            <span id="maintenance-saved" style="color:#2ecc71;font-size:13px;margin-left:8px;"></span>
+        </div>
+
+        <!-- Обновление игры -->
+        <div class="toggle-row">
+            <div class="toggle-info">
+                <h4>🚀 Обновление игры (Unity)</h4>
+                <p>Unity сравнивает свою версию с <b>latestVersion</b> в Firebase. Если устарела — показывает окно обновления.</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="toggle-update" onchange="setSetting('updateAvailable',this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        <div class="sub-box" id="update-sub">
+            <p style="color:#888;font-size:12px;margin:0 0 8px;">Актуальная версия игры (например: <code style="color:#f1c40f;">1.2.0</code>):</p>
+            <input type="text" id="latest-version-input" class="admin-input" placeholder="1.0.0" style="max-width:none;">
+            <p style="color:#888;font-size:12px;margin:8px 0;">Текст сообщения в игре:</p>
+            <input type="text" id="update-msg-input" class="admin-input" placeholder="Вышла новая версия CubiX! Обнови игру." style="max-width:none;">
+            <p style="color:#888;font-size:12px;margin:8px 0;">Ссылка для скачивания:</p>
+            <input type="text" id="update-link-input" class="admin-input" placeholder="https://..." style="max-width:none;">
+            <button class="admin-save-btn" onclick="saveUpdateSettings()">Сохранить всё</button>
+            <span id="update-saved" style="color:#2ecc71;font-size:13px;margin-left:8px;"></span>
+        </div>
+
+        <!-- Объявление на сайте -->
+        <div class="toggle-row">
+            <div class="toggle-info">
+                <h4>📢 Объявление на сайте</h4>
+                <p>Жёлтая полоса вверху страницы для всех посетителей.</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="toggle-announcement" onchange="toggleAnnouncementBox(this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        <div class="sub-box" id="announcement-sub">
+            <input type="text" id="announcement-input" class="admin-input" placeholder="Текст объявления..." style="max-width:none;">
+            <button class="admin-save-btn" onclick="saveTextSetting('announcement','announcement-input','ann-saved')">Сохранить</button>
+            <span id="ann-saved" style="color:#2ecc71;font-size:13px;margin-left:8px;"></span>
+        </div>
+
+        <!-- Ссылка скачивания -->
+        <div class="toggle-row">
+            <div class="toggle-info">
+                <h4>⬇️ Ссылка и версия для скачивания</h4>
+                <p>URL файла и подпись на странице «Версии»</p>
+            </div>
+            <button class="admin-save-btn" onclick="toggleSubBox('dl-link-sub')">Изменить</button>
+        </div>
+        <div class="sub-box" id="dl-link-sub">
+            <input type="text" id="dl-link-input" class="admin-input" placeholder="https://..." style="max-width:none;">
+            <input type="text" id="dl-version-input" class="admin-input" placeholder="Название версии, например v0.6" style="max-width:none;">
+            <button class="admin-save-btn" onclick="saveDlSettings()">Сохранить</button>
+            <span id="dl-link-saved" style="color:#2ecc71;font-size:13px;margin-left:8px;"></span>
+        </div>
+
+        <!-- Запрет регистрации -->
+        <div class="toggle-row">
+            <div class="toggle-info">
+                <h4>🚫 Запретить регистрацию</h4>
+                <p>Новые игроки не смогут создавать аккаунты</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="toggle-reg-disabled" onchange="setSetting('registrationDisabled',this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
         </div>
     </div>
+
+    <!-- УПРАВЛЕНИЕ ИГРОКАМИ -->
+    <div class="admin-section">
+        <h3>👥 Управление игроками</h3>
+        <div style="display:flex;gap:10px;margin-bottom:16px;">
+            <input type="text" id="admin-search-input" class="admin-input" style="flex:1;margin:0;" placeholder="Ник или #ID игрока">
+            <button class="admin-save-btn" onclick="adminSearchUser()">Найти</button>
+        </div>
+        <div id="admin-user-result"></div>
+    </div>
+
+    <!-- МОДЕРАЦИЯ -->
+    <div class="admin-section">
+        <h3>📥 Очередь модерации <span id="mod-queue-count" style="color:#888;font-size:14px;"></span></h3>
+        <p id="mod-empty" style="color:#555;display:none;">Очередь пуста 😴</p>
+        <div id="moderation-grid" class="gallery-grid"></div>
+    </div>
+
+    <!-- ГАЛЕРЕЯ -->
+    <div class="admin-section">
+        <h3>🖼 Управление галереей</h3>
+        <p style="color:#888;font-size:14px;margin-top:0;">Скрытые фото видны только тебе. Удаление — навсегда.</p>
+        <div id="admin-gallery-grid" class="gallery-grid"></div>
+        <div id="admin-gallery-pagination" class="pagination"></div>
+    </div>
+</div>
 
     <div id="profile-page" class="page">
         <div class="verify-screen" id="verify-screen">
@@ -515,6 +666,7 @@ function isOnline(ts){ return ts&&(Date.now()-ts)<ONLINE_MS; }
 // ══════════════════════════════════════════════
 // СОСТОЯНИЕ
 // ══════════════════════════════════════════════
+let _banTargetUid = null;
 let _isAdmin=false,_myUid=null,_myNick=null,_myShortId=null,_myAvatar=0;
 let _selectedAvatar=-1;
 let allGalleryItems=[],currentPage=1,adminAllItems=[],adminPage=1;
@@ -596,21 +748,58 @@ async function ensurePlayerStats(uid){
     }
 }
 async function register(){
+
+    const regDisabledSnap = await db.ref('systemSettings/registrationDisabled').once('value');
+
+    if (regDisabledSnap.val() === true) {
+        showErr('reg-err','Регистрация временно закрыта администратором.');
+        return;
+    }
+
     const nick=document.getElementById('regNick').value.trim();
     const email=document.getElementById('regEmail').value.trim();
     const pass=document.getElementById('regPass').value;
+
     if(!nick)return showErr('reg-err','Введи ник.');
     if(nick.length<2)return showErr('reg-err','Ник слишком короткий.');
     if(!email)return showErr('reg-err','Введи email.');
     if(pass.length<6)return showErr('reg-err','Пароль минимум 6 символов.');
+
     try{
         const res=await auth.createUserWithEmailAndPassword(email,pass);
-        await db.ref('users/'+res.user.uid).set({nick:esc(nick),email,isBannedSite:false,banReason:'',isAdmin:false,avatarIndex:0});
-        await db.ref('playerStats/'+res.user.uid).set({cups:0,rank:'Бронза',wins:0,losses:0,gamesPlayed:0,playtimeSeconds:0,lastOnline:Date.now(),achievements:{}});
+
+        await db.ref('users/'+res.user.uid).set({
+            nick:esc(nick),
+            email,
+            isBannedSite:false,
+            banReason:'',
+            isAdmin:false,
+            avatarIndex:0
+        });
+
+        await db.ref('playerStats/'+res.user.uid).set({
+            cups:0,
+            rank:'Бронза',
+            wins:0,
+            losses:0,
+            gamesPlayed:0,
+            playtimeSeconds:0,
+            lastOnline:Date.now(),
+            achievements:{}
+        });
+
         await res.user.sendEmailVerification();
+
         showVerifyScreen(email);
+
     }catch(e){
-        const msgs={'auth/email-already-in-use':'Этот email уже зарегистрирован.','auth/invalid-email':'Некорректный email.','auth/weak-password':'Пароль слишком слабый.'};
+
+        const msgs={
+            'auth/email-already-in-use':'Этот email уже зарегистрирован.',
+            'auth/invalid-email':'Некорректный email.',
+            'auth/weak-password':'Пароль слишком слабый.'
+        };
+
         showErr('reg-err',msgs[e.code]||e.message);
     }
 }
@@ -754,6 +943,78 @@ async function authStateHandler(user){
 }
 auth.onAuthStateChanged(authStateHandler);
 
+
+// ══ СИСТЕМНЫЕ НАСТРОЙКИ ══
+db.ref('systemSettings').on('value', snap => {
+    const s = snap.val() || {};
+    // Объявление
+    const bar = document.getElementById('announcement-bar');
+    if (s.announcement && s.announcement.trim()) {
+        bar.innerText = '📢  ' + s.announcement;
+        bar.style.display = 'block';
+        document.querySelector('.container').style.paddingTop = '60px';
+    } else {
+        bar.style.display = 'none';
+        document.querySelector('.container').style.paddingTop = '40px';
+    }
+    // Ссылка скачивания
+    window._downloadLink = s.downloadLink || '#';
+    const dlLbl = document.getElementById('dl-version-label');
+    if (dlLbl) dlLbl.innerText = s.downloadVersion ? 'Версия: ' + s.downloadVersion : '';
+    // Синхронизируем переключатели
+    const el = id => document.getElementById(id);
+    if (el('toggle-maintenance'))   el('toggle-maintenance').checked   = !!s.maintenance;
+    if (el('toggle-update'))        el('toggle-update').checked        = !!s.updateAvailable;
+    if (el('toggle-reg-disabled'))  el('toggle-reg-disabled').checked  = !!s.registrationDisabled;
+    if (el('toggle-announcement'))  el('toggle-announcement').checked  = !!(s.announcement && s.announcement.trim());
+    // Показываем sub-box если включено
+    if (el('maintenance-sub'))  el('maintenance-sub').style.display  = s.maintenance      ? 'block' : 'none';
+    if (el('update-sub'))       el('update-sub').style.display       = s.updateAvailable  ? 'block' : 'none';
+    if (el('announcement-sub')) el('announcement-sub').style.display = (s.announcement && s.announcement.trim()) ? 'block' : 'none';
+    // Заполняем поля
+    if (el('maintenance-msg-input'))  el('maintenance-msg-input').value  = s.maintenanceMsg   || '';
+    if (el('latest-version-input'))   el('latest-version-input').value   = s.latestVersion    || '';
+    if (el('update-msg-input'))       el('update-msg-input').value       = s.updateMsg        || '';
+    if (el('update-link-input'))      el('update-link-input').value      = s.updateLink       || '';
+    if (el('dl-link-input'))          el('dl-link-input').value          = s.downloadLink     || '';
+    if (el('dl-version-input'))       el('dl-version-input').value       = s.downloadVersion  || '';
+    if (el('announcement-input'))     el('announcement-input').value     = s.announcement     || '';
+});
+
+async function setSetting(key, val) {
+    await db.ref('systemSettings/' + key).set(val);
+}
+async function saveTextSetting(key, inputId, savedId) {
+    const val = document.getElementById(inputId).value.trim();
+    await db.ref('systemSettings/' + key).set(val);
+    const el = document.getElementById(savedId);
+    if (el) { el.innerText = '✅ Сохранено!'; setTimeout(() => { el.innerText = ''; }, 2500); }
+}
+async function saveUpdateSettings() {
+    const v    = document.getElementById('latest-version-input').value.trim();
+    const msg  = document.getElementById('update-msg-input').value.trim();
+    const link = document.getElementById('update-link-input').value.trim();
+    await db.ref('systemSettings').update({ latestVersion: v, updateMsg: msg, updateLink: link });
+    const el = document.getElementById('update-saved');
+    if (el) { el.innerText = '✅ Сохранено!'; setTimeout(() => { el.innerText = ''; }, 2500); }
+}
+async function saveDlSettings() {
+    const link = document.getElementById('dl-link-input').value.trim();
+    const ver  = document.getElementById('dl-version-input').value.trim();
+    await db.ref('systemSettings').update({ downloadLink: link, downloadVersion: ver });
+    const el = document.getElementById('dl-link-saved');
+    if (el) { el.innerText = '✅ Сохранено!'; setTimeout(() => { el.innerText = ''; }, 2500); }
+}
+function toggleSubBox(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+function toggleAnnouncementBox(on) {
+    const sub = document.getElementById('announcement-sub');
+    if (sub) sub.style.display = on ? 'block' : 'none';
+    if (!on) db.ref('systemSettings/announcement').set('');
+}
+
 // ══════════════════════════════════════════════
 // ГАЛЕРЕЯ — работает БЕЗ логина (из db.ref прямо)
 // ══════════════════════════════════════════════
@@ -807,8 +1068,10 @@ function loadMyGallery(uid){
 // ══════════════════════════════════════════════
 // СКАЧИВАНИЕ
 // ══════════════════════════════════════════════
-async function downloadGame(){await db.ref('downloads/v05').transaction(c=>(c||0)+1);window.open('#','_blank');}
-db.ref('downloads/v05').on('value',snap=>{const el=document.getElementById('dl-count');if(el)el.innerText=`⬇ загрузок: ${snap.val()||0}`;});
+async function downloadGame() {
+    await db.ref('downloads/v05').transaction(c => (c || 0) + 1);
+    window.open(window._downloadLink || '#', '_blank');
+}
 
 // ══════════════════════════════════════════════
 // ЗАГРУЗКА СКРИНШОТА
@@ -1166,6 +1429,68 @@ function listenOutgoing(){
             list.appendChild(div);
         });
     });
+}
+
+// ══ УПРАВЛЕНИЕ ИГРОКАМИ ══
+async function adminSearchUser() {
+    const query = document.getElementById('admin-search-input').value.trim();
+    const res = document.getElementById('admin-user-result');
+    if (!query) { res.innerHTML = ''; return; }
+    res.innerHTML = '<p style="color:#555;font-size:13px;padding:8px 0;">Поиск...</p>';
+    const snap = await db.ref('users').once('value');
+    let found = null, foundUid = null;
+    snap.forEach(child => {
+        const d = child.val(), sid = shortId(child.key);
+        if (query.toUpperCase() === sid || query.toLowerCase() === (d.nick || '').toLowerCase()) { found = d; foundUid = child.key; }
+    });
+    if (!found) { res.innerHTML = '<p style="color:#555;font-size:13px;">Игрок не найден.</p>'; return; }
+    const isBanned = found.isBannedSite === true, isAdm = found.isAdmin === true;
+    const avIdx = found.avatarIndex ?? -1;
+    const avHtml = avIdx >= 0
+        ? `<img src="${AVATAR_BASE + avIdx + '.jpg'}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.src='${AVATAR_BASE + avIdx + '.png'}';this.onerror=null;">`
+        : '👤';
+    res.innerHTML = `<div class="user-row">
+        <div class="user-av">${avHtml}</div>
+        <div class="user-info">
+            <div class="user-nick-row">${esc(found.nick)}
+                ${isBanned ? '<span style="background:rgba(231,76,60,0.2);border:1px solid #e74c3c;color:#e74c3c;font-size:10px;padding:2px 7px;border-radius:10px;margin-left:6px;">⛔ БАН</span>' : ''}
+                ${isAdm   ? '<span style="background:rgba(241,196,15,0.2);border:1px solid #f1c40f;color:#f1c40f;font-size:10px;padding:2px 7px;border-radius:10px;margin-left:6px;">👑 АДМИН</span>' : ''}
+            </div>
+            <div class="user-meta">${shortId(foundUid)} · ${esc(found.email || '')}</div>
+        </div>
+        <div class="user-actions">
+            ${isBanned
+                ? `<button class="ua-btn ua-btn-green" onclick="unbanUser('${foundUid}')">✅ Разбанить</button>`
+                : `<button class="ua-btn ua-btn-red" onclick="openBanModal('${foundUid}','${esc(found.nick)}')">⛔ Забанить</button>`}
+            ${isAdm
+                ? `<button class="ua-btn ua-btn-gray" onclick="setAdminRole('${foundUid}',false)">Снять админа</button>`
+                : `<button class="ua-btn ua-btn-gold" onclick="setAdminRole('${foundUid}',true)">👑 Сделать админом</button>`}
+        </div>
+    </div>`;
+}
+function openBanModal(uid, nick) {
+    _banTargetUid = uid;
+    document.getElementById('banuser-nick-display').innerText = 'Игрок: ' + nick;
+    document.getElementById('banuser-reason').value = '';
+    document.getElementById('banuser-modal').classList.add('show');
+}
+async function confirmBanUser() {
+    if (!_banTargetUid) return;
+    const reason = document.getElementById('banuser-reason').value.trim() || 'Нарушение правил';
+    await db.ref('users/' + _banTargetUid).update({ isBannedSite: true, banReason: reason });
+    document.getElementById('banuser-modal').classList.remove('show');
+    _banTargetUid = null;
+    adminSearchUser();
+}
+async function unbanUser(uid) {
+    if (!confirm('Разбанить игрока?')) return;
+    await db.ref('users/' + uid).update({ isBannedSite: false, banReason: '' });
+    adminSearchUser();
+}
+async function setAdminRole(uid, val) {
+    if (!confirm(val ? 'Сделать администратором?' : 'Снять права администратора?')) return;
+    await db.ref('users/' + uid + '/isAdmin').set(val);
+    adminSearchUser();
 }
 
 function openFull(u){document.getElementById('viewer').style.display='flex';document.getElementById('viewImg').src=u;}
