@@ -1073,6 +1073,11 @@ async function downloadGame() {
     window.open(window._downloadLink || '#', '_blank');
 }
 
+// Читаем счётчик при загрузке страницы
+db.ref('downloads/v05').on('value', snap => {
+    const el = document.getElementById('dl-count');
+    if (el) el.innerText = `⬇ загрузок: ${snap.val() || 0}`;
+});
 // ══════════════════════════════════════════════
 // ЗАГРУЗКА СКРИНШОТА
 // ══════════════════════════════════════════════
