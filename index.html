@@ -455,14 +455,6 @@
         <div id="admin-user-result"></div>
     </div>
 
-    <!-- ЖАЛОБЫ -->
-    <div class="admin-section">
-        <h3>🚨 Жалобы на игроков <span id="reports-count-badge" style="color:#888;font-size:14px;"></span></h3>
-        <p style="color:#555;font-size:13px;margin-top:-8px;margin-bottom:14px;">Показываются игроки с 5+ жалобами. Жалобы автоматически уменьшаются каждые 3 дня игровой активности.</p>
-        <p id="reports-empty" style="color:#555;display:none;">Жалоб нет 🎉</p>
-        <div id="reports-list"></div>
-    </div>
-
     <!-- МОДЕРАЦИЯ -->
     <div class="admin-section">
         <h3>📥 Очередь модерации <span id="mod-queue-count" style="color:#888;font-size:14px;"></span></h3>
@@ -950,7 +942,7 @@ async function authStateHandler(user){
     fb.style.display='inline-block';
     listenFriends();listenIncoming();listenOutgoing();
 
-    if(d.isAdmin===true){_isAdmin=true;ab.style.display='inline-block';loadModeration();loadAdminGallery();listenReports();}
+    if(d.isAdmin===true){_isAdmin=true;ab.style.display='inline-block';loadModeration();loadAdminGallery();}
     loadMyGallery(user.uid);
 }
 auth.onAuthStateChanged(authStateHandler);
@@ -1482,8 +1474,6 @@ async function adminSearchUser() {
             ${isAdm
                 ? `<button class="ua-btn ua-btn-gray" onclick="setAdminRole('${foundUid}',false)">Снять админа</button>`
                 : `<button class="ua-btn ua-btn-gold" onclick="setAdminRole('${foundUid}',true)">👑 Сделать админом</button>`}
-                
-            `<button class="ua-btn ua-btn-gold" style="background:#f1c40f;" onclick="openGameBanModal('${foundUid}','${esc(found.nick)}')">⏱ Бан в игре</button>`
         </div>
     </div>`;
 }
