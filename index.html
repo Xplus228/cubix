@@ -207,7 +207,15 @@
         .ua-btn-green { background:#27ae60; color:white; }
         .ua-btn-gray { background:#333; color:#aaa; }
         .ua-btn-gold { background:#f39c12; color:black; }
-        
+        .ban-tag { display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:bold; margin-left:6px; }
+        .ban-tag-game { background:rgba(231,196,15,0.2); border:1px solid #f1c40f; color:#f1c40f; }
+        .ban-tag-site { background:rgba(231,76,60,0.2); border:1px solid #e74c3c; color:#e74c3c; }
+        .report-card { display:flex; align-items:center; gap:12px; padding:12px; background:rgba(255,255,255,0.03); border:1px solid #333; border-radius:12px; margin-bottom:8px; }
+        .report-count { font-size:28px; font-weight:bold; color:#e74c3c; min-width:48px; text-align:center; }
+        .report-info { flex:1; min-width:0; }
+        .report-nick { font-size:15px; font-weight:bold; color:white; }
+        .report-meta { font-size:12px; color:#555; margin-top:3px; }
+        .report-actions { display:flex; gap:6px; flex-shrink:0; }
         
         
         /* Объявление */
@@ -257,6 +265,27 @@
     </div>
 </div>
 
+<!-- ВРЕМЕННЫЙ БАН В ИГРЕ -->
+<div class="modal-overlay" id="gameban-modal">
+    <div class="modal-box">
+        <button class="modal-close-btn" onclick="document.getElementById('gameban-modal').classList.remove('show')">✕</button>
+        <h2 style="color:#f1c40f;">⏱ Бан в игре</h2>
+        <p id="gameban-nick-display" style="color:#aaa;margin-bottom:14px;font-size:16px;"></p>
+        <p style="color:#555;font-size:13px;margin-bottom:8px;">Длительность:</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+            <button class="ua-btn ua-btn-gray" onclick="setGameBanDuration(1)">1 час</button>
+            <button class="ua-btn ua-btn-gray" onclick="setGameBanDuration(6)">6 часов</button>
+            <button class="ua-btn ua-btn-gray" onclick="setGameBanDuration(24)">1 день</button>
+            <button class="ua-btn ua-btn-gray" onclick="setGameBanDuration(72)">3 дня</button>
+            <button class="ua-btn ua-btn-gray" onclick="setGameBanDuration(168)">7 дней</button>
+            <button class="ua-btn ua-btn-gray" onclick="setGameBanDuration(720)">30 дней</button>
+        </div>
+        <p style="color:#555;font-size:13px;margin-bottom:8px;">Или введи часы вручную:</p>
+        <input type="number" id="gameban-hours-input" class="admin-input" style="max-width:none;margin-bottom:10px;" placeholder="Например: 48" min="1">
+        <textarea id="gameban-reason-input" class="admin-input" style="min-height:60px;resize:vertical;max-width:none;margin-bottom:10px;" placeholder="Причина бана в игре..."></textarea>
+        <button class="button" style="background:#f1c40f;border-color:#f1c40f;color:black;width:100%;font-size:18px;" onclick="confirmGameBan()">Забанить в игре</button>
+    </div>
+</div>
     
 <!-- БАН -->
 <div class="modal-overlay" id="ban-modal">
@@ -453,6 +482,14 @@
             <button class="admin-save-btn" onclick="adminSearchUser()">Найти</button>
         </div>
         <div id="admin-user-result"></div>
+    </div>
+
+    <!-- ЖАЛОБЫ -->
+    <div class="admin-section">
+        <h3>🚨 Жалобы на игроков <span id="reports-count-badge" style="color:#888;font-size:14px;"></span></h3>
+        <p style="color:#555;font-size:13px;margin-top:-8px;margin-bottom:14px;">Показываются игроки с 5+ жалобами. Жалобы автоматически уменьшаются каждые 3 дня игровой активности.</p>
+        <p id="reports-empty" style="color:#555;display:none;">Жалоб нет 🎉</p>
+        <div id="reports-list"></div>
     </div>
 
     <!-- МОДЕРАЦИЯ -->
@@ -942,7 +979,7 @@ async function authStateHandler(user){
     fb.style.display='inline-block';
     listenFriends();listenIncoming();listenOutgoing();
 
-    if(d.isAdmin===true){_isAdmin=true;ab.style.display='inline-block';loadModeration();loadAdminGallery();}
+    if(d.isAdmin===true){_isAdmin=true;ab.style.display='inline-block';loadModeration();loadAdminGallery();listenReports();}
     loadMyGallery(user.uid);
 }
 auth.onAuthStateChanged(authStateHandler);
@@ -1474,6 +1511,8 @@ async function adminSearchUser() {
             ${isAdm
                 ? `<button class="ua-btn ua-btn-gray" onclick="setAdminRole('${foundUid}',false)">Снять админа</button>`
                 : `<button class="ua-btn ua-btn-gold" onclick="setAdminRole('${foundUid}',true)">👑 Сделать админом</button>`}
+
+            `<button class="ua-btn ua-btn-gold" style="background:#f1c40f;" onclick="openGameBanModal('${foundUid}','${esc(found.nick)}')">⏱ Бан в игре</button>`
         </div>
     </div>`;
 }
@@ -1546,6 +1585,111 @@ async function clearReports(uid) {
     await db.ref('reports/' + uid).remove();
 }
 
+// ══ ВРЕМЕННЫЙ БАН В ИГРЕ ══
+let _gameBanTargetUid = null;
+let _gameBanHours = 24;
+
+function openGameBanModal(uid, nick) {
+    _gameBanTargetUid = uid;
+    _gameBanHours = 24;
+    document.getElementById('gameban-nick-display').innerText = 'Игрок: ' + nick;
+    document.getElementById('gameban-hours-input').value = '24';
+    document.getElementById('gameban-reason-input').value = '';
+    document.getElementById('gameban-modal').classList.add('show');
+}
+function setGameBanDuration(hours) {
+    _gameBanHours = hours;
+    document.getElementById('gameban-hours-input').value = hours;
+}
+async function confirmGameBan() {
+    if (!_gameBanTargetUid) return;
+    const hoursInput = parseInt(document.getElementById('gameban-hours-input').value) || _gameBanHours;
+    const reason = document.getElementById('gameban-reason-input').value.trim() || 'Нарушение правил';
+    const until = Date.now() + hoursInput * 60 * 60 * 1000;
+    await db.ref('playerBans/' + _gameBanTargetUid).set({
+        gameBanUntil: until,
+        gameBanReason: reason,
+        gameBannedBy: 'admin'
+    });
+    document.getElementById('gameban-modal').classList.remove('show');
+    _gameBanTargetUid = null;
+    alert(`Игрок забанен на ${hoursInput} ч.`);
+    adminSearchUser();
+}
+async function removeGameBan(uid) {
+    if (!confirm('Снять бан в игре?')) return;
+    await db.ref('playerBans/' + uid).remove();
+    adminSearchUser();
+}
+
+// ══ СИСТЕМА ЖАЛОБ ══
+const REPORT_THRESHOLD = 5; // показывать начиная с 5 жалоб
+
+function listenReports() {
+    db.ref('reports').on('value', snap => {
+        const list = document.getElementById('reports-list');
+        const empty = document.getElementById('reports-empty');
+        const badge = document.getElementById('reports-count-badge');
+        if (!list) return;
+        list.innerHTML = '';
+        let shown = 0;
+
+        snap.forEach(child => {
+            const d = child.val();
+            const uid = child.key;
+            const count = d.count || 0;
+            if (count < REPORT_THRESHOLD) return;
+            shown++;
+
+            const row = document.createElement('div');
+            row.className = 'report-card';
+            row.id = 'report-row-' + uid;
+
+            // Загружаем ник и аватар асинхронно
+            row.innerHTML = `
+                <div class="report-count">${count}</div>
+                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#e74c3c,#8e44ad);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden;" id="rep-av-${uid}">👤</div>
+                <div class="report-info">
+                    <div class="report-nick" id="rep-nick-${uid}">Загрузка...</div>
+                    <div class="report-meta" id="rep-meta-${uid}">${shortId(uid)}</div>
+                </div>
+                <div class="report-actions">
+                    <button class="ua-btn ua-btn-gold" style="background:#f1c40f;" onclick="openGameBanModal('${uid}','...')">⏱ Бан в игре</button>
+                    <button class="ua-btn ua-btn-red" onclick="openBanModal('${uid}','...')">⛔ Бан на сайте</button>
+                    <button class="ua-btn ua-btn-gray" onclick="clearReports('${uid}')">🗑 Сбросить жалобы</button>
+                </div>`;
+            list.appendChild(row);
+
+            // Загружаем данные пользователя
+            db.ref('users/' + uid).once('value').then(uSnap => {
+                if (!uSnap.exists()) return;
+                const u = uSnap.val();
+                const nickEl = document.getElementById('rep-nick-' + uid);
+                const metaEl = document.getElementById('rep-meta-' + uid);
+                const avEl   = document.getElementById('rep-av-' + uid);
+                if (nickEl) nickEl.innerText = u.nick || '?';
+                if (metaEl) metaEl.innerText = shortId(uid) + (u.isBannedSite ? ' · ⛔ забанен на сайте' : '');
+                if (avEl && (u.avatarIndex ?? -1) >= 0) {
+                    const idx = u.avatarIndex;
+                    avEl.innerHTML = `<img src="${AVATAR_BASE + idx + '.jpg'}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.src='${AVATAR_BASE + idx + '.png'}';this.onerror=null;">`;
+                }
+                // Обновляем кнопки с правильным ником
+                const btns = document.querySelectorAll(`#report-row-${uid} .ua-btn`);
+                if (btns[0]) btns[0].setAttribute('onclick', `openGameBanModal('${uid}','${esc(u.nick)}')`);
+                if (btns[1]) btns[1].setAttribute('onclick', `openBanModal('${uid}','${esc(u.nick)}')`);
+            });
+        });
+
+        badge.innerText = shown > 0 ? `(${shown})` : '';
+        empty.style.display = shown === 0 ? 'block' : 'none';
+    });
+}
+
+async function clearReports(uid) {
+    if (!confirm('Сбросить все жалобы на этого игрока?')) return;
+    await db.ref('reports/' + uid).remove();
+}
+    
 function openFull(u){document.getElementById('viewer').style.display='flex';document.getElementById('viewImg').src=u;}
 </script>
 </body>
