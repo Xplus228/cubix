@@ -979,7 +979,7 @@ async function authStateHandler(user){
     fb.style.display='inline-block';
     listenFriends();listenIncoming();listenOutgoing();
 
-    if(d.isAdmin===true){_isAdmin=true;ab.style.display='inline-block';loadModeration();loadAdminGallery();}
+    if(d.isAdmin===true){_isAdmin=true;ab.style.display='inline-block';loadModeration();loadAdminGallery();listenReports();}
     loadMyGallery(user.uid);
 }
 auth.onAuthStateChanged(authStateHandler);
@@ -1511,8 +1511,7 @@ async function adminSearchUser() {
             ${isAdm
                 ? `<button class="ua-btn ua-btn-gray" onclick="setAdminRole('${foundUid}',false)">Снять админа</button>`
                 : `<button class="ua-btn ua-btn-gold" onclick="setAdminRole('${foundUid}',true)">👑 Сделать админом</button>`}
-
-            `<button class="ua-btn ua-btn-gold" style="background:#f1c40f;" onclick="openGameBanModal('${foundUid}','${esc(found.nick)}')">⏱ Бан в игре</button>`
+            <button class="ua-btn ua-btn-gold" style="background:#f1c40f;" onclick="openGameBanModal('${foundUid}','${esc(found.nick)}')">⏱ Бан в игре</button>
         </div>
     </div>`;
 }
@@ -1541,49 +1540,6 @@ async function setAdminRole(uid, val) {
     adminSearchUser();
 }
 
-// ══ ВРЕМЕННЫЙ БАН В ИГРЕ ══
-let _gameBanTargetUid = null;
-let _gameBanHours = 24;
-
-function openGameBanModal(uid, nick) {
-    _gameBanTargetUid = uid;
-    _gameBanHours = 24;
-    document.getElementById('gameban-nick-display').innerText = 'Игрок: ' + nick;
-    document.getElementById('gameban-hours-input').value = '24';
-    document.getElementById('gameban-reason-input').value = '';
-    document.getElementById('gameban-modal').classList.add('show');
-}
-function setGameBanDuration(hours) {
-    _gameBanHours = hours;
-    document.getElementById('gameban-hours-input').value = hours;
-}
-async function confirmGameBan() {
-    if (!_gameBanTargetUid) return;
-    const hoursInput = parseInt(document.getElementById('gameban-hours-input').value) || _gameBanHours;
-    const reason = document.getElementById('gameban-reason-input').value.trim() || 'Нарушение правил';
-    const until = Date.now() + hoursInput * 60 * 60 * 1000;
-    await db.ref('playerBans/' + _gameBanTargetUid).set({
-        gameBanUntil: until,
-        gameBanReason: reason,
-        gameBannedBy: 'admin'
-    });
-    document.getElementById('gameban-modal').classList.remove('show');
-    _gameBanTargetUid = null;
-    alert(`Игрок забанен на ${hoursInput} ч.`);
-    adminSearchUser();
-}
-async function removeGameBan(uid) {
-    if (!confirm('Снять бан в игре?')) return;
-    await db.ref('playerBans/' + uid).remove();
-    adminSearchUser();
-}
-
-
-
-async function clearReports(uid) {
-    if (!confirm('Сбросить все жалобы на этого игрока?')) return;
-    await db.ref('reports/' + uid).remove();
-}
 
 // ══ ВРЕМЕННЫЙ БАН В ИГРЕ ══
 let _gameBanTargetUid = null;
@@ -1683,11 +1639,6 @@ function listenReports() {
         badge.innerText = shown > 0 ? `(${shown})` : '';
         empty.style.display = shown === 0 ? 'block' : 'none';
     });
-}
-
-async function clearReports(uid) {
-    if (!confirm('Сбросить все жалобы на этого игрока?')) return;
-    await db.ref('reports/' + uid).remove();
 }
     
 function openFull(u){document.getElementById('viewer').style.display='flex';document.getElementById('viewImg').src=u;}
