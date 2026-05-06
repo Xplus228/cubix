@@ -979,7 +979,7 @@ async function authStateHandler(user){
     fb.style.display='inline-block';
     listenFriends();listenIncoming();listenOutgoing();
 
-    if(d.isAdmin===true){_isAdmin=true;ab.style.display='inline-block';loadModeration();loadAdminGallery();listenReports();}
+    if(d.isAdmin===true){_isAdmin=true;ab.style.display='inline-block';loadModeration();loadAdminGallery();}
     loadMyGallery(user.uid);
 }
 auth.onAuthStateChanged(authStateHandler);
