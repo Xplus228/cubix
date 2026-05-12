@@ -1102,18 +1102,35 @@ function makeCard(d){
     return card;
 }
 
-function loadMyGallery(uid){
-    const grid=document.getElementById('my-gallery'),empty=document.getElementById('my-gallery-empty');
-    if(!grid)return;
-    db.ref('gallery').orderByChild('uid').equalTo(uid).on('value',snap=>{
-        grid.innerHTML='';let all=[];
-        snap.forEach(c=>all.push(c.val()));all.reverse();
-        all.forEach(d=>{
-            if(d.hidden)return;
-            const meta=(d.width&&d.height)?`${d.width}x${d.height}`:'';
-            grid.innerHTML+=`<div class="card"><img src="${esc(d.url)}" onclick="openFull('${esc(d.url)}')" loading="lazy"><div class="card-info"><div class="card-desc">${esc(d.desc)||''}</div><div class="card-meta"><span>📅 ${esc(fmtTime(d.time))}</span><span>📐 ${meta}</span></div></div></div>`;
+function loadMyGallery(uid) {
+    const grid  = document.getElementById('my-gallery');
+    const empty = document.getElementById('my-gallery-empty');
+    if (!grid) return;
+    // Сначала очищаем
+    grid.innerHTML = '';
+    if (empty) empty.style.display = 'none';
+
+    db.ref('gallery').orderByChild('uid').equalTo(uid).on('value', snap => {
+        grid.innerHTML = '';
+        let all = [];
+        snap.forEach(c => { const v = c.val(); if (v) all.push(v); });
+        all.reverse();
+        const visible = all.filter(d => !d.hidden);
+        visible.forEach(d => {
+            const meta = (d.width && d.height) ? `${d.width}x${d.height}` : '';
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `<img src="${esc(d.url)}" onclick="openFull('${esc(d.url)}')" loading="lazy">
+                <div class="card-info">
+                    <div class="card-desc">${esc(d.desc) || ''}</div>
+                    <div class="card-meta">
+                        <span>📅 ${esc(fmtTime(d.time))}</span>
+                        <span>📐 ${meta}</span>
+                    </div>
+                </div>`;
+            grid.appendChild(card);
         });
-        empty.style.display=all.filter(x=>!x.hidden).length===0?'block':'none';
+        if (empty) empty.style.display = visible.length === 0 ? 'block' : 'none';
     });
 }
 
@@ -1196,13 +1213,21 @@ function loadAdminGallery() {
     const grid = document.getElementById('admin-gallery-grid');
     const pag  = document.getElementById('admin-gallery-pagination');
     if (!grid) return;
-    if (_admListener) db.ref('gallery').off('value', _admListener);
-    _admListener = db.ref('gallery').on('value', snap => {
+    // Отписываемся от старого если был
+    if (_admListener) {
+        db.ref('gallery').off('value', _admListener);
+        _admListener = null;
+    }
+    _admListener = function(snap) {
         adminAllItems = [];
-        snap.forEach(c => adminAllItems.push({ key: c.key, ...c.val() }));
+        snap.forEach(c => {
+            const v = c.val();
+            if (v && v.url) adminAllItems.push({ key: c.key, ...v });
+        });
         adminAllItems.reverse();
         renderAdminPage(grid, pag);
-    });
+    };
+    db.ref('gallery').on('value', _admListener);
 }
 function renderAdminPage(grid,pag){
     const total=Math.ceil(adminAllItems.length/ITEMS_PER_PAGE)||1;
