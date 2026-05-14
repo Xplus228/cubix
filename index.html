@@ -247,6 +247,36 @@
         .fpm-stat-val { font-size: 20px; font-weight: bold; }
         .fpm-stat-lbl { font-size: 10px; color: #555; text-transform: uppercase; margin-top: 4px; }
         .fpm-actions { display: flex; gap: 8px; margin-top: 16px; }
+
+        /* ── БЛЮР / SENSITIVE ── */
+        .img-blur { filter: blur(18px); transition: filter 0.3s; cursor: pointer; }
+        .img-blur:hover { filter: blur(8px); }
+        .sensitive-badge { position:absolute; top:8px; left:8px; background:rgba(231,76,60,0.85); color:white; font-size:11px; padding:3px 8px; border-radius:8px; pointer-events:none; z-index:2; }
+        .card.sensitive-card { border-color: #8b0000; }
+        
+        /* ── ЯЗЫК ── */
+        #lang-switcher { position:fixed; bottom:18px; right:18px; z-index:900; display:flex; gap:6px; background:rgba(15,15,15,0.85); border:1px solid #333; border-radius:20px; padding:6px 12px; }
+        #lang-switcher span { cursor:pointer; font-size:13px; color:#555; transition:0.2s; padding:2px 6px; border-radius:10px; }
+        #lang-switcher span.active-lang { color:#f1c40f; background:rgba(241,196,15,0.1); }
+        #lang-switcher span:hover { color:white; }
+        
+        /* ── WARNING MODAL ── */
+        #blur-warning-modal { display:none; position:fixed; top:0;left:0;width:100%;height:100%; background:rgba(0,0,0,0.96); z-index:900; align-items:center; justify-content:center; animation:fadeIn 0.3s; }
+        #blur-warning-modal.show { display:flex; }
+        .blur-warning-box { background:#0a0a0a; border:2px solid #e74c3c; border-radius:20px; padding:36px 30px; max-width:480px; width:90%; text-align:center; }
+        .blur-warning-box .warn-icon { font-size:52px; margin-bottom:12px; }
+        .blur-warning-box h2 { color:#e74c3c; font-size:22px; margin:0 0 16px; letter-spacing:1px; }
+        .blur-warning-box p { color:#888; font-size:13px; line-height:1.7; margin-bottom:20px; }
+        .blur-warning-btns { display:flex; gap:10px; justify-content:center; }
+        .blur-cancel-btn { background:#222; border:1px solid #444; color:#aaa; padding:10px 24px; border-radius:10px; cursor:pointer; font-family:Door,Arial,sans-serif; font-size:15px; transition:0.2s; }
+        .blur-cancel-btn:hover { background:#333; color:white; }
+        .blur-confirm-btn { background:#e74c3c; border:none; color:white; padding:10px 24px; border-radius:10px; cursor:pointer; font-family:Door,Arial,sans-serif; font-size:15px; transition:0.2s; }
+        .blur-confirm-btn:hover { filter:brightness(1.2); }
+
+        /* ── НАСТРОЙКА БЛЮРА В ПРОФИЛЕ ── */
+        .profile-setting-row { display:flex; align-items:center; justify-content:space-between; padding:14px 28px; border-top:1px solid rgba(255,255,255,0.05); gap:12px; }
+        .profile-setting-row p { margin:0; font-size:13px; color:#555; }
+        
     </style>
 </head>
 <body>
@@ -315,6 +345,19 @@
         <p style="color:#555;font-size:13px;margin:4px 0 0;">Нажми на любой, затем «Сохранить»</p>
         <div class="avatar-picker" id="avatar-picker"></div>
         <button class="button" style="width:100%;font-size:18px;margin-top:6px;" onclick="saveAvatar()">Сохранить</button>
+    </div>
+</div>
+
+<!-- WARNING: ОТКЛЮЧЕНИЕ ЦЕНЗУРЫ -->
+<div id="blur-warning-modal">
+    <div class="blur-warning-box">
+        <div class="warn-icon">⚠️</div>
+        <h2 id="warn-title">ВНИМАНИЕ!</h2>
+        <p id="warn-text">Вы собираетесь отключить цензуру.<br>Некоторый контент может быть неприемлем для отдельных людей.<br><br>Автор игры не поддерживает и не пропагандирует какие-либо идеологии, показанные в шутках или медиа.<br><br>Вы подтверждаете, что вам есть <strong style="color:white;">18 лет</strong> и принимаете ответственность за просматриваемый контент.</p>
+        <div class="blur-warning-btns">
+            <button class="blur-cancel-btn" id="warn-cancel-btn" onclick="cancelDisableBlur()">Отмена</button>
+            <button class="blur-confirm-btn" id="warn-confirm-btn" onclick="confirmDisableBlur()">Отключить цензуру</button>
+        </div>
     </div>
 </div>
 
@@ -613,6 +656,16 @@
                         <div class="ach-text"><div class="stat-tile-val" id="disp-ach" style="color:#9b59b6;font-size:20px;">—</div><div class="stat-tile-lbl">Ачивок</div></div>
                         <div class="ach-bar-wrap"><div class="ach-bar-row"><span id="ach-label-cur">0</span><span id="ach-label-total">/ ?</span></div><div class="ach-bar"><div class="ach-bar-fill" id="ach-bar-fill" style="width:0%"></div></div></div>
                     </div>
+                </div>
+                <div class="profile-setting-row">
+                    <div>
+                        <div style="font-size:14px;color:white;">🔞 Блюр sensitive-картинок</div>
+                        <p id="blur-setting-desc">Размывает контент для взрослых</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-blur" checked onchange="onBlurToggleChange(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
                 </div>
                 <div class="profile-actions">
                     <button class="profile-btn-logout" onclick="logout()">Выйти из аккаунта</button>
@@ -1095,11 +1148,31 @@ function renderGalleryPage(){
     for(let i=1;i<=total;i++){const btn=document.createElement('button');btn.className='page-btn'+(i===currentPage?' active':'');btn.textContent=i;btn.onclick=()=>{currentPage=i;renderGalleryPage();};pag.appendChild(btn);}
 }
 
-function makeCard(d){
-    const meta=(d.width&&d.height)?`${d.width}x${d.height}`:'';
-    const idBadge=d.authorId?`<span class="card-author-id">${esc(d.authorId)}</span>`:'';
-    const card=document.createElement('div');card.className='card';
-    card.innerHTML=`<img src="${esc(d.url)}" onclick="openFull('${esc(d.url)}')" loading="lazy"><div class="card-info"><div class="card-author">${esc(d.author)}${idBadge}</div><div class="card-desc">${esc(d.desc)||'<em style="color:#555">нет описания</em>'}</div><div class="card-meta"><span>📅 ${esc(fmtTime(d.time))}</span><span>📐 ${meta}</span></div></div>`;
+function makeCard(d) {
+    const meta = (d.width && d.height) ? `${d.width}x${d.height}` : '';
+    const idBadge = d.authorId ? `<span class="card-author-id">${esc(d.authorId)}</span>` : '';
+    const isSens = d.sensitive === true;
+    const card = document.createElement('div');
+    card.className = 'card' + (isSens ? ' sensitive-card' : '');
+    const img = document.createElement('img');
+    img.src = esc(d.url);
+    img.loading = 'lazy';
+    img.style.cssText = 'width:100%;aspect-ratio:16/9;object-fit:cover;cursor:pointer;display:block;';
+    img.onclick = () => openFull(d.url);
+    if (isSens) {
+        img.setAttribute('data-sensitive', 'true');
+        if (_blurEnabled) img.classList.add('img-blur');
+        img.onclick = () => {
+            if (_blurEnabled && img.classList.contains('img-blur')) {
+                img.classList.remove('img-blur');
+                setTimeout(() => { if (_blurEnabled) img.classList.add('img-blur'); }, 4000);
+            } else {
+                openFull(d.url);
+            }
+        };
+    }
+    card.innerHTML = `${isSens ? '<span class="sensitive-badge">sensitive</span>' : ''}<div class="card-info"><div class="card-author">${esc(d.author)}${idBadge}</div><div class="card-desc">${esc(d.desc) || '<em style="color:#555">нет описания</em>'}</div><div class="card-meta"><span>📅 ${esc(fmtTime(d.time))}</span><span>📐 ${meta}</span></div></div>`;
+    card.insertBefore(img, card.firstChild);
     return card;
 }
 
@@ -1237,7 +1310,7 @@ function renderAdminPage(grid,pag){
     adminAllItems.slice((adminPage-1)*ITEMS_PER_PAGE,adminPage*ITEMS_PER_PAGE).forEach(d=>{
         const isH=d.hidden===true,meta=(d.width&&d.height)?`${d.width}x${d.height}`:'';
         const card=document.createElement('div');card.className='card'+(isH?' hidden-card':'');card.id='admcard-'+d.key;
-        card.innerHTML=`<div style="position:relative;"><img src="${esc(d.url)}" onclick="openFull('${esc(d.url)}')" loading="lazy">${isH?'<div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;pointer-events:none;font-size:16px;color:#e74c3c;">🚫 СКРЫТО</div>':''}</div><div class="card-info"><div class="card-author">${esc(d.author)} <span class="card-author-id">${esc(d.authorId||'')}</span></div><div id="admview-${d.key}"><div class="card-desc">${esc(d.desc)||'<em style="color:#555">нет описания</em>'}</div><div class="card-meta"><span>📅 ${esc(fmtTime(d.time))}</span><span>📐 ${meta}</span></div><div class="card-actions"><button class="icon-btn" onclick="toggleHide('${d.key}',${isH})">${isH?'👁':'🙈'}</button><button class="icon-btn" onclick="startEditGallery('${d.key}')">✏️</button><span class="card-actions-spacer"></span><button class="icon-btn del" onclick="deleteFromGallery('${d.key}')">🗑️</button></div></div><div id="admedit-${d.key}" style="display:none;"><textarea class="edit-field" id="adm-edit-desc-${d.key}" style="min-height:60px;resize:vertical;">${esc(d.desc||'')}</textarea><input class="edit-field" id="adm-edit-time-${d.key}" value="${esc(d.time||'')}"><div style="display:flex;gap:6px;margin-top:6px;"><button class="mod-btn mod-btn-approve" onclick="saveGalleryEdit('${d.key}')">💾 Сохранить</button><button class="mod-btn mod-btn-hide" onclick="cancelEditGallery('${d.key}')">✕ Отмена</button></div></div><p id="adm-status-${d.key}" style="color:#f1c40f;font-size:13px;margin-top:6px;min-height:1em;"></p></div>`;
+        card.innerHTML=`<div style="position:relative;"><img src="${esc(d.url)}" onclick="openFull('${esc(d.url)}')" loading="lazy">${isH?'<div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;pointer-events:none;font-size:16px;color:#e74c3c;">🚫 СКРЫТО</div>':''}</div><div class="card-info"><div class="card-author">${esc(d.author)} <span class="card-author-id">${esc(d.authorId||'')}</span></div><div id="admview-${d.key}"><div class="card-desc">${esc(d.desc)||'<em style="color:#555">нет описания</em>'}</div><div class="card-meta"><span>📅 ${esc(fmtTime(d.time))}</span><span>📐 ${meta}</span></div><div class="card-actions"><button class="icon-btn" onclick="toggleHide('${d.key}',${isH})">${isH?'👁':'🙈'}</button><button class="icon-btn" onclick="toggleSensitive('${d.key}',${d.sensitive===true})" title="Sensitive" style="color:${d.sensitive===true?'#e74c3c':'#555'}">${d.sensitive===true?'🔞':'👁‍🗨'}</button><button class="icon-btn" onclick="startEditGallery('${d.key}')">✏️</button><span class="card-actions-spacer"></span><button class="icon-btn del" onclick="deleteFromGallery('${d.key}')">🗑️</button></div></div><div id="admedit-${d.key}" style="display:none;"><textarea class="edit-field" id="adm-edit-desc-${d.key}" style="min-height:60px;resize:vertical;">${esc(d.desc||'')}</textarea><input class="edit-field" id="adm-edit-time-${d.key}" value="${esc(d.time||'')}"><div style="display:flex;gap:6px;margin-top:6px;"><button class="mod-btn mod-btn-approve" onclick="saveGalleryEdit('${d.key}')">💾 Сохранить</button><button class="mod-btn mod-btn-hide" onclick="cancelEditGallery('${d.key}')">✕ Отмена</button></div></div><p id="adm-status-${d.key}" style="color:#f1c40f;font-size:13px;margin-top:6px;min-height:1em;"></p></div>`;
         grid.appendChild(card);
     });
     pag.innerHTML='';
@@ -1688,8 +1761,142 @@ kofiWidgetOverlay.draw('cubixd', {
     'floating-chat.donateButton.background-color': '#794bc4',
     'floating-chat.donateButton.text-color': '#fff'
 });
+
+// ══════════════════════════════════════════════
+// ЛОКАЛИЗАЦИЯ
+// ══════════════════════════════════════════════
+const LANGS = {
+    ru: {
+        nav_home:'Главная', nav_gallery:'Галерея', nav_versions:'Версии',
+        nav_friends:'Друзья', nav_profile:'Профиль', nav_donate:'💜 Поддержать',
+        nav_admin:'🛠 Админ', nav_fandom:'Fandom❤️‍🔥',
+        warn_title:'ВНИМАНИЕ!',
+        warn_text:'Вы собираетесь отключить цензуру.<br>Некоторый контент может быть неприемлем для отдельных людей.<br><br>Автор игры не поддерживает и не пропагандирует какие-либо идеологии, показанные в шутках или медиа.<br><br>Вы подтверждаете, что вам есть <strong style="color:white;">18 лет</strong> и принимаете ответственность за просматриваемый контент.',
+        warn_cancel:'Отмена', warn_confirm:'Отключить цензуру',
+        blur_label:'🔞 Блюр sensitive-картинок',
+        blur_desc:'Размывает контент для взрослых',
+        sensitive_badge:'sensitive',
+        logout:'Выйти из аккаунта',
+        delete_account:'Удалить аккаунт',
+        my_screenshots:'Мои скриншоты',
+        no_screenshots:'Пока нет одобренных скриншотов.',
+        loading:'Загрузка...',
+        player_not_found:'Игрок не найден.',
+        find_player:'🔍 Найти игрока',
+        incoming:'📨 Входящие заявки',
+        outgoing:'📤 Исходящие заявки',
+        friends:'👥 Друзья',
+        no_friends:'Пока нет друзей. Найди кого-нибудь выше!',
+    },
+    en: {
+        nav_home:'Home', nav_gallery:'Gallery', nav_versions:'Versions',
+        nav_friends:'Friends', nav_profile:'Profile', nav_donate:'💜 Support',
+        nav_admin:'🛠 Admin', nav_fandom:'Fandom❤️‍🔥',
+        warn_title:'WARNING!',
+        warn_text:'You are about to disable content filtering.<br>Some content may be inappropriate for certain people.<br><br>The game author does not support or promote any ideologies shown in jokes or media.<br><br>You confirm that you are <strong style="color:white;">18+</strong> and take responsibility for the content you view.',
+        warn_cancel:'Cancel', warn_confirm:'Disable censorship',
+        blur_label:'🔞 Blur sensitive images',
+        blur_desc:'Blurs adult content',
+        sensitive_badge:'sensitive',
+        logout:'Sign out',
+        delete_account:'Delete account',
+        my_screenshots:'My screenshots',
+        no_screenshots:'No approved screenshots yet.',
+        loading:'Loading...',
+        player_not_found:'Player not found.',
+        find_player:'🔍 Find player',
+        incoming:'📨 Incoming requests',
+        outgoing:'📤 Outgoing requests',
+        friends:'👥 Friends',
+        no_friends:'No friends yet. Find someone above!',
+    }
+};
+
+let _lang = localStorage.getItem('cubix_lang') || (navigator.language.startsWith('ru') ? 'ru' : 'en');
+
+function t(key) { return LANGS[_lang]?.[key] || LANGS['ru'][key] || key; }
+
+function setLang(lang) {
+    _lang = lang;
+    localStorage.setItem('cubix_lang', lang);
+    applyLang();
+}
+
+function applyLang() {
+    // Переключатель
+    document.getElementById('lang-ru')?.classList.toggle('active-lang', _lang === 'ru');
+    document.getElementById('lang-en')?.classList.toggle('active-lang', _lang === 'en');
+    // Предупреждение
+    const wt = document.getElementById('warn-title');
+    const wx = document.getElementById('warn-text');
+    const wc = document.getElementById('warn-cancel-btn');
+    const wk = document.getElementById('warn-confirm-btn');
+    if (wt) wt.innerText = t('warn_title');
+    if (wx) wx.innerHTML = t('warn_text');
+    if (wc) wc.innerText = t('warn_cancel');
+    if (wk) wk.innerText = t('warn_confirm');
+    // Настройка блюра в профиле
+    const bd = document.getElementById('blur-setting-desc');
+    if (bd) bd.innerText = t('blur_desc');
+    // Галерея — перерисовать sensitive бейджи
+    refreshBlurImages();
+}
+
+// Инициализация при загрузке
+applyLang();
+
+// ══════════════════════════════════════════════
+// БЛЮР / SENSITIVE
+// ══════════════════════════════════════════════
+let _blurEnabled = localStorage.getItem('cubix_blur') !== 'off';
+
+function refreshBlurImages() {
+    document.querySelectorAll('img[data-sensitive="true"]').forEach(img => {
+        if (_blurEnabled) img.classList.add('img-blur');
+        else img.classList.remove('img-blur');
+    });
+    // Бейджи
+    document.querySelectorAll('.sensitive-badge').forEach(b => b.innerText = t('sensitive_badge'));
+    // Переключатель в профиле
+    const tog = document.getElementById('toggle-blur');
+    if (tog) tog.checked = _blurEnabled;
+}
+
+function onBlurToggleChange(checked) {
+    if (!checked) {
+        // Показываем предупреждение
+        document.getElementById('blur-warning-modal').classList.add('show');
+        // Возвращаем переключатель в ON пока не подтверждено
+        document.getElementById('toggle-blur').checked = true;
+    } else {
+        _blurEnabled = true;
+        localStorage.setItem('cubix_blur', 'on');
+        refreshBlurImages();
+    }
+}
+
+function cancelDisableBlur() {
+    document.getElementById('blur-warning-modal').classList.remove('show');
+}
+
+function confirmDisableBlur() {
+    _blurEnabled = false;
+    localStorage.setItem('cubix_blur', 'off');
+    document.getElementById('toggle-blur').checked = false;
+    document.getElementById('blur-warning-modal').classList.remove('show');
+    refreshBlurImages();
+}
+
+async function toggleSensitive(key, cur) {
+    await db.ref('gallery/' + key).update({ sensitive: !cur });
+}
     
 function openFull(u){document.getElementById('viewer').style.display='flex';document.getElementById('viewImg').src=u;}
 </script>
+    <div id="lang-switcher">
+    <span onclick="setLang('ru')" id="lang-ru">RU</span>
+    <span style="color:#333;">|</span>
+    <span onclick="setLang('en')" id="lang-en">EN</span>
+    </div>
 </body>
 </html>
