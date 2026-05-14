@@ -2185,9 +2185,10 @@ function confirmDisableBlur() {
 async function toggleSensitive(key, cur) {
     await db.ref('gallery/' + key).update({ sensitive: !cur });
 }
-    
-function openFull(u){document.getElementById('viewer').style.display='flex';document.getElementById('viewImg').src=u;}
+
 applyLang();
+
+function openFull(u){document.getElementById('viewer').style.display='flex';document.getElementById('viewImg').src=u;}
 </script>
     <div id="lang-switcher">
     <span onclick="setLang('ru')" id="lang-ru">RU</span>
