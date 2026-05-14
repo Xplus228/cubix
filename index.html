@@ -659,8 +659,8 @@
                 </div>
                 <div class="profile-setting-row">
                     <div>
-                        <div style="font-size:14px;color:white;">🔞 Блюр sensitive-картинок</div>
-                        <p id="blur-setting-desc">Размывает контент для взрослых</p>
+                        <div id="blur-setting-label" style="font-size:14px;color:white;">👤 Блюр аватарок</div>
+                        <p id="blur-setting-desc" style="margin:0;font-size:13px;color:#555;">Размывает аватары всех игроков</p>
                     </div>
                     <label class="toggle-switch">
                         <input type="checkbox" id="toggle-blur" checked onchange="onBlurToggleChange(this.checked)">
@@ -699,6 +699,10 @@ firebase.initializeApp(firebaseConfig);
 const db=firebase.database(), storage=firebase.storage(), auth=firebase.auth();
 auth.languageCode='ru';
 
+// ══ ИНИЦИАЛИЗАЦИЯ ЯЗЫКА И БЛЮРА (ПЕРВЫМИ!) ══
+let _blurEnabled = localStorage.getItem('cubix_blur') !== 'off';
+let _lang = localStorage.getItem('cubix_lang') || (navigator.language.startsWith('ru') ? 'ru' : 'en');
+
 // ══════════════════════════════════════════════
 // КОНСТАНТЫ
 // ══════════════════════════════════════════════
@@ -721,16 +725,18 @@ function showErr(id,msg){ const el=document.getElementById(id); el.innerText=msg
 
 // Рендерит аватар в div-контейнер
 function renderAvatar(container, idx, size=84) {
-    container.innerHTML='';
-    container.style.fontSize = Math.round(size*0.36)+'px';
-    if(idx !== null && idx !== undefined && idx >= 0){
-        const img=document.createElement('img');
-        img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;';
-        img.src=AVATAR_BASE+idx+'.jpg';
-        img.onerror=function(){ this.src=AVATAR_BASE+idx+'.png'; this.onerror=null; };
+    container.innerHTML = '';
+    container.style.fontSize = Math.round(size * 0.36) + 'px';
+    if (idx !== null && idx !== undefined && idx >= 0) {
+        const img = document.createElement('img');
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;transition:filter 0.3s;';
+        img.src = AVATAR_BASE + idx + '.jpg';
+        img.onerror = function() { this.src = AVATAR_BASE + idx + '.png'; this.onerror = null; };
+        img.setAttribute('data-cubix-avatar', 'true');
+        if (_blurEnabled) img.style.filter = 'blur(12px)';
         container.appendChild(img);
     } else {
-        container.innerText='👤';
+        container.innerText = '👤';
     }
 }
 
@@ -758,14 +764,14 @@ function fmtPlaytime(sec){
     return h>0?`${h} ч ${m} мин`:`${m} мин`;
 }
 function fmtOnline(ts){
-    if(!ts)return'не известно';
+    if(!ts) return t('online_unknown');
     const d=Date.now()-ts;
-    if(d<ONLINE_MS)return'🟢 Онлайн';
+    if(d<ONLINE_MS) return t('online_lbl');
     const mins=Math.floor(d/60000);
-    if(mins<60)return`${mins} мин назад`;
+    if(mins<60) return mins+t('online_ago_min');
     const hrs=Math.floor(mins/60);
-    if(hrs<24)return`${hrs} ч назад`;
-    return`${Math.floor(hrs/24)} дн назад`;
+    if(hrs<24) return hrs+t('online_ago_h');
+    return Math.floor(hrs/24)+t('online_ago_d');
 }
 function isOnline(ts){ return ts&&(Date.now()-ts)<ONLINE_MS; }
 
@@ -1398,6 +1404,9 @@ function makeFriendCard(uid,nick,fId,avIdx,online,onlineLbl,buttons){
     if(avIdx>0){
         const img=document.createElement('img');
         img.src=AVATAR_BASE+avIdx+'.jpg';
+        img.setAttribute('data-cubix-avatar','true');
+        if(_blurEnabled) img.style.filter='blur(12px)';
+        img.style.transition='filter 0.3s';
         img.onerror=function(){this.src=AVATAR_BASE+avIdx+'.png';this.onerror=null;};
         img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;';
         avWrap.appendChild(img);
@@ -1535,6 +1544,9 @@ function listenFriends(){
                     if(avIdx>0){
                         const img=document.createElement('img');
                         img.src=AVATAR_BASE+avIdx+'.jpg';
+                        img.setAttribute('data-cubix-avatar','true');
+                        if(_blurEnabled) img.style.filter='blur(12px)';
+                        img.style.transition='filter 0.3s';
                         img.onerror=function(){this.src=AVATAR_BASE+avIdx+'.png';this.onerror=null;};
                         img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;';
                         wrap.appendChild(img);
@@ -1566,7 +1578,7 @@ function listenIncoming(){
             db.ref('users/'+fromUid+'/avatarIndex').once('value').then(avSnap=>{
                 const avIdx=avSnap.val()||0;if(!avIdx)return;
                 const wrap=div.querySelector('.friend-avatar-wrap');
-                if(wrap){wrap.innerHTML='';const img=document.createElement('img');img.src=AVATAR_BASE+avIdx+'.jpg';img.onerror=function(){this.src=AVATAR_BASE+avIdx+'.png';this.onerror=null;};img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;';wrap.appendChild(img);}
+                if(wrap){wrap.innerHTML='';const img=document.createElement('img');img.src=AVATAR_BASE+avIdx+'.jpg';img.setAttribute('data-cubix-avatar','true');if(_blurEnabled)img.style.filter='blur(12px)';img.style.transition='filter 0.3s';img.onerror=function(){this.src=AVATAR_BASE+avIdx+'.png';this.onerror=null;};img.style.cssText+='width:100%;height:100%;object-fit:cover;border-radius:50%;';wrap.appendChild(img);}
             });
         });
     });
@@ -1766,53 +1778,272 @@ kofiWidgetOverlay.draw('cubixd', {
 // ЛОКАЛИЗАЦИЯ
 // ══════════════════════════════════════════════
 const LANGS = {
-    ru: {
-        nav_home:'Главная', nav_gallery:'Галерея', nav_versions:'Версии',
-        nav_friends:'Друзья', nav_profile:'Профиль', nav_donate:'💜 Поддержать',
-        nav_admin:'🛠 Админ', nav_fandom:'Fandom❤️‍🔥',
-        warn_title:'ВНИМАНИЕ!',
-        warn_text:'Вы собираетесь отключить цензуру.<br>Некоторый контент может быть неприемлем для отдельных людей.<br><br>Автор игры не поддерживает и не пропагандирует какие-либо идеологии, показанные в шутках или медиа.<br><br>Вы подтверждаете, что вам есть <strong style="color:white;">18 лет</strong> и принимаете ответственность за просматриваемый контент.',
-        warn_cancel:'Отмена', warn_confirm:'Отключить цензуру',
-        blur_label:'🔞 Блюр sensitive-картинок',
-        blur_desc:'Размывает контент для взрослых',
-        sensitive_badge:'sensitive',
-        logout:'Выйти из аккаунта',
-        delete_account:'Удалить аккаунт',
-        my_screenshots:'Мои скриншоты',
-        no_screenshots:'Пока нет одобренных скриншотов.',
-        loading:'Загрузка...',
-        player_not_found:'Игрок не найден.',
-        find_player:'🔍 Найти игрока',
-        incoming:'📨 Входящие заявки',
-        outgoing:'📤 Исходящие заявки',
-        friends:'👥 Друзья',
-        no_friends:'Пока нет друзей. Найди кого-нибудь выше!',
-    },
-    en: {
-        nav_home:'Home', nav_gallery:'Gallery', nav_versions:'Versions',
-        nav_friends:'Friends', nav_profile:'Profile', nav_donate:'💜 Support',
-        nav_admin:'🛠 Admin', nav_fandom:'Fandom❤️‍🔥',
-        warn_title:'WARNING!',
-        warn_text:'You are about to disable content filtering.<br>Some content may be inappropriate for certain people.<br><br>The game author does not support or promote any ideologies shown in jokes or media.<br><br>You confirm that you are <strong style="color:white;">18+</strong> and take responsibility for the content you view.',
-        warn_cancel:'Cancel', warn_confirm:'Disable censorship',
-        blur_label:'🔞 Blur sensitive images',
-        blur_desc:'Blurs adult content',
-        sensitive_badge:'sensitive',
-        logout:'Sign out',
-        delete_account:'Delete account',
-        my_screenshots:'My screenshots',
-        no_screenshots:'No approved screenshots yet.',
-        loading:'Loading...',
-        player_not_found:'Player not found.',
-        find_player:'🔍 Find player',
-        incoming:'📨 Incoming requests',
-        outgoing:'📤 Outgoing requests',
-        friends:'👥 Friends',
-        no_friends:'No friends yet. Find someone above!',
-    }
+ru: {
+    // НАВИГАЦИЯ
+    nav_home:'Главная', nav_gallery:'Галерея', nav_versions:'Версии',
+    nav_friends:'Друзья', nav_profile:'Профиль', nav_donate:'💜 Поддержать (Сервера)',
+    nav_admin:'🛠 Админ', nav_fandom:'Fandom❤️‍🔥',
+    // ВХОД / РЕГИСТРАЦИЯ
+    login_title:'Вход', reg_title:'Регистрация', reset_title:'Сброс пароля',
+    google_finish_title:'Последний шаг!',
+    login_btn:'Войти', login_google:'Войти через Google',
+    forgot_pass:'Забыл пароль?', no_account:'Нет аккаунта? Регистрация',
+    have_account:'← Уже есть аккаунт', back_login:'← Назад ко входу',
+    send_reset:'Отправить письмо', cancel_btn:'← Отмена',
+    finish_btn:'Готово!', create_account:'Создать аккаунт',
+    placeholder_email:'Email', placeholder_pass:'Пароль',
+    placeholder_pass_reg:'Пароль (мин. 6 символов)',
+    placeholder_nick:'Ник в игре',
+    placeholder_reset:'Email',
+    reset_success:'✅ Письмо отправлено! Проверь почту и папку "Спам".',
+    reset_hint:'Введи email — пришлём ссылку для создания нового пароля.',
+    google_finish_hint:'Придумай ник для игры.',
+    // ОШИБКИ ВХОДА
+    err_enter_email:'Введи email.', err_enter_pass:'Введи пароль.',
+    err_enter_nick:'Введи ник.', err_nick_short:'Ник слишком короткий.',
+    err_pass_short:'Пароль минимум 6 символов.',
+    err_email_used:'Этот email уже зарегистрирован.',
+    err_invalid_email:'Некорректный email.',
+    err_weak_pass:'Пароль слишком слабый.',
+    err_not_found:'Аккаунт не найден.', err_wrong_pass:'Неверный пароль.',
+    err_too_many:'Слишком много попыток.',
+    err_invalid_cred:'Неверный email или пароль.',
+    err_popup_closed:'Окно входа было закрыто.',
+    err_popup_blocked:'Разреши всплывающие окна.',
+    err_domain:'Домен не авторизован.',
+    err_reg_closed:'Регистрация временно закрыта администратором.',
+    // ПОДТВЕРЖДЕНИЕ EMAIL
+    verify_title:'📬 Проверь почту',
+    verify_sent:'Письмо отправлено на ',
+    verify_hint:'Перейди по ссылке в письме, затем нажми кнопку ниже.',
+    verify_btn:'Я подтвердил — войти',
+    resend_btn:'Отправить письмо снова',
+    resend_ok:'✅ Письмо отправлено!',
+    exit_btn:'← Выйти / сменить аккаунт',
+    // ПРОФИЛЬ
+    profile_cups:'КУБКОВ',
+    profile_no_stats:'Статистика появится после первой игры в CubiX',
+    profile_logout:'Выйти из аккаунта',
+    profile_delete:'Удалить аккаунт',
+    profile_change_avatar:'Нажми на аватар чтобы сменить',
+    profile_no_rank:'Нет данных из игры',
+    profile_max_rank:'Высший ранг!',
+    profile_next_rank:'следующий: ',
+    my_screenshots:'Мои скриншоты',
+    no_screenshots:'Пока нет одобренных скриншотов.',
+    stat_wins:'Победы', stat_losses:'Поражения', stat_games:'Всего игр',
+    stat_winrate:'Винрейт', stat_playtime:'Плейтайм', stat_ach:'Ачивок',
+    // БЛЮР АВАТАРОВ
+    blur_label:'👤 Блюр аватарок',
+    blur_desc:'Размывает аватары всех игроков',
+    warn_title:'ВНИМАНИЕ!',
+    warn_text:'Вы собираетесь отключить блюр аватарок.<br><br>Аватары устанавливают сами игроки и могут содержать любые изображения.<br><br>Вы подтверждаете, что принимаете ответственность за просматриваемый контент.',
+    warn_cancel:'Отмена', warn_confirm:'Отключить блюр',
+    // ДРУЗЬЯ
+    find_player:'🔍 Найти игрока',
+    search_placeholder:'Введи ID (#AB12CD34) или ник',
+    search_btn:'Найти',
+    player_not_found:'Игрок не найден.',
+    incoming_title:'📨 Входящие заявки',
+    clear_requests:'Очистить все заявки',
+    outgoing_title:'📤 Исходящие заявки',
+    friends_title:'👥 Друзья',
+    no_friends:'Пока нет друзей. Найди кого-нибудь выше!',
+    btn_add:'Добавить', btn_remove:'Удалить', btn_accept:'✓ Принять',
+    btn_cancel:'Отменить', btn_sent:'Отправлено', btn_remove_friend:'Удалить из друзей',
+    online_lbl:'🟢 Онлайн', request_sent:'Заявка отправлена!',
+    // ГАЛЕРЕЯ
+    share_title:'Поделиться скриншотом',
+    desc_placeholder:'Напиши что-нибудь о кадре...',
+    upload_btn:'Выбрать файл',
+    gallery_versions:'Архив Версий',
+    gallery_dl:'Скачать последнюю версию',
+    // АВАТАР
+    avatar_title:'Выбери аватар',
+    avatar_hint:'Нажми на любой, затем «Сохранить»',
+    avatar_save:'Сохранить',
+    // АДМИНИСТРАТОР
+    admin_title:'🛠 Панель администратора',
+    admin_sys:'⚙️ Системные настройки',
+    admin_maintenance_title:'🔧 Технический перерыв (Unity)',
+    admin_maintenance_desc:'При включении — в игре Unity появится окно «Сервер на перерыве». На сайте не влияет.',
+    admin_update_title:'🚀 Обновление игры (Unity)',
+    admin_update_desc:'Unity сравнивает свою версию с latestVersion в Firebase. Если устарела — показывает окно обновления.',
+    admin_announce_title:'📢 Объявление на сайте',
+    admin_announce_desc:'Жёлтая полоса вверху страницы для всех посетителей.',
+    admin_dl_title:'⬇️ Ссылка и версия для скачивания',
+    admin_dl_desc:'URL файла и подпись на странице «Версии»',
+    admin_reg_title:'🚫 Запретить регистрацию',
+    admin_reg_desc:'Новые игроки не смогут создавать аккаунты',
+    admin_players:'👥 Управление игроками',
+    admin_search_placeholder:'Ник или #ID игрока',
+    admin_find:'Найти',
+    admin_reports:'🚨 Жалобы на игроков',
+    admin_reports_desc:'Показываются игроки с 5+ жалобами. Жалобы автоматически уменьшаются каждые 3 дня игровой активности.',
+    admin_no_reports:'Жалоб нет 🎉',
+    admin_moderation:'📥 Очередь модерации',
+    admin_mod_empty:'Очередь пуста 😴',
+    admin_gallery:'🖼 Управление галереей',
+    admin_gallery_hint:'Скрытые фото видны только тебе. Удаление — навсегда.',
+    admin_change:'Изменить', admin_save:'Сохранить',
+    // КНОПКИ
+    btn_ban:'⛔ Забанить', btn_unban:'✅ Разбанить',
+    btn_gameban:'⏱ Бан в игре', btn_make_admin:'👑 Сделать админом',
+    btn_remove_admin:'Снять админа', btn_reset_reports:'🗑 Сбросить жалобы',
+    btn_approve:'✅ Одобрить', btn_reject:'🗑 Удалить', btn_edit:'✏️ Изменить',
+    btn_save:'💾 Сохранить', btn_hide:'🙈', btn_show:'👁',
+    btn_close:'Закрыть',
+    // БАН МОДАЛКИ
+    ban_title:'⛔ Бан',
+    ban_text:'Твой аккаунт заблокирован.',
+    ban_reason_default:'Причина не указана.',
+    ban_contact:'Если считаешь это ошибкой — свяжись с администратором.',
+    banuser_title:'⛔ Забанить',
+    banuser_placeholder:'Причина бана...',
+    banuser_btn:'Забанить',
+    gameban_title:'⏱ Бан в игре',
+    gameban_duration:'Длительность:',
+    gameban_manual:'Или введи часы вручную:',
+    gameban_placeholder_reason:'Причина бана в игре...',
+    gameban_btn:'Забанить в игре',
+    gameban_hours_placeholder:'Например: 48',
+    // ОНЛАЙН
+    online_ago_min:' мин назад', online_ago_h:' ч назад', online_ago_d:' дн назад',
+    online_unknown:'не известно',
+    loading:'Загрузка...',
+    // DONATE
+    donate_title:'💜 Пожертвовать серверам',
+    donate_desc:'Серверы CubiX работают за счёт донатов. Если хочешь помочь, любая сумма важна!',
+    // ВЕРСИИ
+    versions_title:'Архив Версий',
+},
+en: {
+    nav_home:'Home', nav_gallery:'Gallery', nav_versions:'Versions',
+    nav_friends:'Friends', nav_profile:'Profile', nav_donate:'💜 Support',
+    nav_admin:'🛠 Admin', nav_fandom:'Fandom❤️‍🔥',
+    login_title:'Login', reg_title:'Register', reset_title:'Reset Password',
+    google_finish_title:'One last step!',
+    login_btn:'Sign In', login_google:'Sign in with Google',
+    forgot_pass:'Forgot password?', no_account:'No account? Register',
+    have_account:'← Already have an account', back_login:'← Back to login',
+    send_reset:'Send email', cancel_btn:'← Cancel',
+    finish_btn:'Done!', create_account:'Create account',
+    placeholder_email:'Email', placeholder_pass:'Password',
+    placeholder_pass_reg:'Password (min. 6 characters)',
+    placeholder_nick:'In-game nickname',
+    placeholder_reset:'Email',
+    reset_success:'✅ Email sent! Check your inbox and spam folder.',
+    reset_hint:'Enter your email — we will send a reset link.',
+    google_finish_hint:'Choose a nickname for the game.',
+    err_enter_email:'Enter email.', err_enter_pass:'Enter password.',
+    err_enter_nick:'Enter nickname.', err_nick_short:'Nickname is too short.',
+    err_pass_short:'Password must be at least 6 characters.',
+    err_email_used:'This email is already registered.',
+    err_invalid_email:'Invalid email.',
+    err_weak_pass:'Password is too weak.',
+    err_not_found:'Account not found.', err_wrong_pass:'Wrong password.',
+    err_too_many:'Too many attempts.',
+    err_invalid_cred:'Invalid email or password.',
+    err_popup_closed:'Login window was closed.',
+    err_popup_blocked:'Please allow popups.',
+    err_domain:'Domain not authorized.',
+    err_reg_closed:'Registration is temporarily closed by administrator.',
+    verify_title:'📬 Check your email',
+    verify_sent:'Email sent to ',
+    verify_hint:'Click the link in the email, then press the button below.',
+    verify_btn:'I confirmed — sign in',
+    resend_btn:'Resend email',
+    resend_ok:'✅ Email sent!',
+    exit_btn:'← Sign out / switch account',
+    profile_cups:'CUPS',
+    profile_no_stats:'Stats will appear after your first CubiX match',
+    profile_logout:'Sign out',
+    profile_delete:'Delete account',
+    profile_change_avatar:'Click avatar to change',
+    profile_no_rank:'No game data',
+    profile_max_rank:'Top rank!',
+    profile_next_rank:'next: ',
+    my_screenshots:'My screenshots',
+    no_screenshots:'No approved screenshots yet.',
+    stat_wins:'Wins', stat_losses:'Losses', stat_games:'Total games',
+    stat_winrate:'Win rate', stat_playtime:'Playtime', stat_ach:'Achievements',
+    blur_label:'👤 Avatar blur',
+    blur_desc:'Blurs all player avatars',
+    warn_title:'WARNING!',
+    warn_text:'You are about to disable avatar blur.<br><br>Avatars are set by players themselves and may contain any images.<br><br>You confirm that you take responsibility for the content you view.',
+    warn_cancel:'Cancel', warn_confirm:'Disable blur',
+    find_player:'🔍 Find player',
+    search_placeholder:'Enter ID (#AB12CD34) or nickname',
+    search_btn:'Search',
+    player_not_found:'Player not found.',
+    incoming_title:'📨 Incoming requests',
+    clear_requests:'Clear all requests',
+    outgoing_title:'📤 Outgoing requests',
+    friends_title:'👥 Friends',
+    no_friends:'No friends yet. Find someone above!',
+    btn_add:'Add', btn_remove:'Remove', btn_accept:'✓ Accept',
+    btn_cancel:'Cancel', btn_sent:'Sent', btn_remove_friend:'Remove friend',
+    online_lbl:'🟢 Online', request_sent:'Request sent!',
+    share_title:'Share a screenshot',
+    desc_placeholder:'Write something about the screenshot...',
+    upload_btn:'Choose file',
+    gallery_versions:'Version Archive',
+    gallery_dl:'Download latest version',
+    avatar_title:'Choose avatar',
+    avatar_hint:'Click one, then press Save',
+    avatar_save:'Save',
+    admin_title:'🛠 Admin Panel',
+    admin_sys:'⚙️ System settings',
+    admin_maintenance_title:'🔧 Maintenance mode (Unity)',
+    admin_maintenance_desc:'When enabled — Unity players will see a "Server under maintenance" window. No effect on website.',
+    admin_update_title:'🚀 Game update (Unity)',
+    admin_update_desc:'Unity compares its version with latestVersion in Firebase. Shows update window if outdated.',
+    admin_announce_title:'📢 Site announcement',
+    admin_announce_desc:'Yellow bar at the top of the page for all visitors.',
+    admin_dl_title:'⬇️ Download link and version',
+    admin_dl_desc:'File URL and label on the Versions page',
+    admin_reg_title:'🚫 Disable registration',
+    admin_reg_desc:'New players will not be able to create accounts',
+    admin_players:'👥 Player management',
+    admin_search_placeholder:'Nickname or #ID',
+    admin_find:'Find',
+    admin_reports:'🚨 Player reports',
+    admin_reports_desc:'Shows players with 5+ reports. Reports automatically decrease every 3 days of game activity.',
+    admin_no_reports:'No reports 🎉',
+    admin_moderation:'📥 Moderation queue',
+    admin_mod_empty:'Queue is empty 😴',
+    admin_gallery:'🖼 Gallery management',
+    admin_gallery_hint:'Hidden photos are visible only to you. Deletion is permanent.',
+    admin_change:'Change', admin_save:'Save',
+    btn_ban:'⛔ Ban', btn_unban:'✅ Unban',
+    btn_gameban:'⏱ Game ban', btn_make_admin:'👑 Make admin',
+    btn_remove_admin:'Remove admin', btn_reset_reports:'🗑 Clear reports',
+    btn_approve:'✅ Approve', btn_reject:'🗑 Delete', btn_edit:'✏️ Edit',
+    btn_save:'💾 Save', btn_hide:'🙈', btn_show:'👁',
+    btn_close:'Close',
+    ban_title:'⛔ Banned',
+    ban_text:'Your account has been banned.',
+    ban_reason_default:'No reason provided.',
+    ban_contact:'If you think this is a mistake — contact an administrator.',
+    banuser_title:'⛔ Ban player',
+    banuser_placeholder:'Ban reason...',
+    banuser_btn:'Ban',
+    gameban_title:'⏱ Game ban',
+    gameban_duration:'Duration:',
+    gameban_manual:'Or enter hours manually:',
+    gameban_placeholder_reason:'Game ban reason...',
+    gameban_btn:'Ban from game',
+    gameban_hours_placeholder:'e.g. 48',
+    online_ago_min:' min ago', online_ago_h:' h ago', online_ago_d:' d ago',
+    online_unknown:'unknown',
+    loading:'Loading...',
+    donate_title:'💜 Support the servers',
+    donate_desc:'CubiX servers run on donations. Any amount helps!',
+    versions_title:'Version Archive',
+}
 };
 
-let _lang = localStorage.getItem('cubix_lang') || (navigator.language.startsWith('ru') ? 'ru' : 'en');
+
 
 function t(key) { return LANGS[_lang]?.[key] || LANGS['ru'][key] || key; }
 
@@ -1823,27 +2054,94 @@ function setLang(lang) {
 }
 
 function applyLang() {
-    // Переключатель
-    document.getElementById('lang-ru')?.classList.toggle('active-lang', _lang === 'ru');
-    document.getElementById('lang-en')?.classList.toggle('active-lang', _lang === 'en');
-    // Предупреждение
-    const wt = document.getElementById('warn-title');
-    const wx = document.getElementById('warn-text');
-    const wc = document.getElementById('warn-cancel-btn');
-    const wk = document.getElementById('warn-confirm-btn');
-    if (wt) wt.innerText = t('warn_title');
-    if (wx) wx.innerHTML = t('warn_text');
-    if (wc) wc.innerText = t('warn_cancel');
-    if (wk) wk.innerText = t('warn_confirm');
-    // Настройка блюра в профиле
-    const bd = document.getElementById('blur-setting-desc');
-    if (bd) bd.innerText = t('blur_desc');
-    // Галерея — перерисовать sensitive бейджи
+    const el = id => document.getElementById(id);
+    // Переключатель языка
+    el('lang-ru')?.classList.toggle('active-lang', _lang === 'ru');
+    el('lang-en')?.classList.toggle('active-lang', _lang === 'en');
+    // Warning modal
+    if (el('warn-title')) el('warn-title').innerText = t('warn_title');
+    if (el('warn-text'))  el('warn-text').innerHTML  = t('warn_text');
+    if (el('warn-cancel-btn'))  el('warn-cancel-btn').innerText  = t('warn_cancel');
+    if (el('warn-confirm-btn')) el('warn-confirm-btn').innerText = t('warn_confirm');
+    // Аватар пикер
+    const avTitle = document.querySelector('#avatar-modal h2');
+    const avHint  = document.querySelector('#avatar-modal p');
+    const avSave  = document.querySelector('#avatar-modal .button');
+    if (avTitle) avTitle.innerText = t('avatar_title');
+    if (avHint)  avHint.innerText  = t('avatar_hint');
+    if (avSave)  avSave.innerText  = t('avatar_save');
+    // Профиль — настройка блюра
+    const blurLabelEl = document.getElementById('blur-setting-label');
+    const blurDescEl  = document.getElementById('blur-setting-desc');
+    if (blurLabelEl) blurLabelEl.innerText = t('blur_label');
+    if (blurDescEl)  blurDescEl.innerText  = t('blur_desc');
+    // Профиль — кнопки
+    const logoutBtn = document.querySelector('.profile-btn-logout');
+    const deleteBtn = document.querySelector('.profile-btn-delete');
+    if (logoutBtn) logoutBtn.innerText = t('profile_logout');
+    if (deleteBtn) deleteBtn.innerText = t('profile_delete');
+    const changeAvHint = document.querySelector('#myAvatarRing + p');
+    if (changeAvHint) changeAvHint.innerText = t('profile_change_avatar');
+    const cupsLabel = document.querySelector('.trophy-cups-label');
+    if (cupsLabel) cupsLabel.innerText = t('profile_cups');
+    // Скриншоты в профиле
+    const myGallTitle = document.querySelector('#profile-data h3');
+    if (myGallTitle) myGallTitle.innerText = t('my_screenshots');
+    const myGallEmpty = el('my-gallery-empty');
+    if (myGallEmpty) myGallEmpty.innerText = t('no_screenshots');
+    // Вход / регистрация
+    const loginH2 = document.querySelector('#login-form h2');
+    if (loginH2) loginH2.innerText = t('login_title');
+    const loginBtn = document.querySelector('#login-form .button');
+    if (loginBtn) loginBtn.innerText = t('login_btn');
+    const authEmail = el('authEmail'); if (authEmail) authEmail.placeholder = t('placeholder_email');
+    const authPass  = el('authPass');  if (authPass)  authPass.placeholder  = t('placeholder_pass');
+    const regH2 = document.querySelector('#reg-form h2');
+    if (regH2) regH2.innerText = t('reg_title');
+    const regNick = el('regNick'); if (regNick) regNick.placeholder = t('placeholder_nick');
+    const regEmail = el('regEmail'); if (regEmail) regEmail.placeholder = t('placeholder_email');
+    const regPass = el('regPass'); if (regPass) regPass.placeholder = t('placeholder_pass_reg');
+    const regBtn = document.querySelector('#reg-form .button');
+    if (regBtn) regBtn.innerText = t('create_account');
+    const resetH2 = document.querySelector('#reset-form h2');
+    if (resetH2) resetH2.innerText = t('reset_title');
+    const resetEmail = el('resetEmail'); if (resetEmail) resetEmail.placeholder = t('placeholder_reset');
+    const resetBtn = el('reset-btn'); if (resetBtn) resetBtn.innerText = t('send_reset');
+    const gfinishH2 = document.querySelector('#google-finish-form h2');
+    if (gfinishH2) gfinishH2.innerText = t('google_finish_title');
+    const gNick = el('gNick'); if (gNick) gNick.placeholder = t('placeholder_nick');
+    // Друзья
+    const fsTitle = document.querySelector('.friends-section h3');
+    if (fsTitle) fsTitle.innerText = t('find_player');
+    const fsInput = el('friendSearchInput'); if (fsInput) fsInput.placeholder = t('search_placeholder');
+    const noFriends = el('friends-empty'); if (noFriends) noFriends.innerText = t('no_friends');
+    // Галерея — загрузка
+    const shareTitle = document.querySelector('#gallery-page h3');
+    if (shareTitle) shareTitle.innerText = t('share_title');
+    const userDesc = el('userDesc'); if (userDesc) userDesc.placeholder = t('desc_placeholder');
+    const uploadBtn = el('uploadBtn'); if (uploadBtn) uploadBtn.innerText = t('upload_btn');
+    // Версии
+    const versH2 = document.querySelector('#versions-page h2');
+    if (versH2) versH2.innerText = t('versions_title');
+    // Donate
+    const donH2 = document.querySelector('#donate-page h2');
+    if (donH2) donH2.innerText = t('donate_title');
+    const donP = document.querySelector('#donate-page p');
+    if (donP) donP.innerText = t('donate_desc');
+    // Бан модалка (публичная)
+    const banH2 = document.querySelector('#ban-modal h2');
+    const banP  = document.querySelector('#ban-modal p');
+    if (banH2) banH2.innerText = t('ban_title');
+    if (banP)  banP.innerText  = t('ban_text');
+    // Статы
+    document.querySelectorAll('.stat-tile-lbl').forEach((lbl, i) => {
+        const keys = ['stat_wins','stat_losses','stat_games','','stat_winrate','stat_playtime','stat_ach'];
+        if (keys[i]) lbl.innerText = t(keys[i]);
+    });
+    // Обновляем блюр
     refreshBlurImages();
 }
 
-// Инициализация при загрузке
-applyLang();
 
 // ══════════════════════════════════════════════
 // БЛЮР / SENSITIVE
@@ -1851,17 +2149,14 @@ applyLang();
 let _blurEnabled = localStorage.getItem('cubix_blur') !== 'off';
 
 function refreshBlurImages() {
-    document.querySelectorAll('img[data-sensitive="true"]').forEach(img => {
-        if (_blurEnabled) img.classList.add('img-blur');
-        else img.classList.remove('img-blur');
+    // Блюрим ТОЛЬКО аватарки игроков (img с data-cubix-avatar)
+    document.querySelectorAll('img[data-cubix-avatar="true"]').forEach(img => {
+        img.style.filter = _blurEnabled ? 'blur(12px)' : '';
     });
-    // Бейджи
-    document.querySelectorAll('.sensitive-badge').forEach(b => b.innerText = t('sensitive_badge'));
-    // Переключатель в профиле
+    // Синхронизируем тогл в профиле
     const tog = document.getElementById('toggle-blur');
     if (tog) tog.checked = _blurEnabled;
 }
-
 function onBlurToggleChange(checked) {
     if (!checked) {
         // Показываем предупреждение
@@ -1892,6 +2187,7 @@ async function toggleSensitive(key, cur) {
 }
     
 function openFull(u){document.getElementById('viewer').style.display='flex';document.getElementById('viewImg').src=u;}
+applyLang();
 </script>
     <div id="lang-switcher">
     <span onclick="setLang('ru')" id="lang-ru">RU</span>
