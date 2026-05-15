@@ -1083,7 +1083,6 @@ db.ref('sensitiveAvatars').on('value', snap => {
     refreshBlurImages();
 });
 
-
 // ══ СИСТЕМНЫЕ НАСТРОЙКИ ══
 db.ref('systemSettings').on('value', snap => {
     const s = snap.val() || {};
@@ -2248,34 +2247,69 @@ function loadSensitiveAvatarGrid() {
     grid.innerHTML = '';
     for (let i = AVATAR_START; i < AVATAR_COUNT; i++) {
         const isSens = _sensitiveAvatars.has(i);
+
+        // Внешний контейнер — НЕ overflow:hidden чтобы badge не обрезался
+        const outer = document.createElement('div');
+        outer.style.cssText = 'position:relative;aspect-ratio:1;cursor:pointer;';
+        outer.title = `Аватарка #${i}`;
+
+        // Круглая обёртка с border
         const wrap = document.createElement('div');
-        wrap.style.cssText = `position:relative;border-radius:50%;overflow:hidden;cursor:pointer;border:3px solid ${isSens ? '#e74c3c' : 'transparent'};transition:0.2s;background:rgba(255,255,255,0.05);aspect-ratio:1;`;
-        wrap.title = `Аватарка #${i}${isSens ? ' — sensitive' : ''}`;
+        wrap.id = 'sav-wrap-' + i;
+        wrap.style.cssText = `
+            width:100%;height:100%;border-radius:50%;overflow:hidden;
+            border:3px solid ${isSens ? '#e74c3c' : 'rgba(255,255,255,0.1)'};
+            transition:border-color 0.2s, transform 0.15s;
+            background:rgba(255,255,255,0.05);
+        `;
+
         const img = document.createElement('img');
         img.src = AVATAR_BASE + i + '.jpg';
         img.onerror = function() { this.src = AVATAR_BASE + i + '.png'; this.onerror = null; };
-        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;transition:filter 0.3s;';
         if (isSens) img.style.filter = 'blur(8px)';
-        // Иконка пометки
-        if (isSens) {
-            const badge = document.createElement('div');
-            badge.innerText = '🔞';
-            badge.style.cssText = 'position:absolute;top:2px;right:2px;font-size:12px;pointer-events:none;';
-            wrap.appendChild(badge);
-        }
+        img.id = 'sav-img-' + i;
         wrap.appendChild(img);
-        wrap.onclick = () => toggleSensitiveAvatar(i, isSens);
-        grid.appendChild(wrap);
+
+        // Overlay — глазок поверх если sensitive
+        const overlay = document.createElement('div');
+        overlay.id = 'sav-overlay-' + i;
+        overlay.style.cssText = `
+            position:absolute;top:0;left:0;width:100%;height:100%;
+            border-radius:50%;display:flex;align-items:center;justify-content:center;
+            background:rgba(231,76,60,0.45);font-size:22px;pointer-events:none;
+            opacity:${isSens ? '1' : '0'};transition:opacity 0.2s;
+        `;
+        overlay.innerText = '🔞';
+
+        outer.appendChild(wrap);
+        outer.appendChild(overlay);
+
+        outer.onclick = () => toggleSensitiveAvatar(i);
+
+        // Hover эффект
+        outer.onmouseenter = () => { wrap.style.transform = 'scale(1.08)'; };
+        outer.onmouseleave = () => { wrap.style.transform = 'scale(1)'; };
+
+        grid.appendChild(outer);
     }
 }
 
-async function toggleSensitiveAvatar(idx, isSens) {
+async function toggleSensitiveAvatar(idx) {
+    const isSens = _sensitiveAvatars.has(idx);
+    // Мгновенно обновляем UI
+    const wrap = document.getElementById('sav-wrap-' + idx);
+    const img = document.getElementById('sav-img-' + idx);
+    const overlay = document.getElementById('sav-overlay-' + idx);
+    if (wrap) wrap.style.borderColor = isSens ? 'rgba(255,255,255,0.1)' : '#e74c3c';
+    if (img) img.style.filter = isSens ? '' : 'blur(8px)';
+    if (overlay) overlay.style.opacity = isSens ? '0' : '1';
+    // Пишем в Firebase
     if (isSens) {
         await db.ref('sensitiveAvatars/' + idx).remove();
     } else {
         await db.ref('sensitiveAvatars/' + idx).set(true);
     }
-    // Грид обновится автоматически через слушатель sensitiveAvatars
 }
     
 function openFull(u){document.getElementById('viewer').style.display='flex';document.getElementById('viewImg').src=u;}
