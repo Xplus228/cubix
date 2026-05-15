@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="ru">
 <head>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -555,6 +555,14 @@
     </div>
 
     <!-- ГАЛЕРЕЯ -->
+    
+    <!-- SENSITIVE АВАТАРКИ -->
+    <div class="admin-section">
+        <h3>👤 Sensitive аватарки</h3>
+        <p style="color:#888;font-size:13px;margin-top:0;margin-bottom:16px;">Нажми на аватарку чтобы пометить её как sensitive — она будет блюриться у всех пользователей (если блюр включён). Нажми снова чтобы снять пометку.</p>
+        <div id="sensitive-avatar-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:10px;max-height:500px;overflow-y:auto;padding:4px;"></div>
+    </div>
+    
     <div class="admin-section">
         <h3>🖼 Управление галереей</h3>
         <p style="color:#888;font-size:14px;margin-top:0;">Скрытые фото видны только тебе. Удаление — навсегда.</p>
@@ -701,6 +709,7 @@ auth.languageCode='ru';
 
 // ══ ИНИЦИАЛИЗАЦИЯ ЯЗЫКА И БЛЮРА (ПЕРВЫМИ!) ══
 let _blurEnabled = localStorage.getItem('cubix_blur') !== 'off';
+let _sensitiveAvatars = new Set(); // индексы аватарок которые надо блюрить
 let _lang = localStorage.getItem('cubix_lang') || (navigator.language.startsWith('ru') ? 'ru' : 'en');
 
 // ══════════════════════════════════════════════
@@ -733,7 +742,11 @@ function renderAvatar(container, idx, size=84) {
         img.src = AVATAR_BASE + idx + '.jpg';
         img.onerror = function() { this.src = AVATAR_BASE + idx + '.png'; this.onerror = null; };
         img.setAttribute('data-cubix-avatar', 'true');
-        if (_blurEnabled) img.style.filter = 'blur(12px)';
+        img.setAttribute('data-avatar-idx', String(idx));
+        // Блюрим если нужно
+        if (_blurEnabled && _sensitiveAvatars.has(idx)) {
+            img.style.filter = 'blur(12px)';
+        }
         container.appendChild(img);
     } else {
         container.innerText = '👤';
@@ -830,6 +843,12 @@ function openAvatarPicker(){
         img.src=AVATAR_BASE+i+'.jpg';
         img.onerror=function(){this.src=AVATAR_BASE+i+'.png';this.onerror=null;};
         div.appendChild(img);
+        // Блюр в пикере
+        if (_blurEnabled && _sensitiveAvatars.has(i)) {
+            img.style.filter = 'blur(12px)';
+            img.style.transition = 'filter 0.3s';
+            div.title = '⚠️ Sensitive';
+        }
         div.onclick=()=>{
             picker.querySelectorAll('.av-opt').forEach(o=>o.classList.remove('selected'));
             div.classList.add('selected');
@@ -1050,10 +1069,19 @@ async function authStateHandler(user){
     fb.style.display='inline-block';
     listenFriends();listenIncoming();listenOutgoing();
 
-    if(d.isAdmin===true){_isAdmin=true;ab.style.display='inline-block';loadModeration();loadAdminGallery();listenReports();}
+    if(d.isAdmin===true){_isAdmin=true;ab.style.display='inline-block';loadModeration();loadAdminGallery();listenReports();loadSensitiveAvatarGrid();}
     loadMyGallery(user.uid);
 }
 auth.onAuthStateChanged(authStateHandler);
+
+// Загружаем список sensitive аватарок (публично)
+db.ref('sensitiveAvatars').on('value', snap => {
+    _sensitiveAvatars = new Set();
+    snap.forEach(child => {
+        if (child.val() === true) _sensitiveAvatars.add(Number(child.key));
+    });
+    refreshBlurImages();
+});
 
 
 // ══ СИСТЕМНЫЕ НАСТРОЙКИ ══
@@ -1405,10 +1433,11 @@ function makeFriendCard(uid,nick,fId,avIdx,online,onlineLbl,buttons){
         const img=document.createElement('img');
         img.src=AVATAR_BASE+avIdx+'.jpg';
         img.setAttribute('data-cubix-avatar','true');
-        if(_blurEnabled) img.style.filter='blur(12px)';
+        img.setAttribute('data-avatar-idx', String(avIdx));
+        if(_blurEnabled && _sensitiveAvatars.has(avIdx)) img.style.filter='blur(12px)';
         img.style.transition='filter 0.3s';
         img.onerror=function(){this.src=AVATAR_BASE+avIdx+'.png';this.onerror=null;};
-        img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;';
+        img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;transition:filter 0.3s;';
         avWrap.appendChild(img);
     } else {
         avWrap.innerText='👤';
@@ -1545,10 +1574,11 @@ function listenFriends(){
                         const img=document.createElement('img');
                         img.src=AVATAR_BASE+avIdx+'.jpg';
                         img.setAttribute('data-cubix-avatar','true');
-                        if(_blurEnabled) img.style.filter='blur(12px)';
+                        img.setAttribute('data-avatar-idx', String(avIdx));
+                        if(_blurEnabled && _sensitiveAvatars.has(avIdx)) img.style.filter='blur(12px)';
                         img.style.transition='filter 0.3s';
                         img.onerror=function(){this.src=AVATAR_BASE+avIdx+'.png';this.onerror=null;};
-                        img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;';
+                        img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;transition:filter 0.3s;';
                         wrap.appendChild(img);
                     } else { wrap.innerText='👤'; }
                     if(ol){wrap.style.overflow='visible';const dot=document.createElement('div');dot.className='online-dot';wrap.appendChild(dot);}
@@ -1578,7 +1608,29 @@ function listenIncoming(){
             db.ref('users/'+fromUid+'/avatarIndex').once('value').then(avSnap=>{
                 const avIdx=avSnap.val()||0;if(!avIdx)return;
                 const wrap=div.querySelector('.friend-avatar-wrap');
-                if(wrap){wrap.innerHTML='';const img=document.createElement('img');img.src=AVATAR_BASE+avIdx+'.jpg';img.setAttribute('data-cubix-avatar','true');if(_blurEnabled)img.style.filter='blur(12px)';img.style.transition='filter 0.3s';img.onerror=function(){this.src=AVATAR_BASE+avIdx+'.png';this.onerror=null;};img.style.cssText+='width:100%;height:100%;object-fit:cover;border-radius:50%;';wrap.appendChild(img);}
+                if(wrap){
+                    wrap.innerHTML='';
+                    const img=document.createElement('img');
+
+                    img.src=AVATAR_BASE+avIdx+'.jpg';
+
+                    img.setAttribute('data-cubix-avatar','true');
+                    img.setAttribute('data-avatar-idx', String(avIdx));
+
+                    if(_blurEnabled && _sensitiveAvatars.has(avIdx))
+                        img.style.filter='blur(12px)';
+
+                    img.style.transition='filter 0.3s';
+
+                    img.onerror=function(){
+                        this.src=AVATAR_BASE+avIdx+'.png';
+                        this.onerror=null;
+                    };
+
+                    img.style.cssText+='width:100%;height:100%;object-fit:cover;border-radius:50%;transition:filter 0.3s;';
+
+                    wrap.appendChild(img);
+                }
             });
         });
     });
@@ -2145,11 +2197,16 @@ function applyLang() {
 
 
 function refreshBlurImages() {
-    // Блюрим ТОЛЬКО аватарки игроков (img с data-cubix-avatar)
+    // Блюрим только аватарки с data-cubix-avatar и data-avatar-idx в _sensitiveAvatars
     document.querySelectorAll('img[data-cubix-avatar="true"]').forEach(img => {
-        img.style.filter = _blurEnabled ? 'blur(12px)' : '';
+        const idx = Number(img.getAttribute('data-avatar-idx'));
+        const isSensitive = _sensitiveAvatars.has(idx);
+        if (isSensitive && _blurEnabled) {
+            img.style.filter = 'blur(12px)';
+        } else {
+            img.style.filter = '';
+        }
     });
-    // Синхронизируем тогл в профиле
     const tog = document.getElementById('toggle-blur');
     if (tog) tog.checked = _blurEnabled;
 }
@@ -2184,6 +2241,43 @@ async function toggleSensitive(key, cur) {
 
 applyLang();
 
+// ══ SENSITIVE АВАТАРКИ (АДМИН) ══
+function loadSensitiveAvatarGrid() {
+    const grid = document.getElementById('sensitive-avatar-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    for (let i = AVATAR_START; i < AVATAR_COUNT; i++) {
+        const isSens = _sensitiveAvatars.has(i);
+        const wrap = document.createElement('div');
+        wrap.style.cssText = `position:relative;border-radius:50%;overflow:hidden;cursor:pointer;border:3px solid ${isSens ? '#e74c3c' : 'transparent'};transition:0.2s;background:rgba(255,255,255,0.05);aspect-ratio:1;`;
+        wrap.title = `Аватарка #${i}${isSens ? ' — sensitive' : ''}`;
+        const img = document.createElement('img');
+        img.src = AVATAR_BASE + i + '.jpg';
+        img.onerror = function() { this.src = AVATAR_BASE + i + '.png'; this.onerror = null; };
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+        if (isSens) img.style.filter = 'blur(8px)';
+        // Иконка пометки
+        if (isSens) {
+            const badge = document.createElement('div');
+            badge.innerText = '🔞';
+            badge.style.cssText = 'position:absolute;top:2px;right:2px;font-size:12px;pointer-events:none;';
+            wrap.appendChild(badge);
+        }
+        wrap.appendChild(img);
+        wrap.onclick = () => toggleSensitiveAvatar(i, isSens);
+        grid.appendChild(wrap);
+    }
+}
+
+async function toggleSensitiveAvatar(idx, isSens) {
+    if (isSens) {
+        await db.ref('sensitiveAvatars/' + idx).remove();
+    } else {
+        await db.ref('sensitiveAvatars/' + idx).set(true);
+    }
+    // Грид обновится автоматически через слушатель sensitiveAvatars
+}
+    
 function openFull(u){document.getElementById('viewer').style.display='flex';document.getElementById('viewImg').src=u;}
 </script>
     <div id="lang-switcher">
