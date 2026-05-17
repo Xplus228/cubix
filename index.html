@@ -276,7 +276,85 @@
         /* ── НАСТРОЙКА БЛЮРА В ПРОФИЛЕ ── */
         .profile-setting-row { display:flex; align-items:center; justify-content:space-between; padding:14px 28px; border-top:1px solid rgba(255,255,255,0.05); gap:12px; }
         .profile-setting-row p { margin:0; font-size:13px; color:#555; }
+
+        /* ── ДИСКОРД КНОПКА ── */
+        #discord-btn {
+            position:fixed; bottom:70px; right:18px; z-index:900;
+            width:48px; height:48px; border-radius:50%; overflow:hidden;
+            cursor:pointer; transition:0.2s; box-shadow:0 0 12px rgba(88,101,242,0.5);
+            border:2px solid #5865F2;
+        }
+        #discord-btn:hover { transform:scale(1.12); box-shadow:0 0 20px rgba(88,101,242,0.8); }
+        #discord-btn img { width:100%; height:100%; object-fit:cover; display:block; }
+
+         /* ── БАНДАНА (АКЦИЯ) ── */
+        #bandana-btn {
+            position:fixed; left:18px; top:50%; transform:translateY(-60%);
+            z-index:900; cursor:pointer; transition:0.2s; text-align:center;
+            display:flex; flex-direction:column; align-items:center; gap:6px;
+        }
+        #bandana-btn:hover #bandana-img-wrap { transform:scale(1.08); }
+            #bandana-img-wrap {
+            width:64px; height:64px; border-radius:50%; overflow:hidden;
+            border:3px solid #f1c40f;
+            box-shadow:0 0 18px rgba(241,196,15,0.6), 0 0 40px rgba(241,196,15,0.2);
+            transition:0.2s; position:relative; background:#111;
+        }
+        #bandana-img-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
+        #bandana-label {
+            font-size:10px; color:#f1c40f; text-align:center;
+            max-width:80px; line-height:1.3;
+            text-shadow:0 0 8px rgba(241,196,15,0.8);
+            background:rgba(0,0,0,0.7); border-radius:6px; padding:3px 5px;
+        }
+
+        /* ── ЛИСТИК (САППОРТ) ── */
+        .support-icon {
+            width:16px; height:16px; display:inline-block;
+            vertical-align:middle; margin-left:4px; cursor:help;
+            position:relative;
+        }
+        .support-icon img { width:100%; height:100%; object-fit:contain; }
+        .support-icon:hover::after {
+            content:'Этот игрок поддержал CubiX 💚';
+            position:absolute; left:50%; transform:translateX(-50%);
+            bottom:22px; background:#111; border:1px solid #2ecc71;
+            color:#2ecc71; font-size:11px; padding:4px 8px; border-radius:6px;
+            white-space:nowrap; z-index:99; pointer-events:none;
+        }
         
+        /* ── КВАДРАТНЫЕ АВАТАРКИ ── */
+        .profile-avatar-ring {
+            border-radius:16px !important;
+        }
+        .profile-avatar-ring img {
+            border-radius:12px !important;
+        }
+        .friend-avatar-wrap {
+            border-radius:12px !important;
+            overflow:hidden !important;
+        }
+        .friend-avatar-wrap img {
+            border-radius:10px !important;
+        }
+        .fpm-avatar {
+            border-radius:14px !important;
+        }
+        .fpm-avatar img {
+            border-radius:12px !important;
+        }
+        .av-opt {
+            border-radius:12px !important;
+        }
+        .av-opt img {
+            border-radius:10px !important;
+        }
+        .user-av {
+            border-radius:10px !important;
+        }
+        .user-av img {
+            border-radius:8px !important;
+        }    
     </style>
 </head>
 <body>
@@ -460,6 +538,24 @@
             <input type="text" id="maintenance-msg-input" class="admin-input" placeholder="Сервер временно недоступен. Попробуй позже." style="max-width:none;">
             <button class="admin-save-btn" onclick="saveTextSetting('maintenanceMsg','maintenance-msg-input','maintenance-saved')">Сохранить</button>
             <span id="maintenance-saved" style="color:#2ecc71;font-size:13px;margin-left:8px;"></span>
+
+            <!-- Бандана акция -->
+            <div class="toggle-row">
+                <div class="toggle-info">
+                    <h4>🧣 Акция: Бандана</h4>
+                    <p>Показывать кнопку акции слева. Выключи когда товар закончится.</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-bandana" onchange="setSetting('bandanaVisible',this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="sub-box" id="bandana-sub" style="display:block;">
+                <p style="color:#888;font-size:12px;margin:0 0 8px;">Осталось штук (число):</p>
+                <input type="number" id="bandana-count-input" class="admin-input" placeholder="850" style="max-width:none;">
+                <button class="admin-save-btn" onclick="saveBandanaCount()">Сохранить</button>
+                <span id="bandana-saved" style="color:#2ecc71;font-size:13px;margin-left:8px;"></span>
+            </div>
         </div>
 
         <!-- Обновление игры -->
@@ -1118,6 +1214,24 @@ db.ref('systemSettings').on('value', snap => {
     if (el('dl-link-input'))          el('dl-link-input').value          = s.downloadLink     || '';
     if (el('dl-version-input'))       el('dl-version-input').value       = s.downloadVersion  || '';
     if (el('announcement-input'))     el('announcement-input').value     = s.announcement     || '';
+    if (el('toggle-bandana')) el('toggle-bandana').checked = s.bandanaVisible !== false;
+    if (el('bandana-count-input') && s.bandanaCount !== undefined) el('bandana-count-input').value = s.bandanaCount;
+});
+
+// ── БАНДАНА ──
+db.ref('systemSettings/bandanaVisible').on('value', snap => {
+    const btn = document.getElementById('bandana-btn');
+    if (btn) btn.style.display = (snap.val() === false) ? 'none' : 'flex';
+});
+db.ref('systemSettings/bandanaCount').on('value', snap => {
+    const label = document.getElementById('bandana-label');
+    if (!label) return;
+    const count = snap.val();
+    if (count !== null && count !== undefined) {
+        label.innerHTML = `⚡ Спец. предложение!<br>Осталось <b style="color:#fff;">${count}</b> шт!`;
+    } else {
+        label.innerHTML = '⚡ Спец. предложение!<br>Ограниченное количество!';
+    }
 });
 
 async function setSetting(key, val) {
@@ -1152,6 +1266,13 @@ function toggleAnnouncementBox(on) {
     const sub = document.getElementById('announcement-sub');
     if (sub) sub.style.display = on ? 'block' : 'none';
     if (!on) db.ref('systemSettings/announcement').set('');
+}
+async function saveBandanaCount() {
+    const val = parseInt(document.getElementById('bandana-count-input').value);
+    if (isNaN(val)) return;
+    await db.ref('systemSettings/bandanaCount').set(val);
+    const el = document.getElementById('bandana-saved');
+    if (el) { el.innerText = '✅ Сохранено!'; setTimeout(() => { el.innerText = ''; }, 2500); }
 }
 
 // ══════════════════════════════════════════════
@@ -1204,7 +1325,13 @@ function makeCard(d) {
             }
         };
     }
-    card.innerHTML = `${isSens ? '<span class="sensitive-badge">sensitive</span>' : ''}<div class="card-info"><div class="card-author">${esc(d.author)}${idBadge}</div><div class="card-desc">${esc(d.desc) || '<em style="color:#555">нет описания</em>'}</div><div class="card-meta"><span>📅 ${esc(fmtTime(d.time))}</span><span>📐 ${meta}</span></div></div>`;
+
+    // ↓ Создаем HTML для иконки саппорта, если у автора есть этот статус в базе (authorIsSupporter)
+    const supportBadge = d.authorIsSupporter ? `<span class="support-icon" title="Этот игрок поддержал CubiX 💚" style="margin-left:5px; vertical-align:middle; display:inline-block; width:16px; height:16px;"><img src="https://img.icons8.com/emoji/48/green-heart.png" style="width:100%; height:100%;"></span>` : '';
+
+    // Здесь мы вставили ${supportBadge} сразу после ${idBadge}
+    card.innerHTML = `${isSens ? '<span class="sensitive-badge">sensitive</span>' : ''}<div class="card-info"><div class="card-author">${esc(d.author)}${idBadge}${supportBadge}</div><div class="card-desc">${esc(d.desc) || '<em style="color:#555">нет описания</em>'}</div><div class="card-meta"><span>📅 ${esc(fmtTime(d.time))}</span><span>📐 ${meta}</span></div></div>`;
+    
     card.insertBefore(img, card.firstChild);
     return card;
 }
@@ -1263,26 +1390,61 @@ async function checkAuthAndTriggerUpload(){
     if(!snap.exists()||d.isBannedSite){showBanModal(d?.banReason);return;}
     document.getElementById('fileInput').click();
 }
-async function handleUpload(){
-    const user=auth.currentUser;if(!user)return;
-    const now=Date.now(),last=parseInt(localStorage.getItem('lastUp')||'0'),COOLDOWN=300000;
-    if(now-last<COOLDOWN){const left=Math.ceil((COOLDOWN-(now-last))/1000),mins=Math.floor(left/60),secs=left%60;document.getElementById('statusMsg').innerText=`⏳ Подожди ещё ${mins>0?mins+' мин ':''}${secs} сек.`;return;}
-    const file=document.getElementById('fileInput').files[0];if(!file)return;
-    if(!file.type.startsWith('image/')){document.getElementById('statusMsg').innerText='❌ Только изображения!';return;}
-    if(file.size>5*1024*1024){document.getElementById('statusMsg').innerText='❌ Файл слишком большой (макс. 5 МБ).';return;}
-    const status=document.getElementById('statusMsg'),btn=document.getElementById('uploadBtn');
-    status.innerText='⏳ Загрузка...';btn.disabled=true;
-    try{
-        const imgInfo=await new Promise(res=>{const i=new Image();i.onload=()=>res({w:i.width,h:i.height});i.src=URL.createObjectURL(file);});
-        const storagePath='submissions/'+now+'_'+file.name;
-        const ref=storage.ref(storagePath);await ref.put(file);
-        const url=await ref.getDownloadURL();
-        const ud=window._currentUserData||{};
-        await db.ref('moderation').push({url,storagePath,author:esc(ud.nick||'Unknown'),authorId:esc(ud.id||''),uid:user.uid,desc:esc(document.getElementById('userDesc').value),width:imgInfo.w,height:imgInfo.h,time:new Date().toLocaleString()});
-        fetch('https://us-central1-cubix-web.cloudfunctions.net/sendtotelegram',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({photoUrl:url,author:ud.nick||'Unknown',authorId:ud.id||'',desc:document.getElementById('userDesc').value,width:imgInfo.w,height:imgInfo.h})});
-        localStorage.setItem('lastUp',String(now));status.innerText='✅ Отправлено на модерацию!';document.getElementById('userDesc').value='';
-    }catch(e){status.innerText='❌ Ошибка загрузки.';console.error(e);}
-    btn.disabled=false;
+async function handleUpload() {
+    const user = auth.currentUser;
+    if (!user) return;
+    
+    const now = Date.now(), last = parseInt(localStorage.getItem('lastUp') || '0'), COOLDOWN = 300000;
+    if (now - last < COOLDOWN) {
+        const left = Math.ceil((COOLDOWN - (now - last)) / 1000), mins = Math.floor(left / 60), secs = left % 60;
+        document.getElementById('statusMsg').innerText = `⏳ Подожди ещё ${mins > 0 ? mins + ' мин ' : ''}${secs} сек.`;
+        return;
+    }
+    
+    const file = document.getElementById('fileInput').files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { document.getElementById('statusMsg').innerText = '❌ Только изображения!'; return; }
+    if (file.size > 5 * 1024 * 1024) { document.getElementById('statusMsg').innerText = '❌ Файл слишком большой (макс. 5 МБ).'; return; }
+    
+    const status = document.getElementById('statusMsg'), btn = document.getElementById('uploadBtn');
+    status.innerText = '⏳ Загрузка...'; btn.disabled = true;
+    
+    try {
+        const imgInfo = await new Promise(res => { const i = new Image(); i.onload = () => res({ w: i.width, h: i.height }); i.src = URL.createObjectURL(file); });
+        const storagePath = 'submissions/' + now + '_' + file.name;
+        const ref = storage.ref(storagePath); await ref.put(file);
+        const url = await ref.getDownloadURL();
+        const ud = window._currentUserData || {};
+        
+        // --- ОБНОВЛЕННЫЙ БЛОК ОТПРАВКИ ---
+        await db.ref('moderation').push({
+            url: url,
+            storagePath: storagePath,
+            author: esc(ud.nick || 'Unknown'),
+            authorId: esc(ud.id || ''),
+            uid: user.uid,
+            authorIsSupporter: !!(await db.ref('users/' + user.uid + '/isSupporter').once('value')).val(), // НОВАЯ СТРОКА
+            desc: esc(document.getElementById('userDesc').value),
+            width: imgInfo.w,
+            height: imgInfo.h,
+            time: new Date().toLocaleString()
+        });
+        // ---------------------------------
+
+        fetch('https://us-central1-cubix-web.cloudfunctions.net/sendtotelegram', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ photoUrl: url, author: ud.nick || 'Unknown', authorId: ud.id || '', desc: document.getElementById('userDesc').value, width: imgInfo.w, height: imgInfo.h })
+        });
+        
+        localStorage.setItem('lastUp', String(now));
+        status.innerText = '✅ Отправлено на модерацию!';
+        document.getElementById('userDesc').value = '';
+    } catch (e) {
+        status.innerText = '❌ Ошибка загрузки.';
+        console.error(e);
+    }
+    btn.disabled = false;
 }
 
 // ══════════════════════════════════════════════
@@ -1399,7 +1561,7 @@ async function openFPM(uid,nick,fId){
         <div class="fpm-header">
             <div class="fpm-avatar" style="position:relative;">${avHtml}${online?'<div style="position:absolute;bottom:0;right:0;width:12px;height:12px;border-radius:50%;background:#2ecc71;border:2px solid #0f0f0f;"></div>':''}</div>
             <div class="fpm-info">
-                <div class="fpm-nick">${esc(nick||u?.nick||'?')}</div>
+                <div class="fpm-nick">${esc(nick||u?.nick||'?')}${u?.isSupporter ? `<span class="support-icon" title="Этот игрок поддержал CubiX 💚"><img src="${SUPPORT_ICON_URL}"></span>` : ''}</div>
                 <div class="fpm-id">${esc(fId||shortId(uid))}</div>
                 <div class="fpm-online" style="color:${online?'#2ecc71':'#555'};">${onlineLbl}</div>
             </div>
@@ -1443,7 +1605,7 @@ function makeFriendCard(uid,nick,fId,avIdx,online,onlineLbl,buttons){
     }
     if(online){const dot=document.createElement('div');dot.className='online-dot';avWrap.style.overflow='visible';avWrap.appendChild(dot);}
     div.appendChild(avWrap);
-    div.innerHTML+=`<div class="friend-info"><div class="friend-nick">${esc(nick)}</div><div class="friend-id">${esc(fId)}</div><div class="friend-online-lbl" style="color:${online?'#2ecc71':'#555'};">${onlineLbl}</div></div><div class="friend-actions">${buttons}</div>`;
+    div.innerHTML+=`<div class="friend-info"><div class="friend-nick">${esc(nick)}<span id="support-badge-${uid}"></span></div><div class="friend-id">${esc(fId)}</div><div class="friend-online-lbl" style="color:${online?'#2ecc71':'#555'};">${onlineLbl}</div></div><div class="friend-actions">${buttons}</div>`;
     div.onclick=(e)=>{if(!e.target.closest('.f-btn'))openFPM(uid,nick,fId);};
     return div;
 }
@@ -1560,12 +1722,16 @@ function listenFriends(){
                 `<button class="f-btn f-btn-red" onclick="removeFriend('${fUid}');event.stopPropagation()">Удалить</button>`
             );
             list.appendChild(div);
-            // Асинхронно загружаем аватар и онлайн
+            
+            // Объединяем запросы: аватар, онлайн и статус саппортера в один Promise.all
             Promise.all([
                 db.ref('users/'+fUid+'/avatarIndex').once('value'),
-                db.ref('playerStats/'+fUid+'/lastOnline').once('value')
-            ]).then(([avSnap,olSnap])=>{
-                const avIdx=avSnap.val()||0,ts=olSnap.val()||0,ol=isOnline(ts);
+                db.ref('playerStats/'+fUid+'/lastOnline').once('value'),
+                db.ref('users/'+fUid+'/isSupporter').once('value') // ← Добавили третьим запросом
+            ]).then(([avSnap,olSnap,supSnap])=>{ // ← Получили supSnap
+                const avIdx=avSnap.val()||0,ts=olSnap.val()||0,ol=isOnline(ts),isSup=supSnap.val()===true;
+                
+                // 1. РЕНДЕРИМ АВАТАР И ОНЛАЙН-ТОЧКУ
                 const wrap=div.querySelector('.friend-avatar-wrap');
                 if(wrap){
                     wrap.innerHTML='';
@@ -1582,8 +1748,22 @@ function listenFriends(){
                     } else { wrap.innerText='👤'; }
                     if(ol){wrap.style.overflow='visible';const dot=document.createElement('div');dot.className='online-dot';wrap.appendChild(dot);}
                 }
+                
+                // 2. ОБНОВЛЯЕМ ТЕКСТ ОНЛАЙНА
                 const olLbl=div.querySelector('.friend-online-lbl');
                 if(olLbl){olLbl.innerText=fmtOnline(ts);olLbl.style.color=ol?'#2ecc71':'#555';}
+
+                // 3. ОТРИСОВЫВАЕМ ИКОНКУ САППОРТЕРА
+                if(isSup){
+                    const badge = document.getElementById('support-badge-' + fUid);
+                    if (badge) {
+                        badge.className = 'support-icon';
+                        badge.title = 'Этот игрок поддержал CubiX 💚';
+                        // Стили для иконки, чтобы она смотрелась аккуратно в списке
+                        badge.style.cssText = 'margin-left:5px; vertical-align:middle; display:inline-block; width:14px; height:14px;';
+                        badge.innerHTML = `<img src="https://img.icons8.com/emoji/48/green-heart.png" style="width:100%; height:100%;">`;
+                    }
+                }
             });
         });
     });
@@ -1688,6 +1868,9 @@ async function adminSearchUser() {
                 ? `<button class="ua-btn ua-btn-gray" onclick="setAdminRole('${foundUid}',false)">Снять админа</button>`
                 : `<button class="ua-btn ua-btn-gold" onclick="setAdminRole('${foundUid}',true)">👑 Сделать админом</button>`}
             <button class="ua-btn ua-btn-gold" style="background:#f1c40f;" onclick="openGameBanModal('${foundUid}','${esc(found.nick)}')">⏱ Бан в игре</button>
+            ${found.isSupporter
+                ? `<button class="ua-btn ua-btn-gray" onclick="setSupporterRole('${foundUid}',false)">🍃 Снять саппорта</button>`
+                : `<button class="ua-btn" style="background:#2ecc71;color:black;" onclick="setSupporterRole('${foundUid}',true)">🍃 Сделать саппортом</button>`}
         </div>
     </div>`;
 }
@@ -1713,6 +1896,11 @@ async function unbanUser(uid) {
 async function setAdminRole(uid, val) {
     if (!confirm(val ? 'Сделать администратором?' : 'Снять права администратора?')) return;
     await db.ref('users/' + uid + '/isAdmin').set(val);
+    adminSearchUser();
+}
+async function setSupporterRole(uid, val) {
+    if (!confirm(val ? 'Назначить саппортом?' : 'Снять статус саппорта?')) return;
+    await db.ref('users/' + uid + '/isSupporter').set(val);
     adminSearchUser();
 }
 
@@ -2311,6 +2499,19 @@ async function toggleSensitiveAvatar(idx) {
         await db.ref('sensitiveAvatars/' + idx).set(true);
     }
 }
+
+// ── САППОРТ ИКОНКА ──
+const SUPPORT_ICON_URL = 'https://xplus228.github.io/cubix/leaves.png';
+
+function makeSupportBadge() {
+    const span = document.createElement('span');
+    span.className = 'support-icon';
+    span.title = 'Этот игрок поддержал CubiX 💚';
+    const img = document.createElement('img');
+    img.src = SUPPORT_ICON_URL;
+    span.appendChild(img);
+    return span;
+}
     
 function openFull(u){document.getElementById('viewer').style.display='flex';document.getElementById('viewImg').src=u;}
 </script>
@@ -2319,5 +2520,19 @@ function openFull(u){document.getElementById('viewer').style.display='flex';docu
     <span style="color:#333;">|</span>
     <span onclick="setLang('en')" id="lang-en">EN</span>
     </div>
+
+    <!-- ДИСКОРД -->
+    <div id="discord-btn" onclick="window.open('https://discord.gg/ysvB4zcNr7','_blank')" title="Дискорд CubiX">
+        <img src="https://xplus228.github.io/cubix/disccubix.png" onerror="this.style.background='#5865F2';this.style.display='none'">
+    </div>
+
+    <!-- БАНДАНА (АКЦИЯ) -->
+    <div id="bandana-btn" onclick="window.open('https://ko-fi.com/s/6f16de7994','_blank')">
+        <div id="bandana-img-wrap">
+            <img src="https://xplus228.github.io/cubix/bandana.png">
+        </div>
+        <div id="bandana-label">⚡ Спец. предложение!<br>Ограниченное количество!</div>
+    </div>
+    
 </body>
 </html>
