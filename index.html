@@ -324,54 +324,21 @@
         }
         
         /* ── КВАДРАТНЫЕ АВАТАРКИ ── */
-        .profile-avatar-ring {
-            border-radius: 16px !important;
-            overflow: hidden !important;
-        }
-        .profile-avatar-ring img {
-            border-radius: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover !important;
-        }        
-        .friend-avatar-wrap {
-            border-radius: 12px !important;
-            overflow: hidden !important;
-        }
-        .friend-avatar-wrap img {
-            border-radius: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover !important;
-        }
-        .fpm-avatar {
-            border-radius: 14px !important;
-            overflow: hidden !important;
-        }
-        .fpm-avatar img {
-            border-radius: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover !important;
-        }
-        .av-opt {
-            border-radius: 12px !important;
-            overflow: hidden !important;
-        }
-        .av-opt img {
-            border-radius: 0 !important;
-            position: absolute !important;
-            top: 0; left: 0;
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover !important;
-        }
-        .user-av {
-            border-radius: 10px !important;
-            overflow: hidden !important;
-        }
+        .profile-avatar-ring { border-radius:16px!important; overflow:hidden!important; background:#111; }
+        .friend-avatar-wrap  { border-radius:12px!important; overflow:hidden!important; background:#111; }
+        .fpm-avatar          { border-radius:14px!important; overflow:hidden!important; background:#111; }
+        .av-opt              { border-radius:12px!important; overflow:hidden!important; background:#111!important; }
+        .user-av             { border-radius:10px!important; overflow:hidden!important; background:#111; }
+
+        /* Все img внутри — contain без обрезки */
+        .profile-avatar-ring img,
+        .friend-avatar-wrap img,
+        .fpm-avatar img,
+        .av-opt img,
         .user-av img {
-            border-radius: 0 !important;
+            border-radius:0!important;
+            object-fit:contain!important;
+            background:#111;
         }
     </style>
 </head>
@@ -678,7 +645,27 @@
         <p style="color:#888;font-size:13px;margin-top:0;margin-bottom:16px;">Нажми на аватарку чтобы пометить её как sensitive — она будет блюриться у всех пользователей (если блюр включён). Нажми снова чтобы снять пометку.</p>
         <div id="sensitive-avatar-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:10px;max-height:500px;overflow-y:auto;padding:4px;"></div>
     </div>
-    
+
+    <!-- УПРАВЛЕНИЕ АВАТАРКАМИ -->
+    <div class="admin-section" id="avatars-admin-section">
+        <h3>🖼 Аватарки игроков</h3>
+        <p style="color:#888;font-size:13px;margin-top:0;margin-bottom:16px;">
+            Загружай новые, меняй порядок перетаскиванием, добавляй EN-альтернативы.
+        </p>
+
+        <!-- Загрузка новой -->
+        <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
+            <input type="file" id="av-upload-main" accept="image/*" style="display:none">
+            <button class="admin-save-btn" onclick="document.getElementById('av-upload-main').click()">
+                + Загрузить новую аватарку
+            </button>
+            <span id="av-upload-status" style="color:#2ecc71;font-size:13px;"></span>
+        </div>
+
+        <!-- Список аватарок -->
+        <div id="avatars-admin-list"></div>
+    </div>
+       
     <div class="admin-section">
         <h3>🖼 Управление галереей</h3>
         <p style="color:#888;font-size:14px;margin-top:0;">Скрытые фото видны только тебе. Удаление — навсегда.</p>
@@ -833,9 +820,20 @@ let _lang = localStorage.getItem('cubix_lang') || (navigator.language.startsWith
 // ══════════════════════════════════════════════
 // Папка с аватарами на GitHub. Файлы: 1.jpg/png ... 127.jpg/png
 // Если добавишь 128.jpg — просто измени AVATAR_COUNT на 128
-const AVATAR_BASE  = 'https://xplus228.github.io/cubix/achievements/';
-const AVATAR_COUNT = 127; // файлы: 0.jpg ... 126.jpg — итого 127 штук
-const AVATAR_START = 0;
+// Аватарки теперь из Firebase Storage
+let _avatarsList = []; // массив {id, order, url, urlEn, sensitive, name}
+let _avatarsLoaded = false;
+
+function getAvatarUrl(item) {
+    // Возвращает URL аватарки с учётом языка
+    if (_lang === 'en' && item.urlEn && item.urlEn.trim()) return item.urlEn;
+    return item.url;
+}
+
+function getAvatarById(id) {
+    return _avatarsList.find(a => a.id === id) || null;
+}
+
 const TOTAL_ACHIEVEMENTS = 20;
 const ONLINE_MS   = 5 * 60 * 1000;
 const ITEMS_PER_PAGE = 10;
@@ -848,21 +846,31 @@ function shortId(uid){ return '#'+uid.slice(0,8).toUpperCase(); }
 function fmtTime(t){ return t||'---'; }
 function showErr(id,msg){ const el=document.getElementById(id); el.innerText=msg; el.style.display='block'; }
 
-function renderAvatar(container, idx, size=84) {
+function renderAvatar(container, avatarItem, size=84) {
     container.innerHTML = '';
     container.style.fontSize = Math.round(size * 0.36) + 'px';
-    if (idx !== null && idx !== undefined && idx >= 0) {
+    if (avatarItem && avatarItem.url) {
+        const url = getAvatarUrl(avatarItem);
         const img = document.createElement('img');
-        // Убираем border-radius:50% — теперь форму задаёт CSS класса
-        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;transition:filter 0.3s;';
-        img.src = AVATAR_BASE + idx + '.jpg';
-        img.onerror = function() { this.src = AVATAR_BASE + idx + '.png'; this.onerror = null; };
+        // Ключевой момент: contain вместо cover — картинка вписывается целиком
+        img.style.cssText = 'width:100%;height:100%;object-fit:contain;display:block;transition:filter 0.3s;background:#111;';
+        img.src = url;
         img.setAttribute('data-cubix-avatar', 'true');
-        img.setAttribute('data-avatar-idx', String(idx));
-        if (_blurEnabled && _sensitiveAvatars.has(idx)) {
+        img.setAttribute('data-avatar-id', avatarItem.id);
+        if (_blurEnabled && avatarItem.sensitive) {
             img.style.filter = 'blur(12px)';
         }
         container.appendChild(img);
+    } else {
+        container.innerText = '👤';
+    }
+}
+
+// Хелпер для рендера по ID аватарки
+function renderAvatarById(container, avatarId, size=84) {
+    const item = getAvatarById(String(avatarId));
+    if (item) {
+        renderAvatar(container, item, size);
     } else {
         container.innerText = '👤';
     }
@@ -946,31 +954,36 @@ async function cancelVerify(){await auth.signOut();showForm('login-form');}
 // ВЫБОР АВАТАРА
 // ══════════════════════════════════════════════
 function openAvatarPicker(){
-    if(!_myUid)return;
-    _selectedAvatar=_myAvatar;
-    const picker=document.getElementById('avatar-picker');
-    picker.innerHTML='';
-    for(let i=AVATAR_START;i<AVATAR_COUNT;i++){
-        const div=document.createElement('div');
-        div.className='av-opt'+(i===_selectedAvatar?' selected':'');
-        const img=document.createElement('img');
-        img.loading='lazy';
-        img.src=AVATAR_BASE+i+'.jpg';
-        img.onerror=function(){this.src=AVATAR_BASE+i+'.png';this.onerror=null;};
-        div.appendChild(img);
-        // Блюр в пикере
-        if (_blurEnabled && _sensitiveAvatars.has(i)) {
+    if(!_myUid) return;
+    _selectedAvatar = _myAvatar;
+    const picker = document.getElementById('avatar-picker');
+    picker.innerHTML = '';
+
+    _avatarsList.forEach(item => {
+        const url = getAvatarUrl(item);
+        const div = document.createElement('div');
+        div.className = 'av-opt' + (item.id === String(_myAvatar) ? ' selected' : '');
+
+        const img = document.createElement('img');
+        img.loading = 'lazy';
+        img.src = url;
+        // contain — картинка вписывается целиком без обрезки
+        img.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;background:#111;';
+
+        if (_blurEnabled && item.sensitive) {
             img.style.filter = 'blur(12px)';
-            img.style.transition = 'filter 0.3s';
             div.title = '⚠️ Sensitive';
         }
-        div.onclick=()=>{
-            picker.querySelectorAll('.av-opt').forEach(o=>o.classList.remove('selected'));
+
+        div.appendChild(img);
+        div.onclick = () => {
+            picker.querySelectorAll('.av-opt').forEach(o => o.classList.remove('selected'));
             div.classList.add('selected');
-            _selectedAvatar=i;
+            _selectedAvatar = Number(item.id);
         };
         picker.appendChild(div);
-    }
+    });
+
     document.getElementById('avatar-modal').classList.add('show');
 }
 function closeAvatarPicker(){document.getElementById('avatar-modal').classList.remove('show');}
@@ -978,7 +991,7 @@ async function saveAvatar(){
     if(!_myUid||_selectedAvatar<0)return;
     await db.ref('users/'+_myUid+'/avatarIndex').set(_selectedAvatar);
     _myAvatar=_selectedAvatar;
-    renderAvatar(document.getElementById('myAvatarRing'),_myAvatar,84);
+    renderAvatarById(document.getElementById('myAvatarRing'), _myAvatar, 84);
     closeAvatarPicker();
 }
 
@@ -1184,7 +1197,7 @@ async function authStateHandler(user){
     fb.style.display='inline-block';
     listenFriends();listenIncoming();listenOutgoing();
 
-    if(d.isAdmin===true){_isAdmin=true;ab.style.display='inline-block';loadModeration();loadAdminGallery();listenReports();loadSensitiveAvatarGrid();}
+    if(d.isAdmin===true){_isAdmin=true;ab.style.display='inline-block';loadModeration();loadAdminGallery();listenReports();loadSensitiveAvatarGrid();renderAvatarsAdminList();}
     loadMyGallery(user.uid);
 }
 auth.onAuthStateChanged(authStateHandler);
@@ -1610,15 +1623,19 @@ function makeFriendCard(uid,nick,fId,avIdx,online,onlineLbl,buttons){
     const div=document.createElement('div');div.className='friend-card';
     const avWrap=document.createElement('div');avWrap.className='friend-avatar-wrap';avWrap.style.overflow='hidden';
     if(avIdx>0){
-        const img=document.createElement('img');
-        img.src=AVATAR_BASE+avIdx+'.jpg';
-        img.setAttribute('data-cubix-avatar','true');
-        img.setAttribute('data-avatar-idx', String(avIdx));
-        if(_blurEnabled && _sensitiveAvatars.has(avIdx)) img.style.filter='blur(12px)';
-        img.style.transition='filter 0.3s';
-        img.onerror=function(){this.src=AVATAR_BASE+avIdx+'.png';this.onerror=null;};
-        img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;transition:filter 0.3s;';
-        avWrap.appendChild(img);
+        const item = getAvatarById(String(avIdx));
+        if (item) {
+            const img = document.createElement('img');
+            img.src = getAvatarUrl(item);
+            img.setAttribute('data-cubix-avatar','true');
+            img.setAttribute('data-avatar-id', item.id);
+            if(_blurEnabled && item.sensitive) img.style.filter='blur(12px)';
+            img.style.cssText='width:100%;height:100%;object-fit:contain;background:#111;transition:filter 0.3s;';
+            img.onerror = function(){};
+            avWrap.appendChild(img);
+        } else {
+            avWrap.innerText='👤';
+        }
     } else {
         avWrap.innerText='👤';
     }
@@ -2403,19 +2420,16 @@ function applyLang() {
 
 
 function refreshBlurImages() {
-    // Блюрим только аватарки с data-cubix-avatar и data-avatar-idx в _sensitiveAvatars
     document.querySelectorAll('img[data-cubix-avatar="true"]').forEach(img => {
-        const idx = Number(img.getAttribute('data-avatar-idx'));
-        const isSensitive = _sensitiveAvatars.has(idx);
-        if (isSensitive && _blurEnabled) {
-            img.style.filter = 'blur(12px)';
-        } else {
-            img.style.filter = '';
-        }
+        const avatarId = img.getAttribute('data-avatar-id');
+        const item = getAvatarById(avatarId);
+        const isSensitive = item ? item.sensitive : false;
+        img.style.filter = (isSensitive && _blurEnabled) ? 'blur(12px)' : '';
     });
     const tog = document.getElementById('toggle-blur');
     if (tog) tog.checked = _blurEnabled;
 }
+
 function onBlurToggleChange(checked) {
     if (!checked) {
         // Показываем предупреждение
@@ -2531,6 +2545,207 @@ function makeSupportBadge() {
     span.appendChild(img);
     return span;
 }
+
+// ══ УПРАВЛЕНИЕ АВАТАРКАМИ (АДМИН) ══
+
+// Загрузить новую аватарку
+document.addEventListener('DOMContentLoaded', () => {
+    const inp = document.getElementById('av-upload-main');
+    if (inp) inp.addEventListener('change', uploadNewAvatar);
+});
+
+async function uploadNewAvatar() {
+    const inp = document.getElementById('av-upload-main');
+    const file = inp.files[0];
+    if (!file) return;
+    const status = document.getElementById('av-upload-status');
+    status.innerText = '⏳ Загрузка...';
+
+    // Определяем следующий номер
+    const nextId = _avatarsList.length > 0
+        ? Math.max(..._avatarsList.map(a => Number(a.id))) + 1
+        : 0;
+
+    try {
+        const ext = file.name.split('.').pop();
+        const path = `avatars/${nextId}.${ext}`;
+        const ref = storage.ref(path);
+        await ref.put(file);
+        const url = await ref.getDownloadURL();
+
+        // Записываем в DB
+        await db.ref(`avatarsList/${nextId}`).set({
+            order: nextId,
+            url: url,
+            urlEn: '',
+            sensitive: false,
+            name: String(nextId)
+        });
+
+        status.innerText = `✅ Аватарка #${nextId} загружена!`;
+        setTimeout(() => { status.innerText = ''; }, 3000);
+        inp.value = '';
+    } catch(e) {
+        status.innerText = '❌ Ошибка: ' + e.message;
+        console.error(e);
+    }
+}
+
+// Отрисовать список аватарок в админке
+function renderAvatarsAdminList() {
+    const list = document.getElementById('avatars-admin-list');
+    if (!list) return;
+    list.innerHTML = '';
+
+    _avatarsList.forEach((item, index) => {
+        const urlMain = item.url || '';
+        const urlEn   = item.urlEn || '';
+        const isSens  = item.sensitive === true;
+
+        const row = document.createElement('div');
+        row.className = 'user-row';
+        row.id = 'av-row-' + item.id;
+        row.draggable = true;
+        row.style.cssText = 'cursor:grab;gap:12px;';
+
+        row.innerHTML = `
+            <div style="color:#555;font-size:12px;min-width:24px;text-align:center;">${index}</div>
+
+            <!-- Основная аватарка -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+                <div style="width:48px;height:48px;border-radius:10px;overflow:hidden;background:#111;border:2px solid ${isSens?'#e74c3c':'#333'};">
+                    <img src="${urlMain}" style="width:100%;height:100%;object-fit:contain;" onerror="this.style.display='none'">
+                </div>
+                <span style="font-size:9px;color:#555;">RU/основная</span>
+            </div>
+
+            <!-- EN аватарка -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+                <div style="width:48px;height:48px;border-radius:10px;overflow:hidden;background:#111;border:2px solid ${urlEn?'#3498db':'#222'};cursor:pointer;" onclick="triggerEnUpload('${item.id}')" title="Нажми чтобы загрузить EN-альтернативу">
+                    ${urlEn
+                        ? `<img src="${urlEn}" style="width:100%;height:100%;object-fit:contain;">`
+                        : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#333;font-size:18px;">+</div>`
+                    }
+                </div>
+                <span style="font-size:9px;color:#555;">EN альтернатива</span>
+            </div>
+
+            <!-- Скрытый инпут EN -->
+            <input type="file" id="av-en-input-${item.id}" accept="image/*" style="display:none" onchange="uploadEnAvatar('${item.id}')">
+
+            <!-- Инфо -->
+            <div class="user-info">
+                <div class="user-nick-row">#${item.id} ${item.name || ''}</div>
+                <div class="user-meta">${isSens ? '🔞 Sensitive' : 'Обычная'}</div>
+            </div>
+
+            <!-- Действия -->
+            <div class="user-actions">
+                <button class="ua-btn ${isSens ? 'ua-btn-red' : 'ua-btn-gray'}"
+                    onclick="toggleAvatarSensitive('${item.id}', ${isSens})">
+                    ${isSens ? '🔞 Убрать 18+' : '🔞 Пометить 18+'}
+                </button>
+                ${urlEn ? `<button class="ua-btn ua-btn-gray" onclick="removeEnAvatar('${item.id}')">✕ Убрать EN</button>` : ''}
+                <button class="ua-btn ua-btn-red" onclick="deleteAvatar('${item.id}')" title="Удалить навсегда">🗑</button>
+            </div>
+        `;
+
+        // Drag & Drop
+        row.addEventListener('dragstart', e => {
+            e.dataTransfer.setData('avId', item.id);
+            row.style.opacity = '0.4';
+        });
+        row.addEventListener('dragend', () => { row.style.opacity = '1'; });
+        row.addEventListener('dragover', e => { e.preventDefault(); row.style.background = 'rgba(52,152,219,0.1)'; });
+        row.addEventListener('dragleave', () => { row.style.background = ''; });
+        row.addEventListener('drop', async e => {
+            e.preventDefault();
+            row.style.background = '';
+            const fromId = e.dataTransfer.getData('avId');
+            if (fromId === item.id) return;
+            await swapAvatarOrder(fromId, item.id);
+        });
+
+        list.appendChild(row);
+    });
+}
+
+function triggerEnUpload(id) {
+    document.getElementById('av-en-input-' + id)?.click();
+}
+
+async function uploadEnAvatar(id) {
+    const inp = document.getElementById('av-en-input-' + id);
+    const file = inp?.files[0];
+    if (!file) return;
+
+    const status = document.getElementById('av-upload-status');
+    status.innerText = '⏳ Загрузка EN...';
+
+    try {
+        const ext = file.name.split('.').pop();
+        const path = `avatars/${id}-en.${ext}`;
+        const ref = storage.ref(path);
+        await ref.put(file);
+        const url = await ref.getDownloadURL();
+        await db.ref(`avatarsList/${id}/urlEn`).set(url);
+        status.innerText = '✅ EN аватарка загружена!';
+        setTimeout(() => { status.innerText = ''; }, 3000);
+    } catch(e) {
+        status.innerText = '❌ Ошибка';
+        console.error(e);
+    }
+    if (inp) inp.value = '';
+}
+
+async function removeEnAvatar(id) {
+    if (!confirm('Убрать EN альтернативу?')) return;
+    await db.ref(`avatarsList/${id}/urlEn`).set('');
+}
+
+async function toggleAvatarSensitive(id, cur) {
+    await db.ref(`avatarsList/${id}/sensitive`).set(!cur);
+}
+
+async function deleteAvatar(id) {
+    if (!confirm(`Удалить аватарку #${id} навсегда?`)) return;
+    await db.ref(`avatarsList/${id}`).remove();
+    // Пересчитываем order
+    await reorderAvatars();
+}
+
+async function swapAvatarOrder(fromId, toId) {
+    const fromItem = getAvatarById(fromId);
+    const toItem   = getAvatarById(toId);
+    if (!fromItem || !toItem) return;
+    const fromOrder = fromItem.order;
+    const toOrder   = toItem.order;
+    await db.ref().update({
+        [`avatarsList/${fromId}/order`]: toOrder,
+        [`avatarsList/${toId}/order`]: fromOrder,
+    });
+}
+
+async function reorderAvatars() {
+    const updates = {};
+    _avatarsList.forEach((item, i) => {
+        updates[`avatarsList/${item.id}/order`] = i;
+    });
+    await db.ref().update(updates);
+}
+
+// Перерисовываем список когда меняется avatarsList
+db.ref('avatarsList').on('value', () => {
+    // _avatarsList уже обновляется в слушателе выше
+    setTimeout(() => {
+        if (_isAdmin) renderAvatarsAdminList();
+        // Обновляем sensitive аватарки в старом гриде
+        _sensitiveAvatars = new Set(
+            _avatarsList.filter(a => a.sensitive).map(a => Number(a.id))
+        );
+        refreshBlurImages();
+    }, 100);
+});
     
 function openFull(u){document.getElementById('viewer').style.display='flex';document.getElementById('viewImg').src=u;}
 </script>
