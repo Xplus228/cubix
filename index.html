@@ -325,36 +325,54 @@
         
         /* ── КВАДРАТНЫЕ АВАТАРКИ ── */
         .profile-avatar-ring {
-            border-radius:16px !important;
+            border-radius: 16px !important;
+            overflow: hidden !important;
         }
         .profile-avatar-ring img {
-            border-radius:12px !important;
-        }
+            border-radius: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+        }        
         .friend-avatar-wrap {
-            border-radius:12px !important;
-            overflow:hidden !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
         }
         .friend-avatar-wrap img {
-            border-radius:10px !important;
+            border-radius: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
         }
         .fpm-avatar {
-            border-radius:14px !important;
+            border-radius: 14px !important;
+            overflow: hidden !important;
         }
         .fpm-avatar img {
-            border-radius:12px !important;
+            border-radius: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
         }
         .av-opt {
-            border-radius:12px !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
         }
         .av-opt img {
-            border-radius:10px !important;
+            border-radius: 0 !important;
+            position: absolute !important;
+            top: 0; left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
         }
         .user-av {
-            border-radius:10px !important;
+            border-radius: 10px !important;
+            overflow: hidden !important;
         }
         .user-av img {
-            border-radius:8px !important;
-        }    
+            border-radius: 0 !important;
+        }
     </style>
 </head>
 <body>
@@ -539,23 +557,25 @@
             <button class="admin-save-btn" onclick="saveTextSetting('maintenanceMsg','maintenance-msg-input','maintenance-saved')">Сохранить</button>
             <span id="maintenance-saved" style="color:#2ecc71;font-size:13px;margin-left:8px;"></span>
 
-            <!-- Бандана акция -->
-            <div class="toggle-row">
-                <div class="toggle-info">
-                    <h4>🧣 Акция: Бандана</h4>
-                    <p>Показывать кнопку акции слева. Выключи когда товар закончится.</p>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="toggle-bandana" onchange="setSetting('bandanaVisible',this.checked)">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
+            
             <div class="sub-box" id="bandana-sub" style="display:block;">
                 <p style="color:#888;font-size:12px;margin:0 0 8px;">Осталось штук (число):</p>
                 <input type="number" id="bandana-count-input" class="admin-input" placeholder="850" style="max-width:none;">
                 <button class="admin-save-btn" onclick="saveBandanaCount()">Сохранить</button>
                 <span id="bandana-saved" style="color:#2ecc71;font-size:13px;margin-left:8px;"></span>
             </div>
+        </div>
+
+        <!-- Бандана акция -->
+        <div class="toggle-row">
+            <div class="toggle-info">
+                <h4>🧣 Акция: Бандана</h4>
+                <p>Показывать кнопку акции слева. Выключи когда товар закончится.</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="toggle-bandana" onchange="setSetting('bandanaVisible',this.checked)">
+                <span class="toggle-slider"></span>
+            </label>
         </div>
 
         <!-- Обновление игры -->
@@ -828,18 +848,17 @@ function shortId(uid){ return '#'+uid.slice(0,8).toUpperCase(); }
 function fmtTime(t){ return t||'---'; }
 function showErr(id,msg){ const el=document.getElementById(id); el.innerText=msg; el.style.display='block'; }
 
-// Рендерит аватар в div-контейнер
 function renderAvatar(container, idx, size=84) {
     container.innerHTML = '';
     container.style.fontSize = Math.round(size * 0.36) + 'px';
     if (idx !== null && idx !== undefined && idx >= 0) {
         const img = document.createElement('img');
-        img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;transition:filter 0.3s;';
+        // Убираем border-radius:50% — теперь форму задаёт CSS класса
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;transition:filter 0.3s;';
         img.src = AVATAR_BASE + idx + '.jpg';
         img.onerror = function() { this.src = AVATAR_BASE + idx + '.png'; this.onerror = null; };
         img.setAttribute('data-cubix-avatar', 'true');
         img.setAttribute('data-avatar-idx', String(idx));
-        // Блюрим если нужно
         if (_blurEnabled && _sensitiveAvatars.has(idx)) {
             img.style.filter = 'blur(12px)';
         }
