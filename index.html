@@ -810,6 +810,27 @@ firebase.initializeApp(firebaseConfig);
 const db=firebase.database(), storage=firebase.storage(), auth=firebase.auth();
 auth.languageCode='ru';
 
+db.ref('avatarsList').on('value', snap => {
+    _avatarsList = [];
+    snap.forEach(child => {
+        _avatarsList.push({ id: child.key, ...child.val() });
+    });
+    _avatarsList.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    _avatarsLoaded = true;
+    // Обновляем аватарку профиля
+    if (_myUid && _myAvatar >= 0) {
+        const item = getAvatarById(String(_myAvatar));
+        if (item) renderAvatar(document.getElementById('myAvatarRing'), item);
+    }
+    // Обновляем sensitive список
+    _sensitiveAvatars = new Set(
+        _avatarsList.filter(a => a.sensitive).map(a => Number(a.id))
+    );
+    refreshBlurImages();
+    // Обновляем список в админке
+    if (_isAdmin) renderAvatarsAdminList();
+});
+    
 // ══ ИНИЦИАЛИЗАЦИЯ ЯЗЫКА И БЛЮРА (ПЕРВЫМИ!) ══
 let _blurEnabled = localStorage.getItem('cubix_blur') !== 'off';
 let _sensitiveAvatars = new Set(); // индексы аватарок которые надо блюрить
@@ -1585,9 +1606,10 @@ async function openFPM(uid,nick,fId){
             else actionBtn=`<button class="f-btn f-btn-blue" style="flex:1;" onclick="window.sendRequest('${uid}','${esc(nick||u?.nick||'')}')">Добавить в друзья</button>`;
         }
 
-        const avHtml=avIdx>0
-            ?`<img src="${AVATAR_BASE+avIdx+'.jpg'}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='${AVATAR_BASE+avIdx+'.png'}';this.onerror=null;">`
-            :`<span style="font-size:26px;">👤</span>`;
+        const avItem3 = getAvatarById(String(avIdx));
+        const avHtml = avItem3
+            ? `<img src="${getAvatarUrl(avItem3)}" style="width:100%;height:100%;object-fit:contain;background:#111;" data-cubix-avatar="true" data-avatar-id="${avItem3.id}">`
+            : `<span style="font-size:26px;">👤</span>`;
 
         content.innerHTML=`
         <div class="fpm-header">
@@ -1773,14 +1795,16 @@ function listenFriends(){
                     wrap.innerHTML='';
                     if(avIdx>0){
                         const img=document.createElement('img');
-                        img.src=AVATAR_BASE+avIdx+'.jpg';
-                        img.setAttribute('data-cubix-avatar','true');
-                        img.setAttribute('data-avatar-idx', String(avIdx));
-                        if(_blurEnabled && _sensitiveAvatars.has(avIdx)) img.style.filter='blur(12px)';
-                        img.style.transition='filter 0.3s';
-                        img.onerror=function(){this.src=AVATAR_BASE+avIdx+'.png';this.onerror=null;};
-                        img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;transition:filter 0.3s;';
-                        wrap.appendChild(img);
+                        const avItem = getAvatarById(String(avIdx));
+                        if (avItem) {
+                            const img = document.createElement('img');
+                            img.src = getAvatarUrl(avItem);
+                            img.setAttribute('data-cubix-avatar','true');
+                            img.setAttribute('data-avatar-id', avItem.id);
+                            if(_blurEnabled && avItem.sensitive) img.style.filter='blur(12px)';
+                            img.style.cssText='width:100%;height:100%;object-fit:contain;background:#111;transition:filter 0.3s;';
+                            wrap.appendChild(img);
+                        } else { wrap.innerText='👤'; }
                     } else { wrap.innerText='👤'; }
                     if(ol){wrap.style.overflow='visible';const dot=document.createElement('div');dot.className='online-dot';wrap.appendChild(dot);}
                 }
@@ -1825,26 +1849,17 @@ function listenIncoming(){
                 const wrap=div.querySelector('.friend-avatar-wrap');
                 if(wrap){
                     wrap.innerHTML='';
-                    const img=document.createElement('img');
-
-                    img.src=AVATAR_BASE+avIdx+'.jpg';
-
-                    img.setAttribute('data-cubix-avatar','true');
-                    img.setAttribute('data-avatar-idx', String(avIdx));
-
-                    if(_blurEnabled && _sensitiveAvatars.has(avIdx))
-                        img.style.filter='blur(12px)';
-
-                    img.style.transition='filter 0.3s';
-
-                    img.onerror=function(){
-                        this.src=AVATAR_BASE+avIdx+'.png';
-                        this.onerror=null;
-                    };
-
-                    img.style.cssText+='width:100%;height:100%;object-fit:cover;border-radius:50%;transition:filter 0.3s;';
-
-                    wrap.appendChild(img);
+                    
+                    const avItem2 = getAvatarById(String(avIdx));
+                    if (avItem2) {
+                        const img = document.createElement('img');
+                        img.src = getAvatarUrl(avItem2);
+                        img.setAttribute('data-cubix-avatar','true');
+                        img.setAttribute('data-avatar-id', avItem2.id);
+                        if(_blurEnabled && avItem2.sensitive) img.style.filter='blur(12px)';
+                        img.style.cssText='width:100%;height:100%;object-fit:contain;background:#111;transition:filter 0.3s;';
+                        wrap.appendChild(img);
+                    }
                 }
             });
         });
@@ -1884,8 +1899,9 @@ async function adminSearchUser() {
     if (!found) { res.innerHTML = '<p style="color:#555;font-size:13px;">Игрок не найден.</p>'; return; }
     const isBanned = found.isBannedSite === true, isAdm = found.isAdmin === true;
     const avIdx = found.avatarIndex ?? -1;
-    const avHtml = avIdx >= 0
-        ? `<img src="${AVATAR_BASE + avIdx + '.jpg'}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.src='${AVATAR_BASE + avIdx + '.png'}';this.onerror=null;">`
+    const avItem4 = getAvatarById(String(avIdx));
+    const avHtml = avItem4
+        ? `<img src="${getAvatarUrl(avItem4)}" style="width:100%;height:100%;object-fit:contain;background:#111;">`
         : '👤';
     res.innerHTML = `<div class="user-row">
         <div class="user-av">${avHtml}</div>
@@ -2027,7 +2043,8 @@ function listenReports() {
                 if (metaEl) metaEl.innerText = shortId(uid) + (u.isBannedSite ? ' · ⛔ забанен на сайте' : '');
                 if (avEl && (u.avatarIndex ?? -1) >= 0) {
                     const idx = u.avatarIndex;
-                    avEl.innerHTML = `<img src="${AVATAR_BASE + idx + '.jpg'}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.src='${AVATAR_BASE + idx + '.png'}';this.onerror=null;">`;
+                    const repAvItem = getAvatarById(String(idx));
+                    if (repAvItem) avEl.innerHTML = `<img src="${getAvatarUrl(repAvItem)}" style="width:100%;height:100%;object-fit:contain;background:#111;">`;
                 }
                 // Обновляем кнопки с правильным ником
                 const btns = document.querySelectorAll(`#report-row-${uid} .ua-btn`);
@@ -2485,8 +2502,8 @@ function loadSensitiveAvatarGrid() {
         `;
 
         const img = document.createElement('img');
-        img.src = AVATAR_BASE + i + '.jpg';
-        img.onerror = function() { this.src = AVATAR_BASE + i + '.png'; this.onerror = null; };
+        const sensItem = getAvatarById(String(i));
+        img.src = sensItem ? sensItem.url : '';
         img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;transition:filter 0.3s;';
         if (isSens) img.style.filter = 'blur(8px)';
         img.id = 'sav-img-' + i;
@@ -2734,18 +2751,7 @@ async function reorderAvatars() {
     await db.ref().update(updates);
 }
 
-// Перерисовываем список когда меняется avatarsList
-db.ref('avatarsList').on('value', () => {
-    // _avatarsList уже обновляется в слушателе выше
-    setTimeout(() => {
-        if (_isAdmin) renderAvatarsAdminList();
-        // Обновляем sensitive аватарки в старом гриде
-        _sensitiveAvatars = new Set(
-            _avatarsList.filter(a => a.sensitive).map(a => Number(a.id))
-        );
-        refreshBlurImages();
-    }, 100);
-});
+
     
 function openFull(u){document.getElementById('viewer').style.display='flex';document.getElementById('viewImg').src=u;}
 </script>
