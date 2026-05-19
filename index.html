@@ -337,8 +337,7 @@
         .av-opt img,
         .user-av img {
             border-radius:0!important;
-            object-fit:contain!important;
-            background:#111;
+            object-fit:cover!important;
         }
     </style>
 </head>
@@ -813,22 +812,30 @@ auth.languageCode='ru';
 db.ref('avatarsList').on('value', snap => {
     _avatarsList = [];
     snap.forEach(child => {
-        _avatarsList.push({ id: child.key, ...child.val() });
+        const val = child.val();
+        if (val && val.url) { // Только записи с URL
+            _avatarsList.push({ id: child.key, ...val });
+        }
     });
     _avatarsList.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     _avatarsLoaded = true;
+
     // Обновляем аватарку профиля
-    if (_myUid && _myAvatar >= 0) {
-        const item = getAvatarById(String(_myAvatar));
-        if (item) renderAvatar(document.getElementById('myAvatarRing'), item);
+    if (_myUid && _myAvatar !== -1 && _myAvatar !== undefined) {
+        renderAvatarById(document.getElementById('myAvatarRing'), _myAvatar, 84);
     }
-    // Обновляем sensitive список
+
+    // Обновляем sensitive набор
     _sensitiveAvatars = new Set(
         _avatarsList.filter(a => a.sensitive).map(a => Number(a.id))
     );
     refreshBlurImages();
+
     // Обновляем список в админке
-    if (_isAdmin) renderAvatarsAdminList();
+    if (_isAdmin) {
+        renderAvatarsAdminList();
+        loadSensitiveAvatarGrid();
+    }
 });
     
 // ══ ИНИЦИАЛИЗАЦИЯ ЯЗЫКА И БЛЮРА (ПЕРВЫМИ!) ══
@@ -873,8 +880,8 @@ function renderAvatar(container, avatarItem, size=84) {
     if (avatarItem && avatarItem.url) {
         const url = getAvatarUrl(avatarItem);
         const img = document.createElement('img');
-        // Ключевой момент: contain вместо cover — картинка вписывается целиком
-        img.style.cssText = 'width:100%;height:100%;object-fit:contain;display:block;transition:filter 0.3s;background:#111;';
+        // cover — растягивает до квадрата 1:1
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;transition:filter 0.3s;';
         img.src = url;
         img.setAttribute('data-cubix-avatar', 'true');
         img.setAttribute('data-avatar-id', avatarItem.id);
@@ -893,7 +900,12 @@ function renderAvatarById(container, avatarId, size=84) {
     if (item) {
         renderAvatar(container, item, size);
     } else {
-        container.innerText = '👤';
+        // Аватарки ещё не загрузились — подождём
+        if (!_avatarsLoaded) {
+            setTimeout(() => renderAvatarById(container, avatarId, size), 500);
+        } else {
+            container.innerText = '👤';
+        }
     }
 }
 
@@ -980,16 +992,25 @@ function openAvatarPicker(){
     const picker = document.getElementById('avatar-picker');
     picker.innerHTML = '';
 
+    if (_avatarsList.length === 0) {
+        picker.innerHTML = '<p style="color:#555;text-align:center;padding:20px;grid-column:1/-1;">Загрузка аватарок...</p>';
+        // Ждём загрузки и пробуем снова
+        setTimeout(() => { if (_avatarsList.length > 0) openAvatarPicker(); }, 1000);
+        return;
+    }
+
     _avatarsList.forEach(item => {
         const url = getAvatarUrl(item);
         const div = document.createElement('div');
-        div.className = 'av-opt' + (item.id === String(_myAvatar) ? ' selected' : '');
+        div.className = 'av-opt' + (String(item.id) === String(_myAvatar) ? ' selected' : '');
 
         const img = document.createElement('img');
         img.loading = 'lazy';
         img.src = url;
-        // contain — картинка вписывается целиком без обрезки
-        img.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;background:#111;';
+        img.setAttribute('data-cubix-avatar', 'true');
+        img.setAttribute('data-avatar-id', item.id);
+        // cover — растянуть 1:1
+        img.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;';
 
         if (_blurEnabled && item.sensitive) {
             img.style.filter = 'blur(12px)';
@@ -1000,18 +1021,19 @@ function openAvatarPicker(){
         div.onclick = () => {
             picker.querySelectorAll('.av-opt').forEach(o => o.classList.remove('selected'));
             div.classList.add('selected');
-            _selectedAvatar = Number(item.id);
+            _selectedAvatar = item.id; // Храним id как строку
         };
         picker.appendChild(div);
     });
 
     document.getElementById('avatar-modal').classList.add('show');
 }
+    
 function closeAvatarPicker(){document.getElementById('avatar-modal').classList.remove('show');}
 async function saveAvatar(){
-    if(!_myUid||_selectedAvatar<0)return;
+    if(!_myUid || _selectedAvatar === -1) return;
     await db.ref('users/'+_myUid+'/avatarIndex').set(_selectedAvatar);
-    _myAvatar=_selectedAvatar;
+    _myAvatar = _selectedAvatar;
     renderAvatarById(document.getElementById('myAvatarRing'), _myAvatar, 84);
     closeAvatarPicker();
 }
@@ -1785,43 +1807,50 @@ function listenFriends(){
             Promise.all([
                 db.ref('users/'+fUid+'/avatarIndex').once('value'),
                 db.ref('playerStats/'+fUid+'/lastOnline').once('value'),
-                db.ref('users/'+fUid+'/isSupporter').once('value') // ← Добавили третьим запросом
-            ]).then(([avSnap,olSnap,supSnap])=>{ // ← Получили supSnap
-                const avIdx=avSnap.val()||0,ts=olSnap.val()||0,ol=isOnline(ts),isSup=supSnap.val()===true;
-                
-                // 1. РЕНДЕРИМ АВАТАР И ОНЛАЙН-ТОЧКУ
-                const wrap=div.querySelector('.friend-avatar-wrap');
-                if(wrap){
-                    wrap.innerHTML='';
-                    if(avIdx>0){
-                        const img=document.createElement('img');
-                        const avItem = getAvatarById(String(avIdx));
+                db.ref('users/'+fUid+'/isSupporter').once('value')
+            ]).then(([avSnap, olSnap, supSnap]) => {
+                const avId = avSnap.val();
+                const ts = olSnap.val() || 0;
+                const ol = isOnline(ts);
+                const isSup = supSnap.val() === true;
+
+                const wrap = div.querySelector('.friend-avatar-wrap');
+                if (wrap) {
+                    wrap.innerHTML = '';
+                    if (avId !== null && avId !== undefined) {
+                        const avItem = getAvatarById(String(avId));
                         if (avItem) {
                             const img = document.createElement('img');
                             img.src = getAvatarUrl(avItem);
                             img.setAttribute('data-cubix-avatar','true');
                             img.setAttribute('data-avatar-id', avItem.id);
                             if(_blurEnabled && avItem.sensitive) img.style.filter='blur(12px)';
-                            img.style.cssText='width:100%;height:100%;object-fit:contain;background:#111;transition:filter 0.3s;';
+                            img.style.cssText='width:100%;height:100%;object-fit:cover;transition:filter 0.3s;';
                             wrap.appendChild(img);
-                        } else { wrap.innerText='👤'; }
-                    } else { wrap.innerText='👤'; }
-                    if(ol){wrap.style.overflow='visible';const dot=document.createElement('div');dot.className='online-dot';wrap.appendChild(dot);}
+                        } else {
+                            wrap.innerText = '👤';
+                        }
+                    } else {
+                        wrap.innerText = '👤';
+                    }
+                    if (ol) {
+                        wrap.style.overflow = 'visible';
+                        const dot = document.createElement('div');
+                        dot.className = 'online-dot';
+                        wrap.appendChild(dot);
+                    }
                 }
-                
-                // 2. ОБНОВЛЯЕМ ТЕКСТ ОНЛАЙНА
-                const olLbl=div.querySelector('.friend-online-lbl');
-                if(olLbl){olLbl.innerText=fmtOnline(ts);olLbl.style.color=ol?'#2ecc71':'#555';}
 
-                // 3. ОТРИСОВЫВАЕМ ИКОНКУ САППОРТЕРА
-                if(isSup){
+                const olLbl = div.querySelector('.friend-online-lbl');
+                if (olLbl) { olLbl.innerText = fmtOnline(ts); olLbl.style.color = ol ? '#2ecc71' : '#555'; }
+
+                if (isSup) {
                     const badge = document.getElementById('support-badge-' + fUid);
                     if (badge) {
                         badge.className = 'support-icon';
                         badge.title = 'Этот игрок поддержал CubiX 💚';
-                        // Стили для иконки, чтобы она смотрелась аккуратно в списке
-                        badge.style.cssText = 'margin-left:5px; vertical-align:middle; display:inline-block; width:14px; height:14px;';
-                        badge.innerHTML = `<img src="https://img.icons8.com/emoji/48/green-heart.png" style="width:100%; height:100%;">`;
+                        badge.style.cssText = 'margin-left:5px;vertical-align:middle;display:inline-block;width:14px;height:14px;';
+                        badge.innerHTML = `<img src="https://img.icons8.com/emoji/48/green-heart.png" style="width:100%;height:100%;">`;
                     }
                 }
             });
@@ -1845,20 +1874,22 @@ function listenIncoming(){
             );
             list.appendChild(div);
             db.ref('users/'+fromUid+'/avatarIndex').once('value').then(avSnap=>{
-                const avIdx=avSnap.val()||0;if(!avIdx)return;
-                const wrap=div.querySelector('.friend-avatar-wrap');
-                if(wrap){
-                    wrap.innerHTML='';
-                    
-                    const avItem2 = getAvatarById(String(avIdx));
-                    if (avItem2) {
+                const avId = avSnap.val();
+                if (avId === null || avId === undefined) return;
+                const wrap = div.querySelector('.friend-avatar-wrap');
+                if (wrap) {
+                    wrap.innerHTML = '';
+                    const avItem = getAvatarById(String(avId));
+                    if (avItem) {
                         const img = document.createElement('img');
-                        img.src = getAvatarUrl(avItem2);
+                        img.src = getAvatarUrl(avItem);
                         img.setAttribute('data-cubix-avatar','true');
-                        img.setAttribute('data-avatar-id', avItem2.id);
-                        if(_blurEnabled && avItem2.sensitive) img.style.filter='blur(12px)';
-                        img.style.cssText='width:100%;height:100%;object-fit:contain;background:#111;transition:filter 0.3s;';
+                        img.setAttribute('data-avatar-id', avItem.id);
+                        if(_blurEnabled && avItem.sensitive) img.style.filter='blur(12px)';
+                        img.style.cssText='width:100%;height:100%;object-fit:cover;transition:filter 0.3s;';
                         wrap.appendChild(img);
+                    } else {
+                        wrap.innerText = '👤';
                     }
                 }
             });
@@ -2483,71 +2514,61 @@ function loadSensitiveAvatarGrid() {
     const grid = document.getElementById('sensitive-avatar-grid');
     if (!grid) return;
     grid.innerHTML = '';
-    for (let i = AVATAR_START; i < AVATAR_COUNT; i++) {
-        const isSens = _sensitiveAvatars.has(i);
+    
+    if (_avatarsList.length === 0) {
+        grid.innerHTML = '<p style="color:#555;font-size:13px;">Загрузка...</p>';
+        return;
+    }
 
-        // Внешний контейнер — НЕ overflow:hidden чтобы badge не обрезался
+    _avatarsList.forEach(item => {
+        const isSens = item.sensitive === true;
+        const i = Number(item.id);
+
         const outer = document.createElement('div');
         outer.style.cssText = 'position:relative;aspect-ratio:1;cursor:pointer;';
-        outer.title = `Аватарка #${i}`;
+        outer.title = `Аватарка #${item.id}`;
 
-        // Круглая обёртка с border
         const wrap = document.createElement('div');
-        wrap.id = 'sav-wrap-' + i;
-        wrap.style.cssText = `
-            width:100%;height:100%;border-radius:50%;overflow:hidden;
+        wrap.id = 'sav-wrap-' + item.id;
+        wrap.style.cssText = `width:100%;height:100%;border-radius:50%;overflow:hidden;
             border:3px solid ${isSens ? '#e74c3c' : 'rgba(255,255,255,0.1)'};
-            transition:border-color 0.2s, transform 0.15s;
-            background:rgba(255,255,255,0.05);
-        `;
+            transition:border-color 0.2s, transform 0.15s;background:rgba(255,255,255,0.05);`;
 
         const img = document.createElement('img');
-        const sensItem = getAvatarById(String(i));
-        img.src = sensItem ? sensItem.url : '';
+        img.src = item.url;
+        img.id = 'sav-img-' + item.id;
         img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;transition:filter 0.3s;';
         if (isSens) img.style.filter = 'blur(8px)';
-        img.id = 'sav-img-' + i;
         wrap.appendChild(img);
 
-        // Overlay — глазок поверх если sensitive
         const overlay = document.createElement('div');
-        overlay.id = 'sav-overlay-' + i;
-        overlay.style.cssText = `
-            position:absolute;top:0;left:0;width:100%;height:100%;
+        overlay.id = 'sav-overlay-' + item.id;
+        overlay.style.cssText = `position:absolute;top:0;left:0;width:100%;height:100%;
             border-radius:50%;display:flex;align-items:center;justify-content:center;
             background:rgba(231,76,60,0.45);font-size:22px;pointer-events:none;
-            opacity:${isSens ? '1' : '0'};transition:opacity 0.2s;
-        `;
+            opacity:${isSens ? '1' : '0'};transition:opacity 0.2s;`;
         overlay.innerText = '🔞';
 
         outer.appendChild(wrap);
         outer.appendChild(overlay);
-
-        outer.onclick = () => toggleSensitiveAvatar(i);
-
-        // Hover эффект
+        outer.onclick = () => toggleSensitiveAvatar(item.id);
         outer.onmouseenter = () => { wrap.style.transform = 'scale(1.08)'; };
         outer.onmouseleave = () => { wrap.style.transform = 'scale(1)'; };
-
         grid.appendChild(outer);
-    }
+    });
 }
 
-async function toggleSensitiveAvatar(idx) {
-    const isSens = _sensitiveAvatars.has(idx);
-    // Мгновенно обновляем UI
-    const wrap = document.getElementById('sav-wrap-' + idx);
-    const img = document.getElementById('sav-img-' + idx);
-    const overlay = document.getElementById('sav-overlay-' + idx);
+async function toggleSensitiveAvatar(id) {
+    const item = getAvatarById(String(id));
+    if (!item) return;
+    const isSens = item.sensitive === true;
+    const wrap = document.getElementById('sav-wrap-' + id);
+    const img = document.getElementById('sav-img-' + id);
+    const overlay = document.getElementById('sav-overlay-' + id);
     if (wrap) wrap.style.borderColor = isSens ? 'rgba(255,255,255,0.1)' : '#e74c3c';
     if (img) img.style.filter = isSens ? '' : 'blur(8px)';
     if (overlay) overlay.style.opacity = isSens ? '0' : '1';
-    // Пишем в Firebase
-    if (isSens) {
-        await db.ref('sensitiveAvatars/' + idx).remove();
-    } else {
-        await db.ref('sensitiveAvatars/' + idx).set(true);
-    }
+    await db.ref(`avatarsList/${id}/sensitive`).set(!isSens);
 }
 
 // ── САППОРТ ИКОНКА ──
