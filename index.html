@@ -880,8 +880,10 @@ function renderAvatar(container, avatarItem, size=84) {
     if (avatarItem && avatarItem.url) {
         const url = getAvatarUrl(avatarItem);
         const img = document.createElement('img');
-        // cover — растягивает до квадрата 1:1
-        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;transition:filter 0.3s;';
+        
+        // ТЕПЕРЬ СКУКОЖИВАЕТ 1:1 БЕЗ ОБРЕЗАНИЯ КРАЕВ!
+        img.style.cssText = 'width:100%;height:100%;object-fit:fill;display:block;transition:filter 0.3s;';
+        
         img.src = url;
         img.setAttribute('data-cubix-avatar', 'true');
         img.setAttribute('data-avatar-id', avatarItem.id);
