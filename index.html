@@ -70,6 +70,21 @@
         .modal-close-btn:hover { background: rgba(255,255,255,0.14); color: white; }
         .mod-badge { display: inline-block; background: red; color: white; border-radius: 50%; font-size: 12px; width: 20px; height: 20px; line-height: 20px; text-align: center; margin-left: 6px; vertical-align: middle; }
 
+        /* ── КНОПКИ ЯЗЫКА В ПРОФИЛЕ ── */
+        .lang-btn-active {
+            background: #3498db !important;
+            border-color: #3498db !important;
+            color: white !important;
+        }
+        .lang-btn-inactive {
+            background: rgba(255,255,255,0.06) !important;
+            border-color: rgba(255,255,255,0.1) !important;
+            color: #888 !important;
+        }
+        .lang-btn-inactive:hover {
+            background: rgba(255,255,255,0.1) !important;
+            color: white !important;
+        }
         
         /* Кнопка выбора цвета ника */
         .nick-color-btn {
@@ -461,14 +476,14 @@
 <div class="container">
     <h1>CubiX</h1>
     <div class="main-nav">
-        <div class="nav-btn active-link" style="color: #FF9999;" onclick="showPage('home','background-red.png',this)">Главная</div>
-        <div class="nav-btn" style="color: #FF9933;" onclick="showPage('gallery-page','background-blue.png',this)">Галерея</div>
-        <div class="nav-btn" style="color: #FAFF51;" onclick="showPage('versions-page','background-yellow.png',this)">Версии</div>
-        <div class="nav-btn" id="friends-nav-btn" style="color: #8AFF77;" onclick="showPage('friends-page','background-red.png',this)">Друзья<span class="req-badge" id="req-badge" style="display:none;">0</span></div>
-        <div class="nav-btn" style="color: #57B6EE;" onclick="showPage('profile-page','background-red.png',this)">Профиль</div>
-        <div class="nav-btn" style="color: #B65DFF;" onclick="showPage('donate-page','background-red.png',this)">💜 Поддержать (Сервера)</div>
-        <div class="nav-btn" style="color: #FF4D4D;" onclick="window.open('https://cubixx.fandom.com/ru/wiki/Cubix','_blank')">Fandom❤️‍🔥</div>
-        <div class="nav-btn" id="admin-nav-btn" style="display:none;color:#f1c40f;" onclick="showPage('admin-page','background-red.png',this)">🛠 Админ<span class="mod-badge" id="mod-count" style="display:none;">0</span></div>
+        <div class="nav-btn active-link" style="color:#FF9999;" onclick="showPage('home','background-red.png',this)" data-lang-key="nav_home">Главная</div>
+        <div class="nav-btn" style="color:#FF9933;" onclick="showPage('gallery-page','background-blue.png',this)" data-lang-key="nav_gallery">Галерея</div>
+        <div class="nav-btn" style="color:#FAFF51;" onclick="showPage('versions-page','background-yellow.png',this)" data-lang-key="nav_versions">Версии</div>
+        <div class="nav-btn" id="friends-nav-btn" style="color:#8AFF77;" onclick="showPage('friends-page','background-red.png',this)" data-lang-key="nav_friends">Друзья<span class="req-badge" id="req-badge" style="display:none;">0</span></div>
+        <div class="nav-btn" style="color:#57B6EE;" onclick="showPage('profile-page','background-red.png',this)" data-lang-key="nav_profile">Профиль</div>
+        <div class="nav-btn" style="color:#B65DFF;" onclick="showPage('donate-page','background-red.png',this)" data-lang-key="nav_donate">💜 Поддержать (Сервера)</div>
+        <div class="nav-btn" style="color:#FF4D4D;" onclick="window.open('https://cubixx.fandom.com/ru/wiki/Cubix','_blank')" data-lang-key="nav_fandom">Fandom❤️‍🔥</div>
+        <div class="nav-btn" id="admin-nav-btn" style="display:none;color:#f1c40f;" onclick="showPage('admin-page','background-red.png',this)" data-lang-key="nav_admin">🛠 Админ<span class="mod-badge" id="mod-count" style="display:none;">0</span></div>
     </div>
 
     <div id="home" class="page active">
@@ -813,6 +828,23 @@
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
+                <!-- ПЕРЕКЛЮЧАТЕЛЬ ЯЗЫКА В ПРОФИЛЕ -->
+                <div class="profile-setting-row" id="lang-setting-row">
+                    <div>
+                        <div id="lang-setting-label" style="font-size:14px;color:white;">🌐 Язык / Language</div>
+                        <p id="lang-setting-desc" style="margin:0;font-size:13px;color:#555;">Влияет на аватарки и интерфейс</p>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <button id="lang-btn-ru" onclick="requestLangChange('ru')"
+                            style="padding:5px 14px;border-radius:8px;border:2px solid transparent;cursor:pointer;font-family:Door,Arial,sans-serif;font-size:14px;font-weight:bold;transition:0.2s;">
+                            🇷🇺 RU
+                        </button>
+                        <button id="lang-btn-en" onclick="requestLangChange('en')"
+                            style="padding:5px 14px;border-radius:8px;border:2px solid transparent;cursor:pointer;font-family:Door,Arial,sans-serif;font-size:14px;font-weight:bold;transition:0.2s;">
+                            🇬🇧 EN
+                        </button>
+                    </div>
+                </div>
                 <div class="profile-actions">
                     <button class="profile-btn-logout" onclick="logout()">Выйти из аккаунта</button>
                     <button class="profile-btn-delete" onclick="deleteAccount()">Удалить аккаунт</button>
@@ -875,7 +907,14 @@ db.ref('avatarsList').on('value', snap => {
 // ══ ИНИЦИАЛИЗАЦИЯ ЯЗЫКА И БЛЮРА (ПЕРВЫМИ!) ══
 let _blurEnabled = localStorage.getItem('cubix_blur') !== 'off';
 let _sensitiveAvatars = new Set(); // индексы аватарок которые надо блюрить
-let _lang = localStorage.getItem('cubix_lang') || (navigator.language.startsWith('ru') ? 'ru' : 'en');
+// При первом посещении — определяем язык системы и сохраняем
+let _lang = (() => {
+    const saved = localStorage.getItem('cubix_lang');
+    if (saved) return saved;
+    const detected = navigator.language.startsWith('ru') ? 'ru' : 'en';
+    localStorage.setItem('cubix_lang', detected);
+    return detected;
+})();
 
 // ══════════════════════════════════════════════
 // КОНСТАНТЫ
@@ -1348,6 +1387,13 @@ async function authStateHandler(user){
     // ──────────────────────────────────────────────
     _myIsSupporter = d.isSupporter === true;
     _myNickColor = d.nickColor || null;
+    // Загружаем язык из Firebase (приоритет над localStorage)
+    if (d.lang && (d.lang === 'ru' || d.lang === 'en')) {
+        _lang = d.lang;
+        localStorage.setItem('cubix_lang', d.lang);
+    }
+    updateLangButtons();
+    applyLang();
     applyMyNickColor();
 
     // Добавляем кнопку карандашика к нику если саппортер
@@ -1551,7 +1597,7 @@ function makeCard(d) {
     const supportBadge = d.authorIsSupporter ? `<span class="support-icon" title="Этот игрок поддержал CubiX 💚" style="margin-left:5px; vertical-align:middle; display:inline-block; width:20px; height:20px;"><img src="https://img.icons8.com/emoji/48/green-heart.png" style="width:100%; height:100%;"></span>` : '';
 
     // Здесь мы вставили ${supportBadge} сразу после ${idBadge}
-    card.innerHTML = `${isSens ? '<span class="sensitive-badge">sensitive</span>' : ''}<div class="card-info"><div class="card-author" style="${d.authorNickColor ? `color:${d.authorNickColor}` : ''}">${esc(d.author)}${idBadge}${supportBadge}</div><div class="card-desc">${esc(d.desc) || '<em style="color:#555">нет описания</em>'}</div><div class="card-meta"><span>📅 ${esc(fmtTime(d.time))}</span><span>📐 ${meta}</span></div></div>`;
+    card.innerHTML = `${isSens ? '<span class="sensitive-badge">sensitive</span>' : ''}<div class="card-info"><div class="card-author" style="${d.authorNickColor ? `color:${d.authorNickColor}` : ''}">${esc(d.author)}${idBadge}${supportBadge}</div><div class="card-desc">${esc(d.desc) || `<em style="color:#555">${_lang === 'en' ? 'no description' : 'нет описания'}</em>`}</div><div class="card-meta"><span>📅 ${esc(fmtTime(d.time))}</span><span>📐 ${meta}</span></div></div>`;
     
     card.insertBefore(img, card.firstChild);
     return card;
@@ -2392,7 +2438,24 @@ ru: {
     donate_desc:'Серверы CubiX работают за счёт донатов. Если хочешь помочь, любая сумма важна!',
     // ВЕРСИИ
     versions_title:'Архив Версий',
-},
+    // ПРОФИЛЬ — ЯЗЫК
+    lang_setting_label: '🌐 Язык интерфейса',
+    lang_setting_desc: 'Влияет на аватарки и интерфейс',
+    // НАВИГАЦИЯ (русские кнопки)
+    nav_home:'Главная', nav_gallery:'Галерея', nav_versions:'Версии',
+    nav_friends:'Друзья', nav_profile:'Профиль',
+    nav_donate:'💜 Поддержать (Сервера)',
+    // КНОПКИ ДРУЗЕЙ
+    btn_remove:'Удалить', btn_accept:'✓ Принять',
+    btn_cancel_req:'Отменить', btn_sent:'Отправлено',
+    btn_add_friend:'Добавить', btn_remove_friend:'Удалить из друзей',
+    // ПРОФИЛЬ — доп.
+    profile_change_avatar:'Нажми на аватар чтобы сменить',
+    // ГАЛЕРЕЯ
+    no_desc:'нет описания',
+    // ADMIN
+    clear_reports:'🗑 Сбросить жалобы',
+    },
 en: {
     nav_home:'Home', nav_gallery:'Gallery', nav_versions:'Versions',
     nav_friends:'Friends', nav_profile:'Profile', nav_donate:'💜 Support',
@@ -2516,6 +2579,17 @@ en: {
     donate_title:'💜 Support the servers',
     donate_desc:'CubiX servers run on donations. Any amount helps!',
     versions_title:'Version Archive',
+    lang_setting_label: '🌐 Interface Language',
+    lang_setting_desc: 'Affects avatars and UI',
+    nav_home:'Home', nav_gallery:'Gallery', nav_versions:'Versions',
+    nav_friends:'Friends', nav_profile:'Profile',
+    nav_donate:'💜 Support (Servers)',
+    btn_remove:'Remove', btn_accept:'✓ Accept',
+    btn_cancel_req:'Cancel', btn_sent:'Sent',
+    btn_add_friend:'Add', btn_remove_friend:'Remove friend',
+    profile_change_avatar:'Click avatar to change',
+    no_desc:'no description',
+    clear_reports:'🗑 Clear reports',
 }
 };
 
@@ -2523,10 +2597,69 @@ en: {
 
 function t(key) { return LANGS[_lang]?.[key] || LANGS['ru'][key] || key; }
 
+// ══ СМЕНА ЯЗЫКА ══
+let _pendingLang = null;
+
+function requestLangChange(lang) {
+    if (lang === _lang) return; // уже этот язык
+    _pendingLang = lang;
+    // Показываем предупреждение
+    const modal = document.getElementById('lang-change-modal');
+    const title = document.getElementById('lang-modal-title');
+    const desc  = document.getElementById('lang-modal-desc');
+    const btn   = document.getElementById('lang-modal-confirm');
+    if (lang === 'en') {
+        if (title) title.innerText = 'Switch to English?';
+        if (desc)  desc.innerHTML  = 'Changing language will affect avatar display.<br>Some avatars have a separate version for English.';
+        if (btn)   btn.innerText   = 'Switch';
+    } else {
+        if (title) title.innerText = 'Сменить на Русский?';
+        if (desc)  desc.innerHTML  = 'Смена языка повлияет на отображение аватарок.<br>Некоторые аватарки имеют отдельную версию для другого языка.';
+        if (btn)   btn.innerText   = 'Сменить';
+    }
+    if (modal) modal.style.display = 'flex';
+}
+
+function cancelLangChange() {
+    _pendingLang = null;
+    const modal = document.getElementById('lang-change-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+async function confirmLangChange() {
+    if (!_pendingLang) return;
+    const lang = _pendingLang;
+    _pendingLang = null;
+    const modal = document.getElementById('lang-change-modal');
+    if (modal) modal.style.display = 'none';
+    
+    // Сохраняем в Firebase если залогинен
+    if (_myUid) {
+        await db.ref('users/' + _myUid + '/lang').set(lang);
+    }
+    // Сохраняем локально
+    localStorage.setItem('cubix_lang', lang);
+    _lang = lang;
+    applyLang();
+    updateLangButtons();
+}
+
+function updateLangButtons() {
+    const btnRu = document.getElementById('lang-btn-ru');
+    const btnEn = document.getElementById('lang-btn-en');
+    if (btnRu) {
+        btnRu.className = _lang === 'ru' ? 'lang-btn-active' : 'lang-btn-inactive';
+    }
+    if (btnEn) {
+        btnEn.className = _lang === 'en' ? 'lang-btn-active' : 'lang-btn-inactive';
+    }
+}
+
 function setLang(lang) {
     _lang = lang;
     localStorage.setItem('cubix_lang', lang);
     applyLang();
+    updateLangButtons();
 }
 
 function applyLang() {
@@ -2613,6 +2746,57 @@ function applyLang() {
     document.querySelectorAll('.stat-tile-lbl').forEach((lbl, i) => {
         const keys = ['stat_wins','stat_losses','stat_games','','stat_winrate','stat_playtime','stat_ach'];
         if (keys[i]) lbl.innerText = t(keys[i]);
+    });
+    // Кнопки языка
+    updateLangButtons();
+
+    // Настройка языка в профиле
+    const langLabelEl = document.getElementById('lang-setting-label');
+    const langDescEl  = document.getElementById('lang-setting-desc');
+    if (langLabelEl) langLabelEl.innerText = t('lang_setting_label');
+    if (langDescEl)  langDescEl.innerText  = t('lang_setting_desc');
+
+    // Подсказка смены аватара
+    const changeAvHintEl = document.querySelector('#myAvatarRing + p');
+    if (changeAvHintEl) changeAvHintEl.innerText = t('profile_change_avatar');
+
+    // Навигация
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const navKeys = ['nav_home','nav_gallery','nav_versions','nav_friends','nav_profile','nav_donate','nav_fandom'];
+    // Навигация переводится через data-атрибут — пропускаем (статичные тексты)
+
+    // Кнопки в модалках (бан)
+    const banH2el = document.querySelector('#ban-modal h2');
+    const banPel  = document.querySelector('#ban-modal p');
+    if (banH2el) banH2el.innerText = t('ban_title');
+    if (banPel)  banPel.innerText  = t('ban_text');
+
+    // Описание на главной
+    const homeDesc = document.querySelector('#home > p');
+    if (homeDesc) homeDesc.innerText = _lang === 'en' ? 'Latest community screenshots:' : 'Последние кадры сообщества:';
+
+    // Версии
+    const dlBtn = document.getElementById('dl-btn');
+    if (dlBtn) dlBtn.innerText = _lang === 'en' ? 'Download latest version' : 'Скачать последнюю версию';
+
+    // Галерея — нет описания (в карточках статично, но для новых карточек через makeCard)
+    // Переводим навигацию по data-lang-key
+    document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.getAttribute('data-lang-key');
+        const translation = t(key);
+        if (translation) {
+            // Сохраняем дочерние элементы (badges)
+            const badges = el.querySelectorAll('.req-badge, .mod-badge');
+            el.childNodes.forEach(node => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    node.textContent = translation;
+                }
+            });
+            // Если нет текстовых узлов — просто устанавливаем первый текстовый дочерний
+            if (!el.childNodes.length || !Array.from(el.childNodes).some(n => n.nodeType === Node.TEXT_NODE)) {
+                el.insertBefore(document.createTextNode(translation), el.firstChild);
+            }
+        }
     });
     // Обновляем блюр
     refreshBlurImages();
@@ -2949,15 +3133,15 @@ async function reorderAvatars() {
     await db.ref().update(updates);
 }
 
-
+// Инициализируем кнопки языка при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+    updateLangButtons();
+    applyLang();
+});
     
 function openFull(u){document.getElementById('viewer').style.display='flex';document.getElementById('viewImg').src=u;}
 </script>
-    <div id="lang-switcher">
-    <span onclick="setLang('ru')" id="lang-ru">RU</span>
-    <span style="color:#333;">|</span>
-    <span onclick="setLang('en')" id="lang-en">EN</span>
-    </div>
+    
 
     <!-- ДИСКОРД -->
     <div id="discord-btn" onclick="window.open('https://discord.gg/ysvB4zcNr7','_blank')" title="Дискорд CubiX">
@@ -2984,6 +3168,31 @@ function openFull(u){document.getElementById('viewer').style.display='flex';docu
             </div>
         </div>
     </div>
-    
+
+    <!-- ПРЕДУПРЕЖДЕНИЕ О СМЕНЕ ЯЗЫКА -->
+    <div id="lang-change-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+        background:rgba(0,0,0,0.92);z-index:900;align-items:center;justify-content:center;">
+        <div style="background:#0f0f0f;border:2px solid #3498db;border-radius:20px;padding:32px 28px;
+            max-width:440px;width:90%;text-align:center;">
+            <div style="font-size:46px;margin-bottom:12px;">🌐</div>
+            <h3 id="lang-modal-title" style="margin:0 0 10px;font-size:20px;color:#3498db;">Сменить язык?</h3>
+            <p id="lang-modal-desc" style="color:#888;font-size:13px;line-height:1.7;margin:0 0 20px;">
+                Смена языка повлияет на отображение аватарок.<br>
+                Некоторые аватарки имеют отдельную версию для другого языка.
+            </p>
+            <div style="display:flex;gap:10px;justify-content:center;">
+                <button onclick="cancelLangChange()"
+                    style="background:rgba(255,255,255,0.06);border:1px solid #333;color:#aaa;
+                    padding:10px 24px;border-radius:10px;cursor:pointer;font-family:Door,Arial,sans-serif;font-size:15px;">
+                    Отмена
+                </button>
+                <button id="lang-modal-confirm" onclick="confirmLangChange()"
+                    style="background:#3498db;border:none;color:white;padding:10px 24px;
+                    border-radius:10px;cursor:pointer;font-family:Door,Arial,sans-serif;font-size:15px;">
+                    Сменить
+                </button>
+            </div>
+        </div>
+    </div>    
 </body>
 </html>
