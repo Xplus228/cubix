@@ -94,7 +94,7 @@
             height:48px; border-radius:12px; cursor:pointer;
             border:3px solid transparent; transition:0.2s;
             display:flex; align-items:center; justify-content:center;
-            font-size:11px; color:rgba(255,255,255,0.7); font-weight:bold;
+            font-size:11px; color:#000; font-weight:bold;  /* ← было rgba(255,255,255,0.7), стало #000 */
         }
         .color-swatch:hover { transform:scale(1.08); border-color:white; }
         .color-swatch.selected { border-color:white; box-shadow:0 0 12px rgba(255,255,255,0.4); }
@@ -1352,18 +1352,19 @@ async function authStateHandler(user){
 
     // Добавляем кнопку карандашика к нику если саппортер
     if (_myIsSupporter) {
-        const nickEl = document.getElementById('dispNick');
-        // Убираем старую кнопку если есть
         const oldBtn = document.getElementById('nick-color-pencil');
         if (oldBtn) oldBtn.remove();
-        
+    
         const pencilBtn = document.createElement('span');
         pencilBtn.id = 'nick-color-pencil';
         pencilBtn.className = 'nick-color-btn';
         pencilBtn.title = 'Сменить цвет ника';
         pencilBtn.innerHTML = '✏️';
         pencilBtn.onclick = (e) => { e.stopPropagation(); openNickColorModal(); };
-        nickEl.parentNode.insertBefore(pencilBtn, nickEl.nextSibling);
+    
+        // Вставляем в profile-meta после #dispId
+        const metaEl = document.querySelector('.profile-meta');
+        if (metaEl) metaEl.appendChild(pencilBtn);
     }
     // ──────────────────────────────────────────────
 
@@ -1956,16 +1957,14 @@ function listenFriends(){
                 db.ref('playerStats/'+fUid+'/lastOnline').once('value'),
                 db.ref('users/'+fUid+'/isSupporter').once('value'),
                 db.ref('users/'+fUid+'/nickColor').once('value')
-            ]).then(([avSnap, olSnap, supSnap]) => {
-                const avId = avSnap.val();
+            ]).then(([avSnap, olSnap, supSnap, colorSnap]) => {
+                    const avId = avSnap.val();
                 const ts = olSnap.val() || 0;
                 const ol = isOnline(ts);
                 const isSup = supSnap.val() === true;
+                const nickColor = colorSnap.val() || null;
 
                 const wrap = div.querySelector('.friend-avatar-wrap');
-                const nickEl = div.querySelector('.friend-nick');
-                if (nickEl && nickColor) nickEl.style.color = nickColor;
-                
                 if (wrap) {
                     wrap.innerHTML = '';
                     if (avId !== null && avId !== undefined) {
@@ -1975,7 +1974,7 @@ function listenFriends(){
                             img.src = getAvatarUrl(avItem);
                             img.setAttribute('data-cubix-avatar','true');
                             img.setAttribute('data-avatar-id', avItem.id);
-                            if(_blurEnabled && avItem.sensitive) img.style.filter='blur(12px)';
+                            if(_blurEnabled && isAvatarSensitive(avItem)) img.style.filter='blur(12px)';
                             img.style.cssText='width:100%;height:100%;object-fit:fill;transition:filter 0.3s;';
                             wrap.appendChild(img);
                         } else {
@@ -1995,12 +1994,15 @@ function listenFriends(){
                 const olLbl = div.querySelector('.friend-online-lbl');
                 if (olLbl) { olLbl.innerText = fmtOnline(ts); olLbl.style.color = ol ? '#2ecc71' : '#555'; }
 
+                const nickEl2 = div.querySelector('.friend-nick');
+                if (nickEl2 && nickColor) nickEl2.style.color = nickColor;
+
                 if (isSup) {
                     const badge = document.getElementById('support-badge-' + fUid);
                     if (badge) {
                         badge.className = 'support-icon';
                         badge.title = 'Этот игрок поддержал CubiX 💚';
-                        badge.style.cssText = 'margin-left:6px; vertical-align:middle; display:inline-block; width:20px; height:20px; margin-top:-2px;';
+                        badge.style.cssText = 'margin-left:6px;vertical-align:middle;display:inline-block;width:20px;height:20px;margin-top:-2px;';
                         badge.innerHTML = `<img src="https://img.icons8.com/emoji/48/green-heart.png" style="width:100%;height:100%;">`;
                     }
                 }
