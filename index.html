@@ -654,11 +654,12 @@
 
         <!-- Загрузка новой -->
         <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
-            <input type="file" id="av-upload-main" accept="image/*" style="display:none">
+            <input type="file" id="av-upload-main" accept="image/*" style="display:none" multiple>
             <button class="admin-save-btn" onclick="document.getElementById('av-upload-main').click()">
-                + Загрузить новую аватарку
+                + Загрузить аватарки (можно несколько)
             </button>
             <span id="av-upload-status" style="color:#2ecc71;font-size:13px;"></span>
+            <div id="av-upload-progress" style="margin-top:8px;font-size:12px;color:#555;"></div>
         </div>
 
         <!-- Список аватарок -->
@@ -826,9 +827,7 @@ db.ref('avatarsList').on('value', snap => {
     }
 
     // Обновляем sensitive набор
-    _sensitiveAvatars = new Set(
-        _avatarsList.filter(a => a.sensitive).map(a => Number(a.id))
-    );
+    
     refreshBlurImages();
 
     // Обновляем список в админке
@@ -853,9 +852,16 @@ let _avatarsList = []; // массив {id, order, url, urlEn, sensitive, name}
 let _avatarsLoaded = false;
 
 function getAvatarUrl(item) {
-    // Возвращает URL аватарки с учётом языка
     if (_lang === 'en' && item.urlEn && item.urlEn.trim()) return item.urlEn;
     return item.url;
+}
+
+// Новая функция — sensitive с учётом языка
+function isAvatarSensitive(item) {
+    if (_lang === 'en' && item.urlEn && item.urlEn.trim()) {
+        return item.sensitiveEn === true;
+    }
+    return item.sensitive === true;
 }
 
 function getAvatarById(id) {
@@ -880,14 +886,11 @@ function renderAvatar(container, avatarItem, size=84) {
     if (avatarItem && avatarItem.url) {
         const url = getAvatarUrl(avatarItem);
         const img = document.createElement('img');
-        
-        // ТЕПЕРЬ СКУКОЖИВАЕТ 1:1 БЕЗ ОБРЕЗАНИЯ КРАЕВ!
         img.style.cssText = 'width:100%;height:100%;object-fit:fill;display:block;transition:filter 0.3s;';
-        
         img.src = url;
         img.setAttribute('data-cubix-avatar', 'true');
         img.setAttribute('data-avatar-id', avatarItem.id);
-        if (_blurEnabled && avatarItem.sensitive) {
+        if (_blurEnabled && isAvatarSensitive(avatarItem)) {
             img.style.filter = 'blur(12px)';
         }
         container.appendChild(img);
@@ -1014,7 +1017,7 @@ function openAvatarPicker(){
         // cover — растянуть 1:1
         img.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;object-fit:fill;';
 
-        if (_blurEnabled && item.sensitive) {
+        if (_blurEnabled && isAvatarSensitive(item)) {
             img.style.filter = 'blur(12px)';
             div.title = '⚠️ Sensitive';
         }
@@ -1231,7 +1234,13 @@ async function authStateHandler(user){
     window._currentUserData={uid:user.uid,nick:d.nick,id:_myShortId};
 
     // Аватар в профиле
-    renderAvatar(document.getElementById('myAvatarRing'),_myAvatar,84);
+    // Если список уже загружен — рендерим сразу, иначе ждём
+    if (_avatarsLoaded) {
+        renderAvatarById(document.getElementById('myAvatarRing'), _myAvatar, 84);
+    } else {
+        // Покажем заглушку, аватарка подтянется когда загрузится avatarsList
+        document.getElementById('myAvatarRing').innerText = '👤';
+    }
 
     // Слушатель бана
     db.ref('users/'+user.uid+'/isBannedSite').on('value',s=>{if(s.val()===true)auth.signOut();});
@@ -1676,7 +1685,7 @@ function makeFriendCard(uid,nick,fId,avIdx,online,onlineLbl,buttons){
             img.setAttribute('data-cubix-avatar','true');
             img.setAttribute('data-avatar-id', item.id);
             if(_blurEnabled && item.sensitive) img.style.filter='blur(12px)';
-            img.style.cssText='width:100%;height:100%;object-fit:contain;background:#111;transition:filter 0.3s;';
+            img.style.cssText='width:100%;height:100%;object-fit:fill;background:#111;transition:filter 0.3s;';
             img.onerror = function(){};
             avWrap.appendChild(img);
         } else {
@@ -2473,7 +2482,7 @@ function refreshBlurImages() {
     document.querySelectorAll('img[data-cubix-avatar="true"]').forEach(img => {
         const avatarId = img.getAttribute('data-avatar-id');
         const item = getAvatarById(avatarId);
-        const isSensitive = item ? item.sensitive : false;
+        const isSensitive = item ? isAvatarSensitive(item) : false;
         img.style.filter = (isSensitive && _blurEnabled) ? 'blur(12px)' : '';
     });
     const tog = document.getElementById('toggle-blur');
@@ -2596,39 +2605,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function uploadNewAvatar() {
     const inp = document.getElementById('av-upload-main');
-    const file = inp.files[0];
-    if (!file) return;
-    const status = document.getElementById('av-upload-status');
-    status.innerText = '⏳ Загрузка...';
+    const files = Array.from(inp.files);
+    if (!files.length) return;
 
-    // Определяем следующий номер
-    const nextId = _avatarsList.length > 0
+    const status = document.getElementById('av-upload-status');
+    const progress = document.getElementById('av-upload-progress');
+    status.innerText = `⏳ Загрузка ${files.length} файлов...`;
+
+    // Стартовый ID — следующий после максимального
+    let nextId = _avatarsList.length > 0
         ? Math.max(..._avatarsList.map(a => Number(a.id))) + 1
         : 0;
 
-    try {
-        const ext = file.name.split('.').pop();
-        const path = `avatars/${nextId}.${ext}`;
-        const ref = storage.ref(path);
-        await ref.put(file);
-        const url = await ref.getDownloadURL();
+    let done = 0;
+    let errors = 0;
 
-        // Записываем в DB
-        await db.ref(`avatarsList/${nextId}`).set({
-            order: nextId,
-            url: url,
-            urlEn: '',
-            sensitive: false,
-            name: String(nextId)
-        });
+    for (const file of files) {
+        progress.innerText = `Загружается ${done + 1} из ${files.length}: ${file.name}`;
+        try {
+            const ext = file.name.split('.').pop().toLowerCase();
+            const path = `avatars/${nextId}.${ext}`;
+            const ref = storage.ref(path);
+            await ref.put(file);
+            const url = await ref.getDownloadURL();
 
-        status.innerText = `✅ Аватарка #${nextId} загружена!`;
-        setTimeout(() => { status.innerText = ''; }, 3000);
-        inp.value = '';
-    } catch(e) {
-        status.innerText = '❌ Ошибка: ' + e.message;
-        console.error(e);
+            await db.ref(`avatarsList/${nextId}`).set({
+                order: nextId,
+                url: url,
+                urlEn: '',
+                urlEnSensitive: false,
+                sensitive: false,
+                name: String(nextId)
+            });
+
+            done++;
+            nextId++;
+        } catch(e) {
+            errors++;
+            console.error('Ошибка загрузки', file.name, e);
+        }
     }
+
+    status.innerText = errors > 0
+        ? `✅ Загружено ${done}, ❌ ошибок: ${errors}`
+        : `✅ Загружено ${done} аватарок!`;
+    progress.innerText = '';
+    setTimeout(() => { status.innerText = ''; }, 4000);
+    inp.value = '';
 }
 
 // Отрисовать список аватарок в админке
@@ -2683,9 +2706,15 @@ function renderAvatarsAdminList() {
             <div class="user-actions">
                 <button class="ua-btn ${isSens ? 'ua-btn-red' : 'ua-btn-gray'}"
                     onclick="toggleAvatarSensitive('${item.id}', ${isSens})">
-                    ${isSens ? '🔞 Убрать 18+' : '🔞 Пометить 18+'}
+                    ${isSens ? '🔞 RU: убрать 18+' : '🔞 RU: 18+'}
                 </button>
-                ${urlEn ? `<button class="ua-btn ua-btn-gray" onclick="removeEnAvatar('${item.id}')">✕ Убрать EN</button>` : ''}
+                ${urlEn ? `
+                <button class="ua-btn ${item.sensitiveEn ? 'ua-btn-red' : 'ua-btn-gray'}"
+                    onclick="toggleAvatarSensitiveEn('${item.id}', ${!!item.sensitiveEn})">
+                    ${item.sensitiveEn ? '🔞 EN: убрать 18+' : '🔞 EN: 18+'}
+                </button>
+                <button class="ua-btn ua-btn-gray" onclick="removeEnAvatar('${item.id}')">✕ Убрать EN</button>
+                ` : ''}
                 <button class="ua-btn ua-btn-red" onclick="deleteAvatar('${item.id}')" title="Удалить навсегда">🗑</button>
             </div>
         `;
@@ -2745,6 +2774,10 @@ async function removeEnAvatar(id) {
 
 async function toggleAvatarSensitive(id, cur) {
     await db.ref(`avatarsList/${id}/sensitive`).set(!cur);
+}
+
+async function toggleAvatarSensitiveEn(id, cur) {
+    await db.ref(`avatarsList/${id}/sensitiveEn`).set(!cur);
 }
 
 async function deleteAvatar(id) {
