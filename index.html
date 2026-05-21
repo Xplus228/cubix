@@ -1064,22 +1064,25 @@ function hexToRgb(hex) {
 let _myIsSupporter = false;
 
 const RANKS=[
-    {name:'Бронза', min:0,   max:299,   cls:'rank-bronze'},
-    {name:'Серебро',min:300, max:699,   cls:'rank-silver'},
-    {name:'Золото', min:700, max:1199,  cls:'rank-gold'},
-    {name:'Платина',min:1200,max:1999,  cls:'rank-plat'},
-    {name:'Алмаз',  min:2000,max:2999,  cls:'rank-diamond'},
-    {name:'Мастер', min:3000,max:99999, cls:'rank-master'},
+    {name:'Бронза',  nameEn:'Bronze',   min:0,    max:299,   cls:'rank-bronze'},
+    {name:'Серебро', nameEn:'Silver',   min:300,  max:699,   cls:'rank-silver'},
+    {name:'Золото',  nameEn:'Gold',     min:700,  max:1199,  cls:'rank-gold'},
+    {name:'Платина', nameEn:'Platinum', min:1200, max:1999,  cls:'rank-plat'},
+    {name:'Алмаз',   nameEn:'Diamond',  min:2000, max:2999,  cls:'rank-diamond'},
+    {name:'Мастер',  nameEn:'Master',   min:3000, max:99999, cls:'rank-master'},
 ];
 function getRankInfo(cups){
     for(let i=0;i<RANKS.length;i++){
         if(cups>=RANKS[i].min&&cups<=RANKS[i].max){
             const nx=RANKS[i+1];
             const pct=nx?Math.round(((cups-RANKS[i].min)/(nx.min-RANKS[i].min))*100):100;
-            return{...RANKS[i],nextName:nx?.name||null,nextMin:nx?.min||null,pct};
+            const rankName = _lang === 'en' ? RANKS[i].nameEn : RANKS[i].name;
+            const nextName = nx ? (_lang === 'en' ? nx.nameEn : nx.name) : null;
+            return{...RANKS[i], name: rankName, nextName, nextMin:nx?.min||null, pct};
         }
     }
-    return{...RANKS[RANKS.length-1],nextName:null,nextMin:null,pct:100};
+    const last = RANKS[RANKS.length-1];
+    return{...last, name: _lang === 'en' ? last.nameEn : last.name, nextName:null, nextMin:null, pct:100};
 }
 function fmtPlaytime(sec){
     if(!sec||sec<60)return(sec||0)+' сек';
@@ -1339,9 +1342,17 @@ function updateProfileStats(s){
     document.getElementById('disp-cups').innerText=cups;
     document.getElementById('disp-rank').innerText=s.rank||rank.name;
     document.getElementById('disp-rank').className='trophy-rank-name '+rank.cls;
-    document.getElementById('disp-rank-sub').innerText=rank.nextName?`До ${rank.nextName}: ещё ${rank.nextMin-cups} 🏆`:'Высший ранг!';
-    document.getElementById('rank-prog-cur').innerText=rank.name;
-    document.getElementById('rank-prog-next').innerText=rank.nextName?`следующий: ${rank.nextName} (${rank.nextMin} 🏆)`:'🏆 Макс. ранг!';
+    document.getElementById('disp-rank-sub').innerText = rank.nextName 
+        ? (_lang === 'en' 
+            ? `To ${rank.nextName}: ${rank.nextMin-cups} more 🏆` 
+            : `До ${rank.nextName}: ещё ${rank.nextMin-cups} 🏆`)
+        : t('profile_max_rank');
+    document.getElementById('rank-prog-cur').innerText = rank.name;
+    document.getElementById('rank-prog-next').innerText = rank.nextName 
+        ? (_lang === 'en'
+            ? `next: ${rank.nextName} (${rank.nextMin} 🏆)`
+            : `следующий: ${rank.nextName} (${rank.nextMin} 🏆)`)
+        : (_lang === 'en' ? '🏆 Max rank!' : '🏆 Макс. ранг!');
     document.getElementById('rank-prog-fill').style.width=rank.pct+'%';
     rb.innerText=rank.name;rb.className='profile-rank-badge '+rank.cls;rb.style.display='inline-block';rb.style.border='1px solid currentColor';
     document.getElementById('disp-wins').innerText=wins;
@@ -1494,13 +1505,22 @@ db.ref('systemSettings/bandanaCount').on('value', snap => {
     const label = document.getElementById('bandana-label');
     if (!label) return;
     const count = snap.val();
-    if (count !== null && count !== undefined) {
-        label.innerHTML = `⚡ Спец. предложение!<br>Осталось <b style="color:#fff;">${count}</b> шт!`;
-    } else {
-        label.innerHTML = '⚡ Спец. предложение!<br>Ограниченное количество!';
-    }
+    updateBandanaLabel(count);
 });
 
+function updateBandanaLabel(count) {
+    const label = document.getElementById('bandana-label');
+    if (!label) return;
+    if (_lang === 'en') {
+        label.innerHTML = count !== null && count !== undefined
+            ? `⚡ Special offer!<br>Only <b style="color:#fff;">${count}</b> left!`
+            : '⚡ Special offer!<br>Limited quantity!';
+    } else {
+        label.innerHTML = count !== null && count !== undefined
+            ? `⚡ Спец. предложение!<br>Осталось <b style="color:#fff;">${count}</b> шт!`
+            : '⚡ Спец. предложение!<br>Ограниченное количество!';
+    }
+}
 async function setSetting(key, val) {
     await db.ref('systemSettings/' + key).set(val);
 }
@@ -1838,8 +1858,8 @@ async function openFPM(uid,nick,fId){
         </div>
         ${s?`
         <div class="fpm-cups-row">
-            <div><div class="fpm-cups-num">${cups}</div><div style="font-size:12px;color:#888;">КУБКОВ</div></div>
-            <div><div class="fpm-rank-name ${rank.cls}">${s.rank||rank.name}</div><div class="fpm-rank-sub">${rank.nextName?`До ${rank.nextName}: ещё ${rank.nextMin-cups} 🏆`:'Высший ранг!'}</div></div>
+            <div><div class="fpm-cups-num">${cups}</div><div style="font-size:12px;color:#888;">${t('profile_cups')}</div></div>
+            <div><div class="fpm-rank-name ${rank.cls}">${s.rank||rank.name}</div><div class="fpm-rank-sub">${rank.nextName ? (_lang==='en' ? `To ${rank.nextName}: ${rank.nextMin-cups} more 🏆` : `До ${rank.nextName}: ещё ${rank.nextMin-cups} 🏆`) : t('profile_max_rank')}</div></div>
         </div>
         <div class="fpm-stats">
             <div class="fpm-stat"><div class="fpm-stat-val" style="color:#2ecc71;">${wins}</div><div class="fpm-stat-lbl">Победы</div></div>
@@ -1983,33 +2003,64 @@ async function clearAllRequests(){if(!_myUid)return;if(!confirm('Удалить 
 
 // СЛУШАТЕЛЬ ДРУЗЕЙ
 function listenFriends(){
-    if(!_myUid)return;
-    db.ref(`friends/${_myUid}`).on('value',snap=>{
-        const list=document.getElementById('friends-list'),empty=document.getElementById('friends-empty'),count=document.getElementById('friends-count');
-        if(!list)return;
-        list.innerHTML='';const n=snap.numChildren();
-        count.innerText=n>0?`(${n}/100)`:'';
-        empty.style.display=n===0?'block':'none';
-        snap.forEach(child=>{
-            const d=child.val(),fUid=child.key;
-            const div=makeFriendCard(fUid,d.nick,d.id,0,false,'...',
+    if(!_myUid) return;
+    db.ref(`friends/${_myUid}`).on('value', snap => {
+        const list = document.getElementById('friends-list'),
+              empty = document.getElementById('friends-empty'),
+              count = document.getElementById('friends-count');
+        if(!list) return;
+        
+        list.innerHTML = '';
+        const n = snap.numChildren();
+        count.innerText = n > 0 ? `(${n}/100)` : '';
+        empty.style.display = n === 0 ? 'block' : 'none';
+        
+        snap.forEach(child => {
+            const d = child.val(), fUid = child.key;
+            
+            // Создаем карточку (изначально со старым ником из d.nick)
+            const div = makeFriendCard(fUid, d.nick, d.id, 0, false, '...',
                 `<button class="f-btn f-btn-red" onclick="removeFriend('${fUid}');event.stopPropagation()">Удалить</button>`
             );
             list.appendChild(div);
             
-            // Объединяем запросы: аватар, онлайн и статус саппортера в один Promise.all
+            // Объединяем запросы: аватар, онлайн, саппортер, цвет и актуальный ник
             Promise.all([
                 db.ref('users/'+fUid+'/avatarIndex').once('value'),
                 db.ref('playerStats/'+fUid+'/lastOnline').once('value'),
                 db.ref('users/'+fUid+'/isSupporter').once('value'),
-                db.ref('users/'+fUid+'/nickColor').once('value')
-            ]).then(([avSnap, olSnap, supSnap, colorSnap]) => {
-                    const avId = avSnap.val();
+                db.ref('users/'+fUid+'/nickColor').once('value'),
+                db.ref('users/'+fUid+'/nick').once('value')
+            ]).then(([avSnap, olSnap, supSnap, colorSnap, nickSnap]) => {
+                const avId = avSnap.val();
                 const ts = olSnap.val() || 0;
                 const ol = isOnline(ts);
                 const isSup = supSnap.val() === true;
                 const nickColor = colorSnap.val() || null;
+                const actualNick = nickSnap.val() || d.nick; // Актуальный ник (или старый как запасной)
 
+                // 1. ОБНОВЛЯЕМ НИК И ЦВЕТ В DOM
+                const nickEl2 = div.querySelector('.friend-nick');
+                if (nickEl2) {
+                    // Меняем только текст, не трогая теги внутри (например, badge)
+                    let textFound = false;
+                    nickEl2.childNodes.forEach(node => {
+                        if (node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== '') {
+                            node.textContent = actualNick;
+                            textFound = true;
+                        }
+                    });
+                    
+                    // Если текстовый узел почему-то не нашли, подстрахуемся:
+                    if (!textFound && !nickEl2.querySelector('.support-icon')) {
+                        nickEl2.innerText = actualNick;
+                    }
+
+                    // Применяем цвет ника, если он есть
+                    if (nickColor) nickEl2.style.color = nickColor;
+                }
+                
+                // 2. ОБНОВЛЯЕМ АВАТАР И ОНЛАЙН-ТОЧКУ
                 const wrap = div.querySelector('.friend-avatar-wrap');
                 if (wrap) {
                     wrap.innerHTML = '';
@@ -2029,6 +2080,7 @@ function listenFriends(){
                     } else {
                         wrap.innerText = '👤';
                     }
+                    
                     if (ol) {
                         wrap.style.overflow = 'visible';
                         const dot = document.createElement('div');
@@ -2037,12 +2089,14 @@ function listenFriends(){
                     }
                 }
 
+                // 3. ОБНОВЛЯЕМ ТЕКСТ ПОСЛЕДНЕГО ОНЛАЙНА
                 const olLbl = div.querySelector('.friend-online-lbl');
-                if (olLbl) { olLbl.innerText = fmtOnline(ts); olLbl.style.color = ol ? '#2ecc71' : '#555'; }
+                if (olLbl) { 
+                    olLbl.innerText = fmtOnline(ts); 
+                    olLbl.style.color = ol ? '#2ecc71' : '#555'; 
+                }
 
-                const nickEl2 = div.querySelector('.friend-nick');
-                if (nickEl2 && nickColor) nickEl2.style.color = nickColor;
-
+                // 4. ОБНОВЛЯЕМ СТАТУС SUPPORTER (ИКОНКУ СЕРДЦА)
                 if (isSup) {
                     const badge = document.getElementById('support-badge-' + fUid);
                     if (badge) {
@@ -2779,6 +2833,9 @@ function applyLang() {
     const dlBtn = document.getElementById('dl-btn');
     if (dlBtn) dlBtn.innerText = _lang === 'en' ? 'Download latest version' : 'Скачать последнюю версию';
 
+    // В конце applyLang():
+    const bandanaCount = document.getElementById('bandana-count-input')?.value;
+    updateBandanaLabel(bandanaCount || null);
     // Галерея — нет описания (в карточках статично, но для новых карточек через makeCard)
     // Переводим навигацию по data-lang-key
     document.querySelectorAll('[data-lang-key]').forEach(el => {
@@ -2798,6 +2855,8 @@ function applyLang() {
             }
         }
     });
+
+    
     // Обновляем блюр
     refreshBlurImages();
 }
