@@ -808,7 +808,7 @@
                     <div class="stat-tile"><div class="stat-tile-icon">🎮</div><div class="stat-tile-val" id="disp-games" style="color:#3498db;">—</div><div class="stat-tile-lbl">Всего игр</div></div>
                     <div class="stat-tile" style="grid-column:1/-1;display:flex;align-items:center;gap:14px;padding:12px 18px;text-align:left;background:rgba(241,196,15,0.04);border-color:rgba(241,196,15,0.1);">
                         <div style="font-size:22px;">📊</div>
-                        <div style="flex:1;"><div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Винрейт</div><div style="height:6px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden;"><div id="winrate-bar" style="height:100%;border-radius:99px;background:linear-gradient(90deg,#27ae60,#2ecc71);width:0%;transition:width .6s;"></div></div></div>
+                        <div style="flex:1;"><div id="winrate-label" style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Винрейт</div><div style="height:6px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden;"><div id="winrate-bar" style="height:100%;border-radius:99px;background:linear-gradient(90deg,#27ae60,#2ecc71);width:0%;transition:width .6s;"></div></div></div>
                         <div class="stat-tile-val" id="disp-winrate" style="color:#f1c40f;font-size:20px;min-width:48px;text-align:right;">—</div>
                     </div>
                     <div class="stat-tile stat-tile-wide"><div class="stat-tile-icon">⏱</div><div><div class="stat-tile-val" id="disp-playtime" style="color:#3498db;">—</div><div class="stat-tile-lbl">Плейтайм</div></div></div>
@@ -1085,9 +1085,15 @@ function getRankInfo(cups){
     return{...last, name: _lang === 'en' ? last.nameEn : last.name, nextName:null, nextMin:null, pct:100};
 }
 function fmtPlaytime(sec){
-    if(!sec||sec<60)return(sec||0)+' сек';
-    const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60);
-    return h>0?`${h} ч ${m} мин`:`${m} мин`;
+    if (_lang === 'en') {
+        if(!sec||sec<60) return (sec||0)+' sec';
+        const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60);
+        return h>0?`${h} h ${m} min`:`${m} min`;
+    } else {
+        if(!sec||sec<60) return (sec||0)+' сек';
+        const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60);
+        return h>0?`${h} ч ${m} мин`:`${m} мин`;
+    }
 }
 function fmtOnline(ts){
     if(!ts) return t('online_unknown');
@@ -1340,7 +1346,8 @@ function updateProfileStats(s){
     const cups=s.cups??0,wins=s.wins??0,losses=s.losses??0,games=s.gamesPlayed??0,playSec=s.playtimeSeconds??0;
     const achCount=Object.keys(s.achievements||{}).length,rank=getRankInfo(cups);
     document.getElementById('disp-cups').innerText=cups;
-    document.getElementById('disp-rank').innerText=s.rank||rank.name;
+    // s.rank хранится в Firebase на русском — всегда используем переведённое имя из getRankInfo
+    document.getElementById('disp-rank').innerText = rank.name;
     document.getElementById('disp-rank').className='trophy-rank-name '+rank.cls;
     document.getElementById('disp-rank-sub').innerText = rank.nextName 
         ? (_lang === 'en' 
@@ -2345,7 +2352,7 @@ function listenReports() {
 // Ko-fi плавающая кнопка
 kofiWidgetOverlay.draw('cubixd', {
     'type': 'floating-chat',
-    'floating-chat.donateButton.text': 'Поддержать',
+    'floating-chat.donateButton.text': _lang === 'en' ? 'Support' : 'Поддержать',
     'floating-chat.donateButton.background-color': '#794bc4',
     'floating-chat.donateButton.text-color': '#fff'
 });
@@ -2509,6 +2516,8 @@ ru: {
     no_desc:'нет описания',
     // ADMIN
     clear_reports:'🗑 Сбросить жалобы',
+    
+    stat_winrate: 'Винрейт',
     },
 en: {
     nav_home:'Home', nav_gallery:'Gallery', nav_versions:'Versions',
@@ -2644,6 +2653,7 @@ en: {
     profile_change_avatar:'Click avatar to change',
     no_desc:'no description',
     clear_reports:'🗑 Clear reports',
+    stat_winrate: 'Win rate',
 }
 };
 
@@ -2796,9 +2806,13 @@ function applyLang() {
     const banP  = document.querySelector('#ban-modal p');
     if (banH2) banH2.innerText = t('ban_title');
     if (banP)  banP.innerText  = t('ban_text');
-    // Статы
+    // Winrate label отдельно (он хардкодный div, не .stat-tile-lbl)
+    const wrLabel = document.getElementById('winrate-label');
+    if (wrLabel) wrLabel.innerText = t('stat_winrate');
+
+    // Остальные .stat-tile-lbl: wins, losses, games, playtime, ach
     document.querySelectorAll('.stat-tile-lbl').forEach((lbl, i) => {
-        const keys = ['stat_wins','stat_losses','stat_games','','stat_winrate','stat_playtime','stat_ach'];
+        const keys = ['stat_wins','stat_losses','stat_games','stat_playtime','stat_ach'];
         if (keys[i]) lbl.innerText = t(keys[i]);
     });
     // Кнопки языка
