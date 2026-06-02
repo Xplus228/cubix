@@ -519,22 +519,22 @@
                 <h3>🔍 Найти игрока</h3>
                 <div class="search-box">
                     <input type="text" id="friendSearchInput" placeholder="Введи ID (#AB12CD34) или ник">
-                    <button class="button" style="padding:12px 20px;font-size:16px;margin:0;" onclick="searchPlayer()">Найти</button>
+                    <button class="button" style="padding:12px 20px;font-size:16px;margin:0;" onclick="searchPlayer()" data-lang-key="search_btn">Найти</button>
                 </div>
                 <div class="search-result" id="search-result"></div>
                 <p id="search-msg" style="color:#555;font-size:14px;display:none;"></p>
             </div>
             <div class="friends-section" id="incoming-section" style="display:none;">
-                <h3>📨 Входящие заявки <span id="incoming-count" style="color:#888;font-size:14px;"></span></h3>
+                <h3 id="friends-incoming-h3">📨 Входящие заявки <span id="incoming-count" style="color:#888;font-size:14px;"></span></h3>
                 <div id="incoming-list"></div>
                 <button class="f-btn f-btn-gray" style="margin-top:8px;font-size:13px;" onclick="clearAllRequests()">Очистить все заявки</button>
             </div>
             <div class="friends-section" id="outgoing-section" style="display:none;">
-                <h3>📤 Исходящие заявки</h3>
+                <h3 id="friends-outgoing-h3" data-lang-key="outgoing_title">📤 Исходящие заявки</h3>
                 <div id="outgoing-list"></div>
             </div>
             <div class="friends-section">
-                <h3>👥 Друзья <span id="friends-count" style="color:#555;font-size:14px;"></span></h3>
+                <h3 id="friends-main-h3">👥 Друзья <span id="friends-count" style="color:#555;font-size:14px;"></span></h3>
                 <div id="friends-list"></div>
                 <p id="friends-empty" style="color:#555;font-size:14px;display:none;">Пока нет друзей. Найди кого-нибудь выше!</p>
             </div>
@@ -1480,7 +1480,8 @@ db.ref('systemSettings').on('value', snap => {
     // Ссылка скачивания
     window._downloadLink = s.downloadLink || '#';
     const dlLbl = document.getElementById('dl-version-label');
-    if (dlLbl) dlLbl.innerText = s.downloadVersion ? 'Версия: ' + s.downloadVersion : '';
+    _dlVersion = s.downloadVersion || '';
+    updateDlVersionLabel();
     // Синхронизируем переключатели
     const el = id => document.getElementById(id);
     if (el('toggle-maintenance'))   el('toggle-maintenance').checked   = !!s.maintenance;
@@ -1630,6 +1631,7 @@ function makeCard(d) {
     return card;
 }
 
+
 function loadMyGallery(uid) {
     const grid  = document.getElementById('my-gallery');
     const empty = document.getElementById('my-gallery-empty');
@@ -1662,6 +1664,25 @@ function loadMyGallery(uid) {
     });
 }
 
+let _dlCount = 0;
+
+function updateDlCount() {
+    const el = document.getElementById('dl-count');
+    if (el) el.innerText = _lang === 'en'
+        ? `⬇ downloads: ${_dlCount}`
+        : `⬇ загрузок: ${_dlCount}`;
+}
+
+let _dlVersion = '';
+
+function updateDlVersionLabel() {
+    const lbl = document.getElementById('dl-version-label');
+    if (!lbl) return;
+    lbl.innerText = _dlVersion
+        ? (_lang === 'en' ? 'Version: ' : 'Версия: ') + _dlVersion
+        : '';
+}
+    
 // ══════════════════════════════════════════════
 // СКАЧИВАНИЕ
 // ══════════════════════════════════════════════
@@ -1672,8 +1693,8 @@ async function downloadGame() {
 
 // Читаем счётчик при загрузке страницы
 db.ref('downloads/v05').on('value', snap => {
-    const el = document.getElementById('dl-count');
-    if (el) el.innerText = `⬇ загрузок: ${snap.val() || 0}`;
+    _dlCount = snap.val() || 0;
+    updateDlCount();
 });
 // ══════════════════════════════════════════════
 // ЗАГРУЗКА СКРИНШОТА
@@ -1844,9 +1865,9 @@ async function openFPM(uid,nick,fId){
         }
         let actionBtn='';
         if(_myUid&&uid!==_myUid){
-            if(isFriend)actionBtn=`<button class="f-btn f-btn-red" style="flex:1;" onclick="removeFriend('${uid}');closeFPM()">Удалить из друзей</button>`;
-            else if(sentReq)actionBtn=`<button class="f-btn f-btn-gray" style="flex:1;" disabled>Заявка отправлена</button>`;
-            else actionBtn=`<button class="f-btn f-btn-blue" style="flex:1;" onclick="window.sendRequest('${uid}','${esc(nick||u?.nick||'')}')">Добавить в друзья</button>`;
+            if(isFriend)actionBtn=`<button class="f-btn f-btn-red" style="flex:1;" onclick="removeFriend('${uid}');closeFPM()">${t('btn_remove_friend')}</button>`;
+            else if(sentReq)actionBtn=`<button class="f-btn f-btn-gray" style="flex:1;" disabled>${t('btn_sent')}</button>`;
+            else actionBtn=`<button class="f-btn f-btn-blue" style="flex:1;" onclick="window.sendRequest('${uid}','${esc(nick||u?.nick||'')}')">${t('btn_add')}</button>`;
         }
 
         const avItem3 = getAvatarById(String(avIdx));
@@ -1866,16 +1887,16 @@ async function openFPM(uid,nick,fId){
         ${s?`
         <div class="fpm-cups-row">
             <div><div class="fpm-cups-num">${cups}</div><div style="font-size:12px;color:#888;">${t('profile_cups')}</div></div>
-            <div><div class="fpm-rank-name ${rank.cls}">${s.rank||rank.name}</div><div class="fpm-rank-sub">${rank.nextName ? (_lang==='en' ? `To ${rank.nextName}: ${rank.nextMin-cups} more 🏆` : `До ${rank.nextName}: ещё ${rank.nextMin-cups} 🏆`) : t('profile_max_rank')}</div></div>
+            <div><div class="fpm-rank-name ${rank.cls}">${rank.name}</div><div class="fpm-rank-sub">${rank.nextName ? (_lang==='en' ? `To ${rank.nextName}: ${rank.nextMin-cups} more 🏆` : `До ${rank.nextName}: ещё ${rank.nextMin-cups} 🏆`) : t('profile_max_rank')}</div></div>
         </div>
         <div class="fpm-stats">
-            <div class="fpm-stat"><div class="fpm-stat-val" style="color:#2ecc71;">${wins}</div><div class="fpm-stat-lbl">Победы</div></div>
-            <div class="fpm-stat"><div class="fpm-stat-val" style="color:#e74c3c;">${losses}</div><div class="fpm-stat-lbl">Поражения</div></div>
-            <div class="fpm-stat"><div class="fpm-stat-val" style="color:#f1c40f;">${games>0?wr+'%':'—'}</div><div class="fpm-stat-lbl">Винрейт</div></div>
-        </div>`:'<p style="color:#555;text-align:center;font-size:14px;margin:10px 0 16px;">Нет данных игры</p>'}
+            <div class="fpm-stat"><div class="fpm-stat-val" style="color:#2ecc71;">${wins}</div><div class="fpm-stat-lbl">${t('stat_wins')}</div></div>
+            <div class="fpm-stat"><div class="fpm-stat-val" style="color:#e74c3c;">${losses}</div><div class="fpm-stat-lbl">${t('stat_losses')}</div></div>
+            <div class="fpm-stat"><div class="fpm-stat-val" style="color:#f1c40f;">${games>0?wr+'%':'—'}</div><div class="fpm-stat-lbl">${t('stat_winrate')}</div></div>
+        </div>`:'<p style="color:#555;text-align:center;font-size:14px;margin:10px 0 16px;">${_lang==='en'?'No game data':'Нет данных игры'}</p>`}
         <div class="fpm-actions">
             ${actionBtn}
-            <button class="f-btn f-btn-gray" style="flex:1;" onclick="closeFPM()">Закрыть</button>
+            <button class="f-btn f-btn-gray" style="flex:1;" onclick="closeFPM()">${t('btn_close')}</button>
         </div>`;
     }catch(e){content.innerHTML='<p style="color:#e74c3c;text-align:center;padding:20px;">Ошибка загрузки профиля.</p>';console.error(e);}
 }
@@ -2027,7 +2048,7 @@ function listenFriends(){
             
             // Создаем карточку (изначально со старым ником из d.nick)
             const div = makeFriendCard(fUid, d.nick, d.id, 0, false, '...',
-                `<button class="f-btn f-btn-red" onclick="removeFriend('${fUid}');event.stopPropagation()">Удалить</button>`
+                `<button class="f-btn f-btn-red" onclick="removeFriend('${fUid}');event.stopPropagation()">${t('btn_remove')}</button>`
             );
             list.appendChild(div);
             
@@ -2870,7 +2891,17 @@ function applyLang() {
         }
     });
 
-    
+    updateDlCount();
+    updateDlVersionLabel();
+    // Заголовки секций друзей
+    const incomingH3 = document.getElementById('friends-incoming-h3');
+    if (incomingH3) incomingH3.childNodes.forEach(n => {
+        if (n.nodeType === Node.TEXT_NODE) n.textContent = t('incoming_title') + ' ';
+    });
+    const friendsMainH3 = document.getElementById('friends-main-h3');
+    if (friendsMainH3) friendsMainH3.childNodes.forEach(n => {
+        if (n.nodeType === Node.TEXT_NODE) n.textContent = t('friends_title') + ' ';
+    });
     // Обновляем блюр
     refreshBlurImages();
 }
