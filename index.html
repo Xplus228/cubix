@@ -875,7 +875,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database(), storage=firebase.storage(), auth=firebase.auth();
-auth.languageCode = _lang;
+//auth.languageCode = _lang;
 
 db.ref('avatarsList').on('value', snap => {
     _avatarsList = [];
