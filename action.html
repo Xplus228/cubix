@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CubiX</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <style>
+        @font-face { font-family: Door; src: url('door.otf'); }
+        * { font-family: Door, Arial, sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: #000;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Анимированный фон */
+        .bg {
+            position: fixed; inset: 0; z-index: 0;
+            background: radial-gradient(ellipse at 20% 50%, rgba(180,0,0,0.18) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 20%, rgba(120,0,0,0.12) 0%, transparent 50%),
+                        #050505;
+        }
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0;
+            background-image:
+                linear-gradient(rgba(255,50,50,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,50,50,0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridMove 20s linear infinite;
+        }
+        @keyframes gridMove {
+            0% { transform: translate(0,0); }
+            100% { transform: translate(60px,60px); }
+        }
+
+        /* Плавающие частицы */
+        .particle {
+            position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+            animation: float linear infinite;
+            opacity: 0;
+        }
+        @keyframes float {
+            0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+            10%  { opacity: 0.6; }
+            90%  { opacity: 0.3; }
+            100% { transform: translateY(-20vh) scale(1); opacity: 0; }
+        }
+
+        /* Карточка */
+        .card {
+            position: relative; z-index: 10;
+            background: rgba(12,12,12,0.95);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 24px;
+            padding: 48px 44px;
+            width: 100%;
+            max-width: 460px;
+            margin: 20px;
+            box-shadow:
+                0 0 0 1px rgba(220,0,0,0.15),
+                0 0 60px rgba(180,0,0,0.12),
+                0 40px 80px rgba(0,0,0,0.7);
+            animation: cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        @keyframes cardIn {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Полоска сверху */
+        .card::before {
+            content: '';
+            position: absolute; top: 0; left: 40px; right: 40px; height: 2px;
+            background: linear-gradient(90deg, transparent, #e74c3c, transparent);
+            border-radius: 0 0 2px 2px;
+        }
+
+        /* Логотип */
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .logo-text {
+            font-size: 52px;
+            letter-spacing: 4px;
+            text-shadow: 0 0 30px rgba(231,76,60,0.6), 0 0 60px rgba(231,76,60,0.2);
+            color: white;
+            line-height: 1;
+        }
+        .logo-sub {
+            font-size: 12px;
+            color: #444;
+            letter-spacing: 3px;
+            margin-top: 6px;
+        }
+
+        /* Иконка состояния */
+        .state-icon {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 20px;
+            animation: iconPop 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;
+        }
+        @keyframes iconPop {
+            from { transform: scale(0); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+        .icon-reset   { background: rgba(231,76,60,0.1); border: 2px solid rgba(231,76,60,0.3); }
+        .icon-verify  { background: rgba(241,196,15,0.1); border: 2px solid rgba(241,196,15,0.3); }
+        .icon-success { background: rgba(39,174,96,0.1);  border: 2px solid rgba(39,174,96,0.3); }
+        .icon-error   { background: rgba(231,76,60,0.1);  border: 2px solid rgba(231,76,60,0.3); }
+
+        h2 {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+
+        /* Поле ввода */
+        .field-wrap {
+            position: relative;
+            margin-bottom: 14px;
+        }
+        .field-wrap input {
+            width: 100%;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: Door, Arial, sans-serif;
+            transition: 0.2s;
+            outline: none;
+        }
+        .field-wrap input:focus {
+            border-color: rgba(231,76,60,0.5);
+            background: rgba(231,76,60,0.04);
+            box-shadow: 0 0 0 3px rgba(231,76,60,0.08);
+        }
+        .field-wrap input::placeholder { color: #444; }
+
+        /* Сила пароля */
+        .strength-bar {
+            height: 3px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 99px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+        .strength-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 0.3s, background 0.3s;
+            width: 0%;
+        }
+        .strength-label {
+            font-size: 11px;
+            color: #444;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        /* Кнопка */
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: none;
+            font-family: Door, Arial, sans-serif;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .btn-primary {
+            background: white;
+            color: black;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: #e74c3c;
+            color: white;
+            transform: scale(1.02);
+            box-shadow: 0 8px 24px rgba(231,76,60,0.3);
+        }
+        .btn-primary:disabled {
+            background: #1a1a1a;
+            color: #444;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #888;
+            margin-top: 10px;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.09); color: white; }
+
+        /* Спиннер на кнопке */
+        .btn-spinner {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Уведомления */
+        .alert {
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 14px;
+            margin-bottom: 14px;
+            display: none;
+            animation: alertIn 0.2s ease;
+            line-height: 1.5;
+        }
+        @keyframes alertIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .alert-error   { background: rgba(231,76,60,0.12); border: 1px solid rgba(231,76,60,0.3); color: #e74c3c; }
+        .alert-success { background: rgba(39,174,96,0.12);  border: 1px solid rgba(39,174,96,0.3);  color: #2ecc71; }
+
+        /* Полная страница успеха/ошибки */
+        .full-state { text-align: center; }
+
+        /* Показатель загрузки */
+        .loading-ring {
+            width: 48px; height: 48px;
+            border: 3px solid rgba(255,255,255,0.06);
+            border-top-color: #e74c3c;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        /* Ссылка */
+        .link {
+            color: #555; font-size: 13px;
+            cursor: pointer; text-decoration: underline;
+            background: none; border: none;
+            font-family: Door, Arial, sans-serif;
+            transition: color 0.2s;
+            display: block; text-align: center;
+            margin-top: 14px;
+        }
+        .link:hover { color: white; }
+
+        /* Разделитель */
+        .divider {
+            height: 1px;
+            background: rgba(255,255,255,0.05);
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="bg-grid"></div>
+
+<div class="card" id="card">
+    <div class="logo">
+        <div class="logo-text">CubiX</div>
+        <div class="logo-sub" id="logo-sub">GAME PORTAL</div>
+    </div>
+
+    <!-- Загрузка -->
+    <div id="view-loading" class="full-state">
+        <div class="loading-ring"></div>
+        <p style="color:#555;font-size:14px;" id="loading-text">Проверка ссылки...</p>
+    </div>
+
+    <!-- Сброс пароля — форма -->
+    <div id="view-reset" style="display:none;">
+        <div class="state-icon icon-reset">🔐</div>
+        <h2 id="reset-title">Новый пароль</h2>
+        <p class="subtitle" id="reset-sub">Придумай надёжный пароль для аккаунта.</p>
+        <div class="alert alert-error" id="reset-err"></div>
+        <div class="field-wrap">
+            <input type="password" id="new-pass" placeholder="Новый пароль" oninput="checkStrength(this.value)">
+            <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+            <div class="strength-label" id="strength-label"></div>
+        </div>
+        <div class="field-wrap">
+            <input type="password" id="new-pass2" placeholder="Повтори пароль">
+        </div>
+        <button class="btn btn-primary" onclick="doResetPassword()" id="reset-btn">
+            Сохранить пароль
+        </button>
+        <a class="link" href="index.html" id="reset-back">← Вернуться на сайт</a>
+    </div>
+
+    <!-- Сброс пароля — успех -->
+    <div id="view-reset-ok" style="display:none;" class="full-state">
+        <div class="state-icon icon-success">✅</div>
+        <h2 id="reset-ok-title" style="color:#2ecc71;">Пароль изменён!</h2>
+        <p class="subtitle" id="reset-ok-sub">Теперь ты можешь войти с новым паролем.</p>
+        <button class="btn btn-primary" onclick="location.href='index.html'" id="reset-ok-btn">
+            Войти в аккаунт
+        </button>
+    </div>
+
+    <!-- Подтверждение email — обработка -->
+    <div id="view-verify" style="display:none;" class="full-state">
+        <div class="loading-ring"></div>
+        <p style="color:#888;font-size:15px;" id="verify-text">Подтверждаем email...</p>
+    </div>
+
+    <!-- Подтверждение email — успех -->
+    <div id="view-verify-ok" style="display:none;" class="full-state">
+        <div class="state-icon icon-success">📬</div>
+        <h2 id="verify-ok-title" style="color:#2ecc71;">Email подтверждён!</h2>
+        <p class="subtitle" id="verify-ok-sub">Теперь ты можешь войти в аккаунт CubiX.</p>
+        <button class="btn btn-primary" onclick="location.href='index.html'" id="verify-ok-btn">
+            Войти в аккаунт
+        </button>
+    </div>
+
+    <!-- Ошибка -->
+    <div id="view-error" style="display:none;" class="full-state">
+        <div class="state-icon icon-error">⛔</div>
+        <h2 id="err-title" style="color:#e74c3c;">Ошибка</h2>
+        <p class="subtitle" id="err-sub">Ссылка недействительна или устарела.</p>
+        <button class="btn btn-primary" onclick="location.href='index.html'" id="err-btn">
+            На главную
+        </button>
+    </div>
+</div>
+
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyCA7XdMGOwDx_OQ8lGHyz0ttw5952KZHM8",
+    authDomain: "cubix-web.firebaseapp.com",
+    databaseURL: "https://cubix-web-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "cubix-web",
+    storageBucket: "cubix-web.firebasestorage.app",
+    messagingSenderId: "230148294770",
+    appId: "1:230148294770:web:e9cd48f457359039dd5aeb"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
+// ── ЯЗЫК ──
+const _lang = localStorage.getItem('cubix_lang') ||
+    (navigator.language.startsWith('ru') ? 'ru' : 'en');
+
+const TEXT = {
+    ru: {
+        logo_sub: 'ИГРОВОЙ ПОРТАЛ',
+        loading: 'Проверка ссылки...',
+        reset_title: 'Новый пароль',
+        reset_sub: 'Придумай надёжный пароль для аккаунта.',
+        reset_placeholder1: 'Новый пароль',
+        reset_placeholder2: 'Повтори пароль',
+        reset_btn: 'Сохранить пароль',
+        reset_back: '← Вернуться на сайт',
+        reset_ok_title: 'Пароль изменён!',
+        reset_ok_sub: 'Теперь ты можешь войти с новым паролем.',
+        reset_ok_btn: 'Войти в аккаунт',
+        verify_text: 'Подтверждаем email...',
+        verify_ok_title: 'Email подтверждён!',
+        verify_ok_sub: 'Добро пожаловать в CubiX! Теперь ты можешь войти.',
+        verify_ok_btn: 'Войти в аккаунт',
+        err_title: 'Ошибка',
+        err_sub: 'Ссылка недействительна или устарела.',
+        err_link_expired: 'Ссылка истекла. Запроси новую в настройках аккаунта.',
+        err_invalid: 'Неверная ссылка. Убедись, что перешёл по точному адресу из письма.',
+        err_btn: 'На главную',
+        err_pass_short: 'Пароль должен быть минимум 6 символов.',
+        err_pass_match: 'Пароли не совпадают.',
+        strength_weak: 'Слабый',
+        strength_ok: 'Нормальный',
+        strength_strong: 'Надёжный',
+        strength_very: 'Отличный',
+    },
+    en: {
+        logo_sub: 'GAME PORTAL',
+        loading: 'Verifying link...',
+        reset_title: 'New Password',
+        reset_sub: 'Create a strong password for your account.',
+        reset_placeholder1: 'New password',
+        reset_placeholder2: 'Repeat password',
+        reset_btn: 'Save password',
+        reset_back: '← Back to site',
+        reset_ok_title: 'Password changed!',
+        reset_ok_sub: 'You can now sign in with your new password.',
+        reset_ok_btn: 'Sign in',
+        verify_text: 'Confirming email...',
+        verify_ok_title: 'Email confirmed!',
+        verify_ok_sub: 'Welcome to CubiX! You can now sign in.',
+        verify_ok_btn: 'Sign in',
+        err_title: 'Error',
+        err_sub: 'The link is invalid or has expired.',
+        err_link_expired: 'The link has expired. Request a new one from your account settings.',
+        err_invalid: 'Invalid link. Make sure you followed the exact link from the email.',
+        err_btn: 'Home',
+        err_pass_short: 'Password must be at least 6 characters.',
+        err_pass_match: 'Passwords do not match.',
+        strength_weak: 'Weak',
+        strength_ok: 'Fair',
+        strength_strong: 'Strong',
+        strength_very: 'Excellent',
+    }
+};
+
+function tx(key) { return TEXT[_lang]?.[key] || TEXT['ru'][key] || key; }
+
+// Применяем язык
+function applyLang() {
+    document.getElementById('logo-sub').innerText = tx('logo_sub');
+    document.getElementById('loading-text').innerText = tx('loading');
+    document.getElementById('reset-title').innerText = tx('reset_title');
+    document.getElementById('reset-sub').innerText = tx('reset_sub');
+    document.getElementById('new-pass').placeholder = tx('reset_placeholder1');
+    document.getElementById('new-pass2').placeholder = tx('reset_placeholder2');
+    document.getElementById('reset-btn').innerText = tx('reset_btn');
+    document.getElementById('reset-back').innerText = tx('reset_back');
+    document.getElementById('reset-ok-title').innerText = tx('reset_ok_title');
+    document.getElementById('reset-ok-sub').innerText = tx('reset_ok_sub');
+    document.getElementById('reset-ok-btn').innerText = tx('reset_ok_btn');
+    document.getElementById('verify-text').innerText = tx('verify_text');
+    document.getElementById('verify-ok-title').innerText = tx('verify_ok_title');
+    document.getElementById('verify-ok-sub').innerText = tx('verify_ok_sub');
+    document.getElementById('verify-ok-btn').innerText = tx('verify_ok_btn');
+    document.getElementById('err-title').innerText = tx('err_title');
+    document.getElementById('err-sub').innerText = tx('err_sub');
+    document.getElementById('err-btn').innerText = tx('err_btn');
+}
+
+// Показ нужного блока
+function show(id) {
+    ['view-loading','view-reset','view-reset-ok','view-verify','view-verify-ok','view-error']
+        .forEach(v => document.getElementById(v).style.display = v === id ? 'block' : 'none');
+}
+
+// Ошибка
+function showError(msg) {
+    if (msg) document.getElementById('err-sub').innerText = msg;
+    show('view-error');
+}
+
+// Индикатор силы пароля
+function checkStrength(val) {
+    const fill = document.getElementById('strength-fill');
+    const label = document.getElementById('strength-label');
+    if (!val) { fill.style.width = '0%'; label.innerText = ''; return; }
+    let score = 0;
+    if (val.length >= 6) score++;
+    if (val.length >= 10) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^a-zA-Z0-9]/.test(val)) score++;
+    const configs = [
+        { w:'25%', c:'#e74c3c', l: tx('strength_weak') },
+        { w:'50%', c:'#e67e22', l: tx('strength_ok') },
+        { w:'75%', c:'#f1c40f', l: tx('strength_strong') },
+        { w:'100%',c:'#2ecc71', l: tx('strength_very') },
+    ];
+    const cfg = configs[Math.max(0, score-1)];
+    fill.style.width = cfg.w;
+    fill.style.background = cfg.c;
+    label.innerText = cfg.l;
+    label.style.color = cfg.c;
+}
+
+// Разбираем URL
+const params = new URLSearchParams(window.location.search);
+const mode = params.get('mode');
+const oobCode = params.get('oobCode');
+
+applyLang();
+
+if (!mode || !oobCode) {
+    showError(tx('err_invalid'));
+} else if (mode === 'resetPassword') {
+    // Проверяем код
+    auth.verifyPasswordResetCode(oobCode)
+        .then(() => { show('view-reset'); })
+        .catch(() => { showError(tx('err_link_expired')); });
+
+} else if (mode === 'verifyEmail') {
+    show('view-verify');
+    auth.applyActionCode(oobCode)
+        .then(() => { show('view-verify-ok'); })
+        .catch(() => { showError(tx('err_link_expired')); });
+
+} else {
+    showError(tx('err_invalid'));
+}
+
+// Сохранение нового пароля
+async function doResetPassword() {
+    const pass1 = document.getElementById('new-pass').value;
+    const pass2 = document.getElementById('new-pass2').value;
+    const errEl = document.getElementById('reset-err');
+    const btn   = document.getElementById('reset-btn');
+
+    errEl.style.display = 'none';
+
+    if (pass1.length < 6) {
+        errEl.innerText = tx('err_pass_short');
+        errEl.style.display = 'block'; return;
+    }
+    if (pass1 !== pass2) {
+        errEl.innerText = tx('err_pass_match');
+        errEl.style.display = 'block'; return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="btn-spinner"></span>' + (_lang === 'en' ? 'Saving...' : 'Сохраняем...');
+
+    try {
+        await auth.confirmPasswordReset(oobCode, pass1);
+        show('view-reset-ok');
+    } catch(e) {
+        btn.disabled = false;
+        btn.innerText = tx('reset_btn');
+        errEl.innerText = tx('err_link_expired');
+        errEl.style.display = 'block';
+    }
+}
+
+// Частицы
+function spawnParticles() {
+    for (let i = 0; i < 12; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = Math.random() * 3 + 1;
+        p.style.cssText = `
+            width:${size}px; height:${size}px;
+            left:${Math.random()*100}vw;
+            background:rgba(${Math.random()>0.5?'231,76,60':'255,255,255'},${Math.random()*0.4+0.1});
+            animation-duration:${Math.random()*8+6}s;
+            animation-delay:${Math.random()*8}s;
+        `;
+        document.body.appendChild(p);
+    }
+}
+spawnParticles();
+</script>
+</body>
+</html>
