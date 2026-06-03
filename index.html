@@ -875,7 +875,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database(), storage=firebase.storage(), auth=firebase.auth();
-auth.languageCode='ru';
+auth.languageCode = _lang;
 
 db.ref('avatarsList').on('value', snap => {
     _avatarsList = [];
@@ -1143,7 +1143,24 @@ function showVerifyScreen(email){
     document.getElementById('resend-msg').style.display='none';
 }
 async function checkVerified(){const user=auth.currentUser;if(!user){showForm('login-form');return;}await user.reload();if(user.emailVerified)authStateHandler(user);else alert('Email ещё не подтверждён.');}
-async function resendVerification(){const user=auth.currentUser;if(!user)return;try{await user.sendEmailVerification();const m=document.getElementById('resend-msg');m.style.display='block';setTimeout(()=>{m.style.display='none';},4000);}catch(e){alert('Подожди немного.');}}
+async function resendVerification(){
+    const user=auth.currentUser;
+    if(!user)return;
+    
+    auth.languageCode = _lang; // ← язык письма
+    
+    const actionCodeSettings = {
+        url: 'https://xplus228.github.io/cubix/action.html',
+        handleCodeInApp: false
+    };
+    
+    try{
+        await user.sendEmailVerification(actionCodeSettings);
+        const m=document.getElementById('resend-msg');
+        m.style.display='block';
+        setTimeout(()=>{m.style.display='none';},4000);
+    }catch(e){alert('Подожди немного.');}
+}
 async function cancelVerify(){await auth.signOut();showForm('login-form');}
 
 // ══════════════════════════════════════════════
@@ -1253,7 +1270,12 @@ async function register(){
             achievements:{}
         });
 
-        await res.user.sendEmailVerification();
+        auth.languageCode = _lang;
+        const actionCodeSettings = {
+            url: 'https://xplus228.github.io/cubix/action.html',
+            handleCodeInApp: false
+        };
+        await res.user.sendEmailVerification(actionCodeSettings);
 
         showVerifyScreen(email);
 
@@ -1304,17 +1326,28 @@ async function finishGoogleReg(){
 let resetCooldownTimer=null;
 async function resetPassword(){
     const email=document.getElementById('resetEmail').value.trim();
-    if(!email)return showErr('reset-err','Введи email.');
+    if(!email)return showErr('reset-err', t('err_enter_email'));
     const lastReset=parseInt(localStorage.getItem('lastReset')||'0'),now=Date.now();
     if(now-lastReset<60000){startResetCooldown(Math.ceil((60000-(now-lastReset))/1000));return;}
+    
+    auth.languageCode = _lang; // ← язык письма
+    
+    const actionCodeSettings = {
+        url: 'https://xplus228.github.io/cubix/action.html',
+        handleCodeInApp: false
+    };
+    
     try{
-        await auth.sendPasswordResetEmail(email);
+        await auth.sendPasswordResetEmail(email, actionCodeSettings);
         localStorage.setItem('lastReset',String(now));
         document.getElementById('reset-success').style.display='block';
         document.getElementById('reset-err').style.display='none';
         startResetCooldown(60);
     }catch(e){
-        const msgs={'auth/invalid-email':'Некорректный email.','auth/user-not-found':'Аккаунт не найден.'};
+        const msgs={
+            'auth/invalid-email': t('err_invalid_email'),
+            'auth/user-not-found': t('err_not_found')
+        };
         showErr('reset-err',msgs[e.code]||e.message);
     }
 }
