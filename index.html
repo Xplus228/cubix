@@ -1151,7 +1151,7 @@ async function resendVerification(){
     
     const actionCodeSettings = {
         url: 'https://xplus228.github.io/cubix/action.html',
-        handleCodeInApp: false
+        handleCodeInApp: true
     };
     
     try{
@@ -1273,7 +1273,7 @@ async function register(){
         auth.languageCode = _lang;
         const actionCodeSettings = {
             url: 'https://xplus228.github.io/cubix/action.html',
-            handleCodeInApp: false
+            handleCodeInApp: true
         };
         await res.user.sendEmailVerification(actionCodeSettings);
 
@@ -1334,7 +1334,7 @@ async function resetPassword(){
     
     const actionCodeSettings = {
         url: 'https://xplus228.github.io/cubix/action.html',
-        handleCodeInApp: false
+        handleCodeInApp: true
     };
     
     try{
