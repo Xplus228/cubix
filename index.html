@@ -726,13 +726,13 @@
 
     <div id="profile-page" class="page">
         <div class="verify-screen" id="verify-screen">
-            <h2>📬 Проверь почту</h2>
+            <h2 id="verify-title-el">📬 Проверь почту</h2>
             <p id="verify-email-text">Мы отправили письмо на твой email.</p>
-            <p>Перейди по ссылке в письме, затем нажми кнопку ниже.</p>
-            <button class="button" style="width:100%;font-size:18px;" onclick="checkVerified()">Я подтвердил — войти</button>
-            <button class="button" style="width:100%;font-size:16px;background:#222;color:white;" onclick="resendVerification()">Отправить письмо снова</button>
+            <p id="verify-hint-p">Перейди по ссылке в письме, затем нажми кнопку ниже.</p>
+            <button id="verify-confirm-btn" class="button" style="width:100%;font-size:18px;" onclick="checkVerified()">Я подтвердил</button>
+            <button id="verify-resend-btn" class="button" style="width:100%;font-size:16px;background:#222;color:white;" onclick="resendVerification()">Отправить письмо снова</button>
             <p id="resend-msg" style="color:#2ecc71;font-size:14px;margin-top:8px;display:none;">✅ Письмо отправлено!</p>
-            <button class="auth-link" onclick="cancelVerify()">← Выйти / сменить аккаунт</button>
+            <button id="verify-exit-btn" class="auth-link" onclick="cancelVerify()">← Выйти / сменить аккаунт</button>
         </div>
         <div class="auth-box" id="auth-forms">
             <div id="login-form">
@@ -741,9 +741,9 @@
                 <input type="email" id="authEmail" placeholder="Email">
                 <input type="password" id="authPass" placeholder="Пароль">
                 <button class="button" style="width:100%" onclick="login()">Войти</button>
-                <button class="button" style="background:#4285F4;border-color:#4285F4;color:white;width:100%;font-size:16px;" onclick="loginGoogle()">Войти через Google</button>
-                <button class="auth-link" onclick="showForm('reset-form')">Забыл пароль?</button>
-                <button class="auth-link" onclick="showForm('reg-form')">Нет аккаунта? Регистрация</button>
+                <button id="google-login-btn" class="button" style="background:#4285F4;border-color:#4285F4;color:white;width:100%;font-size:16px;" onclick="loginGoogle()">Войти через Google</button>
+                <button id="forgot-pass-btn" class="auth-link" onclick="showForm('reset-form')">Забыл пароль?</button>
+                <button id="no-account-btn" class="auth-link" onclick="showForm('reg-form')">Нет аккаунта? Регистрация</button>
             </div>
             <div id="reg-form" style="display:none;">
                 <h2>Регистрация</h2>
@@ -752,25 +752,25 @@
                 <input type="email" id="regEmail" placeholder="Email">
                 <input type="password" id="regPass" placeholder="Пароль (мин. 6 символов)">
                 <button class="button" style="width:100%" onclick="register()">Создать аккаунт</button>
-                <button class="auth-link" onclick="showForm('login-form')">← Уже есть аккаунт</button>
+                <button id="have-account-btn" class="auth-link" onclick="showForm('login-form')">← Уже есть аккаунт</button>
             </div>
             <div id="reset-form" style="display:none;">
                 <h2>Сброс пароля</h2>
-                <p style="color:#888;font-size:14px;margin-bottom:15px;">Введи email — пришлём ссылку для создания нового пароля.</p>
+                <p id="reset-hint-p" style="color:#888;font-size:14px;margin-bottom:15px;">Введи email, пришлём ссылку для создания нового пароля.</p>
                 <div class="err-box" id="reset-err"></div>
                 <input type="email" id="resetEmail" placeholder="Email">
                 <button id="reset-btn" class="button" style="width:100%" onclick="resetPassword()">Отправить письмо</button>
                 <p class="cooldown-msg" id="reset-cooldown"></p>
                 <div class="info-box" id="reset-success" style="display:none;">✅ Письмо отправлено! Проверь почту и папку "Спам".</div>
-                <button class="auth-link" onclick="showForm('login-form')">← Назад ко входу</button>
+                <button id="back-login-btn" class="auth-link" onclick="showForm('login-form')">← Назад ко входу</button>
             </div>
             <div id="google-finish-form" style="display:none;">
                 <h2 style="color:#f1c40f;">Последний шаг!</h2>
-                <p style="color:#888;font-size:14px;margin-bottom:15px;">Придумай ник для игры.</p>
+                <p id="gfinish-hint-p" style="color:#888;font-size:14px;margin-bottom:15px;">Придумай ник для игры.</p>
                 <div class="err-box" id="gfinish-err"></div>
                 <input type="text" id="gNick" placeholder="Ник в игре">
                 <button class="button" style="width:100%" onclick="finishGoogleReg()">Готово!</button>
-                <button class="auth-link" onclick="cancelVerify()">← Отмена</button>
+                <button id="gfinish-cancel-btn" class="auth-link" onclick="cancelVerify()">← Отмена</button>
             </div>
         </div>
         <div id="profile-data" style="display:none;">
@@ -846,8 +846,11 @@
                     </div>
                 </div>
                 <div class="profile-actions">
+                    <button id="profile-reset-pass-btn" class="profile-btn-logout" onclick="resetPasswordFromProfile()" style="color:#f1c40f;border-color:rgba(241,196,15,0.2);">
+                        🔑 Сбросить пароль
+                    </button>
                     <button class="profile-btn-logout" onclick="logout()">Выйти из аккаунта</button>
-                    <button class="profile-btn-delete" onclick="deleteAccount()">Удалить аккаунт</button>
+                    <button class="profile-btn-delete" onclick="deleteAccount()">Удалить аккаунт</button>           
                 </div>
             </div>
             <div style="margin-top:50px;text-align:left;">
@@ -1142,7 +1145,7 @@ function showVerifyScreen(email){
     document.getElementById('verify-email-text').innerText=`Письмо отправлено на ${email}`;
     document.getElementById('resend-msg').style.display='none';
 }
-async function checkVerified(){const user=auth.currentUser;if(!user){showForm('login-form');return;}await user.reload();if(user.emailVerified)authStateHandler(user);else alert('Email ещё не подтверждён.');}
+async function checkVerified(){const user=auth.currentUser;if(!user){showForm('login-form');return;}await user.reload();if(user.emailVerified)authStateHandler(user);else alert(_lang === 'en' ? 'Email not confirmed yet.' : 'Email ещё не подтверждён.');}
 async function resendVerification(){
     const user=auth.currentUser;
     if(!user)return;
@@ -1234,7 +1237,7 @@ async function register(){
     const regDisabledSnap = await db.ref('systemSettings/registrationDisabled').once('value');
 
     if (regDisabledSnap.val() === true) {
-        showErr('reg-err','Регистрация временно закрыта администратором.');
+        showErr('reg-err', t('err_reg_closed'));
         return;
     }
 
@@ -1325,30 +1328,35 @@ async function finishGoogleReg(){
 
 let resetCooldownTimer=null;
 async function resetPassword(){
-    const email=document.getElementById('resetEmail').value.trim();
-    if(!email)return showErr('reset-err', t('err_enter_email'));
-    const lastReset=parseInt(localStorage.getItem('lastReset')||'0'),now=Date.now();
-    if(now-lastReset<60000){startResetCooldown(Math.ceil((60000-(now-lastReset))/1000));return;}
-    
-    auth.languageCode = _lang; // ← язык письма
-    
+    const email = document.getElementById('resetEmail').value.trim();
+    if (!email) return showErr('reset-err', t('err_enter_email'));
+    const lastReset = parseInt(localStorage.getItem('lastReset')||'0'), now = Date.now();
+    if (now - lastReset < 60000) { startResetCooldown(Math.ceil((60000-(now-lastReset))/1000)); return; }
+
+    // Проверяем что email зарегистрирован в нашей базе
+    const usersSnap = await db.ref('users').orderByChild('email').equalTo(email).once('value');
+    if (!usersSnap.exists()) {
+        showErr('reset-err', t('err_not_found'));
+        return;
+    }
+
+    auth.languageCode = _lang;
     const actionCodeSettings = {
-        url: 'https://xplus228.github.io/cubix/action.html',
-        handleCodeInApp: true
+        url: 'https://cubix-web.web.app/auth',
+        handleCodeInApp: false
     };
-    
-    try{
+    try {
         await auth.sendPasswordResetEmail(email, actionCodeSettings);
-        localStorage.setItem('lastReset',String(now));
-        document.getElementById('reset-success').style.display='block';
-        document.getElementById('reset-err').style.display='none';
+        localStorage.setItem('lastReset', String(now));
+        document.getElementById('reset-success').style.display = 'block';
+        document.getElementById('reset-err').style.display = 'none';
         startResetCooldown(60);
-    }catch(e){
-        const msgs={
+    } catch(e) {
+        const msgs = {
             'auth/invalid-email': t('err_invalid_email'),
             'auth/user-not-found': t('err_not_found')
         };
-        showErr('reset-err',msgs[e.code]||e.message);
+        showErr('reset-err', msgs[e.code] || e.message);
     }
 }
 function startResetCooldown(sec){
@@ -1406,6 +1414,30 @@ function updateProfileStats(s){
     document.getElementById('ach-label-cur').innerText=achCount;
     document.getElementById('ach-label-total').innerText='/ '+TOTAL_ACHIEVEMENTS;
     document.getElementById('ach-bar-fill').style.width=Math.min(100,Math.round((achCount/TOTAL_ACHIEVEMENTS)*100))+'%';
+}
+
+async function resetPasswordFromProfile() {
+    const user = auth.currentUser;
+    if (!user || !user.email) return;
+    const btn = document.getElementById('profile-reset-pass-btn');
+    try {
+        auth.languageCode = _lang;
+        const actionCodeSettings = {
+            url: 'https://cubix-web.web.app/auth',
+            handleCodeInApp: false
+        };
+        await auth.sendPasswordResetEmail(user.email, actionCodeSettings);
+        if (btn) {
+            btn.innerText = t('profile_reset_sent');
+            btn.disabled = true;
+            setTimeout(() => {
+                btn.innerText = t('profile_reset_pass');
+                btn.disabled = false;
+            }, 5000);
+        }
+    } catch(e) {
+        alert(_lang === 'en' ? 'Error sending email.' : 'Ошибка отправки.');
+    }
 }
 
 // ══════════════════════════════════════════════
@@ -2603,6 +2635,10 @@ ru: {
     clear_reports:'🗑 Сбросить жалобы',
     
     stat_winrate: 'Винрейт',
+
+    profile_reset_pass: '🔑 Сбросить пароль',
+    profile_reset_sent: '✅ Письмо отправлено на твой email!',
+    
     },
 en: {
     nav_home:'Home', nav_gallery:'Gallery', nav_versions:'Versions',
@@ -2739,6 +2775,8 @@ en: {
     no_desc:'no description',
     clear_reports:'🗑 Clear reports',
     stat_winrate: 'Win rate',
+    profile_reset_pass: '🔑 Reset password',
+    profile_reset_sent: '✅ Reset link sent to your email!',
 }
 };
 
@@ -2895,6 +2933,9 @@ function applyLang() {
     const wrLabel = document.getElementById('winrate-label');
     if (wrLabel) wrLabel.innerText = t('stat_winrate');
 
+    const resetPassBtn = document.getElementById('profile-reset-pass-btn');
+    if (resetPassBtn && !resetPassBtn.disabled) resetPassBtn.innerText = t('profile_reset_pass');
+
     // Остальные .stat-tile-lbl: wins, losses, games, playtime, ach
     document.querySelectorAll('.stat-tile-lbl').forEach((lbl, i) => {
         const keys = ['stat_wins','stat_losses','stat_games','stat_playtime','stat_ach'];
@@ -2966,6 +3007,35 @@ function applyLang() {
     if (friendsMainH3) friendsMainH3.childNodes.forEach(n => {
         if (n.nodeType === Node.TEXT_NODE) n.textContent = t('friends_title') + ' ';
     });
+    // Auth form links и кнопки
+    const googleBtn = document.getElementById('google-login-btn');
+    if (googleBtn) googleBtn.innerText = t('login_google');
+    const forgotBtn = document.getElementById('forgot-pass-btn');
+    if (forgotBtn) forgotBtn.innerText = t('forgot_pass');
+    const noAccBtn = document.getElementById('no-account-btn');
+    if (noAccBtn) noAccBtn.innerText = t('no_account');
+    const resetHintP = document.getElementById('reset-hint-p');
+    if (resetHintP) resetHintP.innerText = t('reset_hint');
+    const backLoginBtn = document.getElementById('back-login-btn');
+    if (backLoginBtn) backLoginBtn.innerText = t('back_login');
+    const haveAccBtn = document.getElementById('have-account-btn');
+    if (haveAccBtn) haveAccBtn.innerText = t('have_account');
+    const gfinishHint = document.getElementById('gfinish-hint-p');
+    if (gfinishHint) gfinishHint.innerText = t('google_finish_hint');
+    const gfinishCancel = document.getElementById('gfinish-cancel-btn');
+    if (gfinishCancel) gfinishCancel.innerText = t('cancel_btn');
+    // Verify screen
+    const verifyTitleEl = document.getElementById('verify-title-el');
+    if (verifyTitleEl) verifyTitleEl.innerText = t('verify_title');
+    const verifyHintP = document.getElementById('verify-hint-p');
+    if (verifyHintP) verifyHintP.innerText = t('verify_hint');
+    const verifyConfirmBtn = document.getElementById('verify-confirm-btn');
+    if (verifyConfirmBtn) verifyConfirmBtn.innerText = t('verify_btn');
+    const verifyResendBtn = document.getElementById('verify-resend-btn');
+    if (verifyResendBtn) verifyResendBtn.innerText = t('resend_btn');
+    const verifyExitBtn = document.getElementById('verify-exit-btn');
+    if (verifyExitBtn) verifyExitBtn.innerText = t('exit_btn');
+    
     // Обновляем блюр
     refreshBlurImages();
 }
