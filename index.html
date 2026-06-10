@@ -1330,21 +1330,16 @@ let resetCooldownTimer=null;
 async function resetPassword(){
     const email = document.getElementById('resetEmail').value.trim();
     if (!email) return showErr('reset-err', t('err_enter_email'));
-    const lastReset = parseInt(localStorage.getItem('lastReset')||'0'), now = Date.now();
-    if (now - lastReset < 60000) { startResetCooldown(Math.ceil((60000-(now-lastReset))/1000)); return; }
 
-    // Проверяем что email зарегистрирован в нашей базе
-    const usersSnap = await db.ref('users').orderByChild('email').equalTo(email).once('value');
-    if (!usersSnap.exists()) {
-        showErr('reset-err', t('err_not_found'));
-        return;
+    const lastReset = parseInt(localStorage.getItem('lastReset')||'0'), now = Date.now();
+    if (now - lastReset < 60000) { 
+        startResetCooldown(Math.ceil((60000-(now-lastReset))/1000)); 
+        return; 
     }
 
     auth.languageCode = _lang;
-    const actionCodeSettings = {
-        url: 'https://cubix-web.web.app/auth',
-        handleCodeInApp: false
-    };
+    const actionCodeSettings = { url: 'https://cubix-web.web.app/auth', handleCodeInApp: false };
+
     try {
         await auth.sendPasswordResetEmail(email, actionCodeSettings);
         localStorage.setItem('lastReset', String(now));
@@ -1353,7 +1348,7 @@ async function resetPassword(){
         startResetCooldown(60);
     } catch(e) {
         const msgs = {
-            'auth/invalid-email': t('err_invalid_email'),
+            'auth/invalid-email':  t('err_invalid_email'),
             'auth/user-not-found': t('err_not_found')
         };
         showErr('reset-err', msgs[e.code] || e.message);
