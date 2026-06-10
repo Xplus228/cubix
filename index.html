@@ -1245,10 +1245,10 @@ async function register(){
     const email=document.getElementById('regEmail').value.trim();
     const pass=document.getElementById('regPass').value;
 
-    if(!nick)return showErr('reg-err','Введи ник.');
-    if(nick.length<2)return showErr('reg-err','Ник слишком короткий.');
-    if(!email)return showErr('reg-err','Введи email.');
-    if(pass.length<6)return showErr('reg-err','Пароль минимум 6 символов.');
+    if(!nick)return showErr('reg-err', t('err_enter_nick'));
+    if(nick.length<2)return showErr('reg-err', t('err_nick_short'));
+    if(!email)return showErr('reg-err', t('err_enter_email'));
+    if(pass.length<6)return showErr('reg-err', t('err_pass_short'));
 
     try{
         const res=await auth.createUserWithEmailAndPassword(email,pass);
@@ -1285,9 +1285,9 @@ async function register(){
     }catch(e){
 
         const msgs={
-            'auth/email-already-in-use':'Этот email уже зарегистрирован.',
-            'auth/invalid-email':'Некорректный email.',
-            'auth/weak-password':'Пароль слишком слабый.'
+            'auth/email-already-in-use': t('err_email_used'),
+            'auth/invalid-email': t('err_invalid_email'),
+            'auth/weak-password': t('err_weak_pass')
         };
 
         showErr('reg-err',msgs[e.code]||e.message);
@@ -1296,13 +1296,13 @@ async function register(){
 async function login(){
     const email=document.getElementById('authEmail').value.trim();
     const pass=document.getElementById('authPass').value;
-    if(!email)return showErr('login-err','Введи email.');
-    if(!pass)return showErr('login-err','Введи пароль.');
+    if(!email)return showErr('login-err', t('err_enter_email'));
+    if(!pass)return showErr('login-err', t('err_enter_pass'));
     try{
         const res=await auth.signInWithEmailAndPassword(email,pass);
         if(!res.user.emailVerified)showVerifyScreen(email);
     }catch(e){
-        const msgs={'auth/user-not-found':'Аккаунт не найден.','auth/wrong-password':'Неверный пароль.','auth/invalid-email':'Некорректный email.','auth/too-many-requests':'Слишком много попыток.','auth/invalid-credential':'Неверный email или пароль.'};
+        const msgs={'auth/user-not-found': t('err_not_found'),'auth/wrong-password': t('err_wrong_pass'),'auth/invalid-email': t('err_invalid_email'),'auth/too-many-requests': t('err_too_many'),'auth/invalid-credential': t('err_invalid_cred')};
         showErr('login-err',msgs[e.code]||e.message);
     }
 }
@@ -1317,8 +1317,8 @@ function loginGoogle(){
 async function finishGoogleReg(){
     const user=auth.currentUser;
     const nick=document.getElementById('gNick').value.trim();
-    if(!nick)return showErr('gfinish-err','Введи ник.');
-    if(nick.length<2)return showErr('gfinish-err','Ник слишком короткий.');
+    if(!nick)return showErr('gfinish-err', t('err_enter_nick'));
+    if(nick.length<2)return showErr('gfinish-err', t('err_nick_short'));
     try{
         await db.ref('users/'+user.uid).set({nick:esc(nick),email:user.email,isBannedSite:false,banReason:'',isAdmin:false,avatarIndex:0});
         await db.ref('playerStats/'+user.uid).set({cups:0,rank:'Бронза',wins:0,losses:0,gamesPlayed:0,playtimeSeconds:0,lastOnline:Date.now(),achievements:{}});
@@ -1419,21 +1419,30 @@ function updateProfileStats(s){
 async function resetPasswordFromProfile() {
     const user = auth.currentUser;
     if (!user || !user.email) return;
+
+    const COOLDOWN = 20 * 60 * 1000; // 20 минут
+    const lastReset = parseInt(localStorage.getItem('lastProfileReset') || '0');
+    const now = Date.now();
+    const left = COOLDOWN - (now - lastReset);
+
+    if (left > 0) {
+        const mins = Math.ceil(left / 60000);
+        alert(_lang === 'en'
+            ? `Please wait ${mins} more minute(s) before requesting another reset.`
+            : `Подожди ещё ${mins} мин. перед повторным запросом.`);
+        return;
+    }
+
     const btn = document.getElementById('profile-reset-pass-btn');
     try {
         auth.languageCode = _lang;
-        const actionCodeSettings = {
-            url: 'https://cubix-web.web.app/auth',
-            handleCodeInApp: false
-        };
+        const actionCodeSettings = { url: 'https://cubix-web.web.app/auth', handleCodeInApp: false };
         await auth.sendPasswordResetEmail(user.email, actionCodeSettings);
+        localStorage.setItem('lastProfileReset', String(now));
         if (btn) {
             btn.innerText = t('profile_reset_sent');
             btn.disabled = true;
-            setTimeout(() => {
-                btn.innerText = t('profile_reset_pass');
-                btn.disabled = false;
-            }, 5000);
+            setTimeout(() => { btn.innerText = t('profile_reset_pass'); btn.disabled = false; }, 5000);
         }
     } catch(e) {
         alert(_lang === 'en' ? 'Error sending email.' : 'Ошибка отправки.');
