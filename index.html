@@ -10,6 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
     <script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
         @font-face { font-family: Door; src: url('door.otf'); }
         * { font-family: Door, Arial, sans-serif; box-sizing: border-box; scroll-behavior: smooth; }
@@ -751,6 +752,7 @@
                 <input type="text" id="regNick" placeholder="Ник в игре">
                 <input type="email" id="regEmail" placeholder="Email">
                 <input type="password" id="regPass" placeholder="Пароль (мин. 6 символов)">
+                <div class="cf-turnstile" id="turnstile-reg" data-sitekey="0x4AAAAAADjhI9HYLYIg690z" data-theme="dark"></div>
                 <button class="button" style="width:100%" onclick="register()">Создать аккаунт</button>
                 <button id="have-account-btn" class="auth-link" onclick="showForm('login-form')">← Уже есть аккаунт</button>
             </div>
