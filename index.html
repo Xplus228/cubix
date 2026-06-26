@@ -2879,7 +2879,7 @@ function applyLang() {
     if (blurLabelEl) blurLabelEl.innerText = t('blur_label');
     if (blurDescEl)  blurDescEl.innerText  = t('blur_desc');
     // Профиль — кнопки
-    const logoutBtn = document.querySelector('.profile-btn-logout');
+    const logoutBtn = document.getElementById('profile-logout-btn');
     const deleteBtn = document.querySelector('.profile-btn-delete');
     if (logoutBtn) logoutBtn.innerText = t('profile_logout');
     if (deleteBtn) deleteBtn.innerText = t('profile_delete');
