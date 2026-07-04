@@ -4,13 +4,14 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CubiX | Game</title>
+    <title>CubiX Game</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
     <script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
     <style>
         @font-face { font-family: Door; src: url('door.otf'); }
         * { font-family: Door, Arial, sans-serif; box-sizing: border-box; scroll-behavior: smooth; }
@@ -736,6 +737,7 @@
             <button id="verify-exit-btn" class="auth-link" onclick="cancelVerify()">← Выйти / сменить аккаунт</button>
         </div>
         <div class="auth-box" id="auth-forms">
+            <div class="h-captcha" id="hcap-login" data-sitekey="c974e90a-b77e-4418-a720-ccf6e86ce646" data-theme="dark"></div>
             <div id="login-form">
                 <h2>Вход</h2>
                 <div class="err-box" id="login-err"></div>
@@ -746,6 +748,7 @@
                 <button id="forgot-pass-btn" class="auth-link" onclick="showForm('reset-form')">Забыл пароль?</button>
                 <button id="no-account-btn" class="auth-link" onclick="showForm('reg-form')">Нет аккаунта? Регистрация</button>
             </div>
+            <div class="h-captcha" id="hcap-reg" data-sitekey="c974e90a-b77e-4418-a720-ccf6e86ce646" data-theme="dark"></div>
             <div id="reg-form" style="display:none;">
                 <h2>Регистрация</h2>
                 <div class="err-box" id="reg-err"></div>
@@ -756,6 +759,7 @@
                 <button class="button" style="width:100%" onclick="register()">Создать аккаунт</button>
                 <button id="have-account-btn" class="auth-link" onclick="showForm('login-form')">← Уже есть аккаунт</button>
             </div>
+            <div class="h-captcha" id="hcap-reset" data-sitekey="c974e90a-b77e-4418-a720-ccf6e86ce646" data-theme="dark"></div>
             <div id="reset-form" style="display:none;">
                 <h2>Сброс пароля</h2>
                 <p id="reset-hint-p" style="color:#888;font-size:14px;margin-bottom:15px;">Введи email, пришлём ссылку для создания нового пароля.</p>
@@ -1236,6 +1240,8 @@ async function ensurePlayerStats(uid){
 }
 async function register(){
 
+    if (!checkHcaptcha('hcap-reg', 'reg-err')) return;
+    
     const regDisabledSnap = await db.ref('systemSettings/registrationDisabled').once('value');
 
     if (regDisabledSnap.val() === true) {
@@ -1296,6 +1302,7 @@ async function register(){
     }
 }
 async function login(){
+    if (!checkHcaptcha('hcap-login', 'login-err')) return;
     const email=document.getElementById('authEmail').value.trim();
     const pass=document.getElementById('authPass').value;
     if(!email)return showErr('login-err', t('err_enter_email'));
@@ -1330,6 +1337,8 @@ async function finishGoogleReg(){
 
 let resetCooldownTimer=null;
 async function resetPassword(){
+
+    if (!checkHcaptcha('hcap-reset', 'reset-err')) return;
     const email = document.getElementById('resetEmail').value.trim();
     if (!email) return showErr('reset-err', t('err_enter_email'));
 
@@ -1574,6 +1583,15 @@ db.ref('systemSettings').on('value', snap => {
     if (el('toggle-bandana')) el('toggle-bandana').checked = s.bandanaVisible !== false;
     if (el('bandana-count-input') && s.bandanaCount !== undefined) el('bandana-count-input').value = s.bandanaCount;
 });
+
+function checkHcaptcha(id, errBoxId) {
+    const token = document.querySelector(`#${id} [name="h-captcha-response"]`)?.value;
+    if (!token) {
+        showErr(errBoxId, _lang === 'en' ? 'Please complete the captcha.' : 'Пройди проверку капчи.');
+        return false;
+    }
+    return true;
+}
 
 // ── БАНДАНА ──
 db.ref('systemSettings/bandanaVisible').on('value', snap => {
