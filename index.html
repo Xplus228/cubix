@@ -1291,6 +1291,7 @@ async function register(){
         showVerifyScreen(email);
 
     }catch(e){
+        if (window.hcaptcha) window.hcaptcha.reset();
 
         const msgs={
             'auth/email-already-in-use': t('err_email_used'),
@@ -1311,6 +1312,7 @@ async function login(){
         const res=await auth.signInWithEmailAndPassword(email,pass);
         if(!res.user.emailVerified)showVerifyScreen(email);
     }catch(e){
+        if (window.hcaptcha) window.hcaptcha.reset();
         const msgs={'auth/user-not-found': t('err_not_found'),'auth/wrong-password': t('err_wrong_pass'),'auth/invalid-email': t('err_invalid_email'),'auth/too-many-requests': t('err_too_many'),'auth/invalid-credential': t('err_invalid_cred')};
         showErr('login-err',msgs[e.code]||e.message);
     }
@@ -1358,6 +1360,7 @@ async function resetPassword(){
         document.getElementById('reset-err').style.display = 'none';
         startResetCooldown(60);
     } catch(e) {
+        if (window.hcaptcha) window.hcaptcha.reset();
         const msgs = {
             'auth/invalid-email':  t('err_invalid_email'),
             'auth/user-not-found': t('err_not_found')
