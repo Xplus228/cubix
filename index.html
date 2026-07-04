@@ -1379,11 +1379,29 @@ function startResetCooldown(sec){
 (function(){const left=Math.ceil((60000-(Date.now()-parseInt(localStorage.getItem('lastReset')||'0')))/1000);if(left>0)startResetCooldown(left);})();
 function logout(){auth.signOut();}
 async function deleteAccount(){
-    if(!confirm('Удалить аккаунт навсегда?'))return;
-    if(!confirm('Точно уверен? Это нельзя отменить.'))return;
-    const user=auth.currentUser;
-    try{await db.ref('users/'+user.uid).remove();await db.ref('playerStats/'+user.uid).remove();await user.delete();}
-    catch(e){alert('Для удаления нужно перезайти в аккаунт.');}
+    const confirmText = _lang === 'en' ? 'Delete account permanently?' : 'Удалить аккаунт навсегда?';
+    const confirmText2 = _lang === 'en' ? 'Are you sure? This cannot be undone.' : 'Точно уверен? Это нельзя отменить.';
+    if(!confirm(confirmText)) return;
+    if(!confirm(confirmText2)) return;
+
+    const user = auth.currentUser;
+    try {
+        // Сначала отправляем письмо подтверждения удаления
+        // Firebase не имеет встроенного "confirm delete" письма,
+        // поэтому просто пробуем удалить — если сессия старая, Firebase сам попросит перелогиниться
+        await db.ref('users/' + user.uid).remove();
+        await db.ref('playerStats/' + user.uid).remove();
+        await user.delete();
+        alert(_lang === 'en' ? 'Account deleted.' : 'Аккаунт удалён.');
+    } catch(e) {
+        if (e.code === 'auth/requires-recent-login') {
+            alert(_lang === 'en' 
+                ? 'For security, please sign out and sign in again before deleting your account.' 
+                : 'Для безопасности выйди и снова войди в аккаунт, затем повтори удаление.');
+        } else {
+            alert(_lang === 'en' ? 'Error. Try again.' : 'Ошибка. Попробуй снова.');
+        }
+    }
 }
 
 // ══════════════════════════════════════════════
