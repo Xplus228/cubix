@@ -336,6 +336,23 @@
         #discord-btn:hover { transform:scale(1.12); box-shadow:0 0 20px rgba(88,101,242,0.8); }
         #discord-btn img { width:100%; height:100%; object-fit:cover; display:block; }
 
+        #social-row {
+            position:fixed; bottom:128px; right:25px; z-index:900;
+            display:flex; flex-direction:column; gap:8px;
+        }
+        .social-btn {
+            width:34px; height:34px; border-radius:50%; overflow:hidden;
+            cursor:pointer; transition:0.2s;
+        }
+        .social-btn:hover { transform:scale(1.15); }
+        .social-btn img { width:100%; height:100%; object-fit:cover; display:block; }
+        #youtube-btn    { box-shadow:0 0 10px rgba(255,0,0,0.5);    border:2px solid #FF0000; }
+        #youtube-btn:hover    { box-shadow:0 0 18px rgba(255,0,0,0.8); }
+        #instagram-btn  { box-shadow:0 0 10px rgba(214,44,142,0.5); border:2px solid #d62c8e; }
+        #instagram-btn:hover  { box-shadow:0 0 18px rgba(214,44,142,0.8); }
+        #tiktok-btn     { box-shadow:0 0 10px rgba(37,244,238,0.5); border:2px solid #25F4EE; }
+        #tiktok-btn:hover     { box-shadow:0 0 18px rgba(37,244,238,0.8); }
+
          /* ── БАНДАНА (АКЦИЯ) ── */
         #bandana-btn {
             position:fixed; left:18px; top:50%; transform:translateY(-60%);
@@ -3450,7 +3467,19 @@ document.addEventListener('DOMContentLoaded', () => {
 function openFull(u){document.getElementById('viewer').style.display='flex';document.getElementById('viewImg').src=u;}
 </script>
     
-
+    <!-- СОЦСЕТИ -->
+    <div id="social-row">
+        <div class="social-btn" id="youtube-btn" onclick="window.open('https://youtube.com/@xplusxd','_blank')" title="YouTube">
+            <img src="https://xplus228.github.io/cubix/youtube.png" onerror="this.style.background='#FF0000';this.style.display='none'">
+        </div>
+        <div class="social-btn" id="instagram-btn" onclick="window.open('https://www.instagram.com/xplusxd','_blank')" title="Instagram">
+            <img src="https://xplus228.github.io/cubix/instagram.png" onerror="this.style.background='#d62c8e';this.style.display='none'">
+        </div>
+        <div class="social-btn" id="tiktok-btn" onclick="window.open('https://www.tiktok.com/@xplusxd','_blank')" title="TikTok">
+            <img src="https://xplus228.github.io/cubix/tiktok.png" onerror="this.style.background='#000';this.style.display='none'">
+        </div>
+    </div>
+                
     <!-- ДИСКОРД -->
     <div id="discord-btn" onclick="window.open('https://discord.gg/ysvB4zcNr7','_blank')" title="CubiX Discord">
         <img src="https://xplus228.github.io/cubix/disccubix.png" onerror="this.style.background='#5865F2';this.style.display='none'">
